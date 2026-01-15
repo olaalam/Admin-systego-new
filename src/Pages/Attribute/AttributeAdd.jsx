@@ -34,6 +34,7 @@ const fields = [
       // تجهيز الـ payload ليناسب متطلبات الـ backend
       const payload = {
         name: data.name,
+        ar_name:data.ar_name,
         // ✅ التأكد من تعيين قيمة status كـ boolean (true/false)
         options: (data.options || []).map((opt) => ({
           name: opt.name,

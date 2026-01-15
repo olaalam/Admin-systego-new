@@ -31,7 +31,13 @@ const { t ,i18n } = useTranslation();
     placeholder: t("e.g. Tax (10%)"), // مثال: ضريبة (10%)
       },
 
-
+      {
+        key: "ar_name",
+        label: t("Name(Arabic)"),
+        type: "text",
+        required: true,
+    placeholder: t("e.g. Tax (10%)"), // مثال: ضريبة (10%)
+      },
       {
         key: "type",
  label: t("Tax Type"),
