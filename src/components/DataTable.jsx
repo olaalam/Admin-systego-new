@@ -224,26 +224,34 @@ export default function DataTable({
       {/* Search and Filters */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
         <div className="flex flex-wrap gap-3 items-center">
-          {searchable && (
-            <div className="flex-1 min-w-64">
-              <SmartSearch
-                value={searchTerm}
-                onChange={async (val) => {
-                  setSearchTerm(val);
-                  setCurrentPage(1);
+{searchable && (
+  <div className="flex-1 min-w-64">
+    <SmartSearch
+      value={searchTerm}
+      onChange={async (val) => {
+        setSearchTerm(val);
+        setCurrentPage(1);
 
-                  // ✅ لو في API search
-                  if (onSearchApi) {
-                    try {
-                      await onSearchApi(val); // حتى لو empty string
-                    } catch (err) {
-                      console.error("Search error:", err);
-                    }
-                  }
-                }}
-              />
-            </div>
-          )}
+        // ✅ لو المكنة عملت Scan (عادة مكنة السكنر بتبعث الكود وبسرعة)
+        // أو لو المستخدم كتب كود وعمل Enter
+        if (onSearchApi && val) {
+          try {
+            // نرسل الكود للـ API
+            const result = await onSearchApi(val);
+            
+            // ✅ السر هنا: لو الـ API رجع نتيجة ناجحة، نصفر الـ Search Bar فوراً
+            // عشان السكنر يشتغل تاني من غير ما نمسح القديم يدوياً
+            if (result) {
+              setSearchTerm(""); 
+            }
+          } catch (err) {
+            console.error("Scanner/Search error:", err);
+          }
+        }
+      }}
+    />
+  </div>
+)}
 
           {filterable &&
             columns

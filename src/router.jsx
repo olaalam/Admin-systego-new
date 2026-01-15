@@ -93,6 +93,9 @@ import RedeemPointEdit from "./Pages/RedeemPoint/RedeemPointEdit";
 import Coupon from "./Pages/Coupon/Coupon";
 import CouponAdd from "./Pages/Coupon/CouponAdd";
 import CouponEdit from "./Pages/Coupon/CouponEdit";
+import Purchase from "./Pages/Purchase/Purchase";
+import PurchaseAdd from "./Pages/Purchase/PurchaseAdd";
+import PurchaseEdit from "./Pages/Purchase/PurchaseEdit";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -907,6 +910,33 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <CouponEdit />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+                  {/* ✅ Purchase (Nested Routes محمية) */}
+      <Route path="purchase">
+        <Route
+          index
+          element={
+            <ProtectedRoute>
+              <Purchase />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute>
+              <PurchaseAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute>
+              <PurchaseEdit />
             </ProtectedRoute>
           }
         />
