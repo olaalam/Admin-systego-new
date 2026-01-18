@@ -6,6 +6,7 @@ import { X, Upload, ChevronDown, RotateCw, Copy } from "lucide-react";
 import { toast } from "react-toastify";
 import useGet from "@/hooks/useGet";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 
 const ProductPriceTab = ({
   form,
@@ -35,7 +36,7 @@ const ProductPriceTab = ({
     });
   }, [allVariations]);
   const { t, i18n } = useTranslation();
-   const isRTL = i18n.language === "ar";
+  const isRTL = i18n.language === "ar";
 
   const toggleVariation = (variationId) => {
     const isSelected = selectedVariationIds.includes(variationId);
@@ -99,7 +100,13 @@ const ProductPriceTab = ({
         toast.error("Failed to copy code.");
       });
   };
-
+React.useEffect(() => {
+  if (generatedCodeData?.data?.code) {
+    handleChange("code", generatedCodeData.data.code);
+  } else if (generatedCodeData?.code) {
+    handleChange("code", generatedCodeData.code);
+  }
+}, [generatedCodeData]);
   return (
     <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
       {/* Base product fields */}
@@ -142,47 +149,89 @@ const ProductPriceTab = ({
         </div>
       </div>
 
-      {/* Show start_quantity and cost only when different_price is false */}
-      {!form.different_price && (
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-700 mb-2 block">
-              {t("StartQuantity")}
-            </Label>
-            <Input
-              type="number"
-              value={form.start_quantaty || 0}
-              onChange={(e) =>
-                handleChange("start_quantaty", parseInt(e.target.value) || 0)
-              }
-              placeholder="0"
-              className="h-11"
-              min="0"
-            />
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 mb-2 block">
-              {t("Cost(EGP)")}
-            </Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                {t("EGP")}
-              </span>
-              <Input
-                type="number"
-                value={form.cost || 0}
-                onChange={(e) =>
-                  handleChange("cost", parseFloat(e.target.value) || 0)
-                }
-                placeholder="0.00"
-                className="h-11 pl-14"
-                step="0.01"
-                min="0"
-              />
-            </div>
-          </div>
+{/* Show start_quantity and cost only when different_price is false */}
+{!form.different_price && (
+  <div className="space-y-4">
+    {/* الصف الأول: الكمية والتكلفة */}
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <Label className="text-sm font-medium text-gray-700 mb-2 block">
+          {t("StartQuantity")}
+        </Label>
+        <Input
+          type="number"
+          value={form.start_quantaty || 0}
+          onChange={(e) =>
+            handleChange("start_quantaty", parseInt(e.target.value) || 0)
+          }
+          placeholder="0"
+          className="h-11"
+          min="0"
+        />
+      </div>
+      <div>
+        <Label className="text-sm font-medium text-gray-700 mb-2 block">
+          {t("Cost(EGP)")}
+        </Label>
+        <div className="relative">
+          <span className={`absolute ${isRTL ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 text-gray-500`}>
+            {t("EGP")}
+          </span>
+          <Input
+            type="number"
+            value={form.cost || 0}
+            onChange={(e) =>
+              handleChange("cost", parseFloat(e.target.value) || 0)
+            }
+            placeholder="0.00"
+            className={`h-11 ${isRTL ? "pr-14" : "pl-14"}`}
+            step="0.01"
+            min="0"
+          />
         </div>
-      )}
+      </div>
+    </div>
+
+    {/* الصف الثاني: حقل الكود والنسخ والتوليد */}
+<div className="space-y-2">
+      <Label className="text-sm font-medium text-gray-700 block">{t("Barcode")}</Label>
+      <div className="flex items-center gap-2">
+        <Input
+          type="text"
+          value={form.code || ""} // يقرأ من الفورم الرئيسي
+          onChange={(e) => handleChange("code", e.target.value)}
+          className="h-11 flex-1"
+          placeholder={t("code")}
+        />
+        
+        <button
+          type="button"
+          onClick={() => generateCode()} // ينادي السيرفر فقط، والـ useEffect فوق هو من سيضع القيمة
+          disabled={generatingCode}
+          className="h-11 w-11 flex items-center justify-center text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+        >
+          {generatingCode ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+          ) : (
+            <RotateCw className="h-4 w-4" />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+             navigator.clipboard.writeText(form.code);
+             toast.success(t("Copied!"));
+          }}
+          className="h-11 w-11 flex items-center justify-center text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100"
+          disabled={!form.code}
+        >
+          <Copy className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Different Prices Toggle */}
       <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -233,8 +282,8 @@ const ProductPriceTab = ({
                   <span className="text-sm text-gray-700">
                     {selectedVariationIds.length > 0
                       ? t("variations.selected", {
-                          count: selectedVariationIds.length,
-                        })
+                        count: selectedVariationIds.length,
+                      })
                       : t("variations.choose")}
                   </span>
                   <ChevronDown className="h-4 w-4 text-gray-500" />
@@ -545,8 +594,8 @@ const ProductPriceTab = ({
                 </div>
               </div>
               <p className="text-sm text-gray-600 mt-2">
-{t("variants.generated", { count: form.prices.length })}
-      </p>
+                {t("variants.generated", { count: form.prices.length })}
+              </p>
             </div>
           )}
 

@@ -110,7 +110,7 @@ const CategoryMultiSelect = ({ label, value, options, onChange, required = false
 // ProductGeneralTab Component (with Arabic fields and Taxes)
 // ----------------------------------------------------------------------
 
-const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, loading }) => {
+const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, loading ,units }) => {
   const { t ,i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   if (loading) {
@@ -197,34 +197,26 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
       </div>
 
       {/* Unit & Min Purchase */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <Label className="text-sm font-medium text-gray-700 mb-2 block">
-            {t("productss.unit")}
-          </Label>
-          <Input
-            value={form.unit}
-            onChange={(e) => handleChange("unit", e.target.value)}
-            placeholder={t("productss.unit_placeholder")}
-            className="h-11"
-          />
-        </div>
-
-        <div>
-          <Label className="text-sm font-medium text-gray-700 mb-2 block">
-            {t("minimum_quantity")}
-          </Label>
-          <Input
-            type="number"
-            value={form.minimum_quantity_sale}
-            onChange={(e) =>
-              handleChange("minimum_quantity_sale", parseInt(e.target.value, 10))
-            }
-            min="1"
-            className="h-11"
-          />
-        </div>
-      </div>
+<div>
+  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+    {t("productss.unit")} <span className="text-red-500">*</span>
+  </Label>
+  <select
+    className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none"
+    value={form.unit} 
+    onChange={(e) => handleChange("unit", e.target.value)} 
+  >
+    {/* خيار افتراضي */}
+    <option value="">{t("select unit")}</option>
+    
+    {/* عرض الوحدات القادمة من الـ API */}
+    {units?.map((u) => (
+      <option key={u._id} value={u._id}>
+        {isRTL ? u.ar_name : u.name} ({u.code})
+      </option>
+    ))}
+  </select>
+</div>
 
       {/* Description (English) */}
       <div>

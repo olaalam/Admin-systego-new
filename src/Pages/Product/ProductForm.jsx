@@ -30,7 +30,7 @@ const isRTL = i18n.language === "ar";
   const [brands, setBrands] = useState([]);
   const [taxes, setTaxes] = useState([]); // ✅ إضافة taxes
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+const [units, setUnits] = useState([]);
 const [form, setForm] = useState({
     name: "",
     ar_name: "", // ✅ إضافة ar_name
@@ -57,6 +57,7 @@ const [form, setForm] = useState({
     show_quantity: false,
     maximum_to_show: 0,
     is_featured: false,
+    code: "",
   });
 
   const [selectedVariationIds, setSelectedVariationIds] = useState([]);
@@ -126,7 +127,8 @@ const [form, setForm] = useState({
       setCategories(data.categories || []);
       setBrands(data.brands || []);
       setAllVariations(data.variations || []);
-      setTaxes(data.taxes || []); // ✅ إضافة taxes
+      setTaxes(data.taxes || []); 
+      setUnits(data.units || []);
     }
   }, [data]);
 
@@ -376,6 +378,7 @@ const [form, setForm] = useState({
         different_price: form.different_price,
         is_featured: form.is_featured,
         low_stock: form.low_stock || 0,
+        code: form.code,
       };
 
       finalForm.exp_ability = form.exp_ability;
@@ -431,7 +434,8 @@ const [form, setForm] = useState({
     handleChange,
     categories,
     brands,
-    taxes, // ✅ إضافة taxes
+    taxes,
+    units,
     handleImageUpload,
     removeGalleryImage,
     loading: metaLoading,
