@@ -35,6 +35,7 @@ export default function DataTable({
   onExport = null,
   onImport = null,
   downloadTemplate = null,
+  onRowClick = null,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -224,34 +225,34 @@ export default function DataTable({
       {/* Search and Filters */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
         <div className="flex flex-wrap gap-3 items-center">
-{searchable && (
-  <div className="flex-1 min-w-64">
-    <SmartSearch
-      value={searchTerm}
-      onChange={async (val) => {
-        setSearchTerm(val);
-        setCurrentPage(1);
+          {searchable && (
+            <div className="flex-1 min-w-64">
+              <SmartSearch
+                value={searchTerm}
+                onChange={async (val) => {
+                  setSearchTerm(val);
+                  setCurrentPage(1);
 
-        // ✅ لو المكنة عملت Scan (عادة مكنة السكنر بتبعث الكود وبسرعة)
-        // أو لو المستخدم كتب كود وعمل Enter
-        if (onSearchApi && val) {
-          try {
-            // نرسل الكود للـ API
-            const result = await onSearchApi(val);
-            
-            // ✅ السر هنا: لو الـ API رجع نتيجة ناجحة، نصفر الـ Search Bar فوراً
-            // عشان السكنر يشتغل تاني من غير ما نمسح القديم يدوياً
-            if (result) {
-              setSearchTerm(""); 
-            }
-          } catch (err) {
-            console.error("Scanner/Search error:", err);
-          }
-        }
-      }}
-    />
-  </div>
-)}
+                  // ✅ لو المكنة عملت Scan (عادة مكنة السكنر بتبعث الكود وبسرعة)
+                  // أو لو المستخدم كتب كود وعمل Enter
+                  if (onSearchApi && val) {
+                    try {
+                      // نرسل الكود للـ API
+                      const result = await onSearchApi(val);
+
+                      // ✅ السر هنا: لو الـ API رجع نتيجة ناجحة، نصفر الـ Search Bar فوراً
+                      // عشان السكنر يشتغل تاني من غير ما نمسح القديم يدوياً
+                      if (result) {
+                        setSearchTerm("");
+                      }
+                    } catch (err) {
+                      console.error("Scanner/Search error:", err);
+                    }
+                  }
+                }}
+              />
+            </div>
+          )}
 
           {filterable &&
             columns
@@ -351,7 +352,7 @@ export default function DataTable({
                 {columns.map((column) => (
                   <th
                     key={column.key}
-                     className={`px-6 py-3  
+                    className={`px-6 py-3  
                                           ${lang === "ar" ? " text-right" : " text-left"}
  text-xs font-medium text-gray-500 uppercase tracking-wider`}
                   >
@@ -360,7 +361,7 @@ export default function DataTable({
                 ))}
 
                 {showActions && (onEdit || onDelete) && (
-                 <th className={`px-6 py-3  ${lang === "ar" ? " text-right" : " text-left"} text-xs  font-medium text-gray-500 uppercase tracking-wider`}>
+                  <th className={`px-6 py-3  ${lang === "ar" ? " text-right" : " text-left"} text-xs  font-medium text-gray-500 uppercase tracking-wider`}>
                     {t("dataTable.actions")}
                   </th>
                 )}
@@ -375,9 +376,9 @@ export default function DataTable({
                   return (
                     <tr
                       key={itemId || index}
-                      className={`hover:bg-gray-50 transition-colors ${
-                        isSelected ? "bg-teal-50" : ""
-                      }`}
+                      onClick={() => onRowClick && onRowClick(item)}
+                      className={`hover:bg-gray-50 transition-colors ${isSelected ? "bg-teal-50" : ""
+                        } ${onRowClick ? "cursor-pointer" : ""}`}
                     >
                       <td className="px-4 py-4">
                         <input
@@ -396,18 +397,18 @@ export default function DataTable({
                           {column.render
                             ? column.render(item[column.key], item)
                             : (() => {
-                                const value = item[column.key];
-                                // ✅ تأكد من عدم عرض objects مباشرة
-                                if (value === null || value === undefined)
-                                  return "—";
-                                if (typeof value === "object") {
-                                  return (
-                                    value.name ||
-                                    JSON.stringify(value).slice(0, 50) + "..."
-                                  );
-                                }
-                                return String(value);
-                              })()}
+                              const value = item[column.key];
+                              // ✅ تأكد من عدم عرض objects مباشرة
+                              if (value === null || value === undefined)
+                                return "—";
+                              if (typeof value === "object") {
+                                return (
+                                  value.name ||
+                                  JSON.stringify(value).slice(0, 50) + "..."
+                                );
+                              }
+                              return String(value);
+                            })()}
                         </td>
                       ))}
 
@@ -469,7 +470,7 @@ export default function DataTable({
                         />
                       </svg>
                       <p className="text-gray-500 font-medium text-lg">
-                       {t("dataTable.noData")} 
+                        {t("dataTable.noData")}
                       </p>
                       {!searchTerm &&
                         !Object.values(selectedFilters).some((v) => v) &&
@@ -481,7 +482,7 @@ export default function DataTable({
                             }}
                             className="mt-2 text-teal-600 hover:text-teal-700 font-medium text-sm hover:underline"
                           >
-                        {t("dataTable.addFirstItem")}            
+                            {t("dataTable.addFirstItem")}
                           </button>
                         )}
                     </div>
@@ -502,7 +503,7 @@ export default function DataTable({
                   {Math.min(endIndex, filteredData.length)}
                 </span>{" "}
                 {t("dataTable.of")}{" "} <span className="font-medium">{filteredData.length}</span>{" "}
- {t("dataTable.results")}              </div>
+                {t("dataTable.results")}              </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() =>
@@ -529,11 +530,10 @@ export default function DataTable({
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                          currentPage === pageNum
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
                             ? "bg-primary text-white"
                             : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-300"
-                        }`}
+                          }`}
                       >
                         {pageNum}
                       </button>

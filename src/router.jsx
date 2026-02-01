@@ -97,6 +97,8 @@ import Purchase from "./Pages/Purchase/Purchase";
 import PurchaseAdd from "./Pages/Purchase/PurchaseAdd";
 import PurchaseEdit from "./Pages/Purchase/PurchaseEdit";
 import Payments from "./Pages/Payments/Payments";
+import CashierShift from "./Pages/CashierShift/CashierShift";
+import CashierShiftDetails from "./Pages/CashierShift/CashierShiftDetails";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -953,6 +955,27 @@ export default function AppRoutes() {
           }
         />
       </Route>
+
+      <Route path="cashier-shift">
+        <Route
+          index
+          element={
+            <ProtectedRoute>
+              <CashierShift />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path=":id"
+          element={
+            <ProtectedRoute>
+              <CashierShiftDetails />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+
       {/* ❌ 404 - Not Found Route */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

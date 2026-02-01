@@ -15,6 +15,7 @@ import {
   SlidersHorizontal,
   Puzzle,
   BookOpen,
+  History,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
@@ -89,6 +90,7 @@ const menuItems = [
   },
   { name: "Transfer", icon: Puzzle, path: "/transfer" },
   { name: "Return", icon: Scale, path: "/return" },
+  { name: "Cashier Shift", icon: History, path: "/cashier-shift" },
   {
     name: "Accounting",
     icon: BookOpen,
