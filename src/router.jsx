@@ -97,6 +97,8 @@ import Purchase from "./Pages/Purchase/Purchase";
 import PurchaseAdd from "./Pages/Purchase/PurchaseAdd";
 import PurchaseEdit from "./Pages/Purchase/PurchaseEdit";
 import Payments from "./Pages/Payments/Payments";
+import ReturnPurchase from "./Pages/ReturnPurchase/ReturnPurchase";
+import ReturnPurchaseAdd from "./Pages/ReturnPurchase/ReturnPurchaseAdd";
 import CashierShift from "./Pages/CashierShift/CashierShift";
 import CashierShiftDetails from "./Pages/CashierShift/CashierShiftDetails";
 export default function AppRoutes() {
@@ -864,6 +866,7 @@ export default function AppRoutes() {
         />
       </Route>
       {/* ✅ RedeemPoint (Nested Routes محمية) */}
+      {/* ✅ RedeemPoint (Nested Routes محمية) */}
       <Route path="redeem-point">
         <Route
           index
@@ -891,6 +894,7 @@ export default function AppRoutes() {
         />
       </Route>
       {/* ✅ Coupon (Nested Routes محمية) */}
+      {/* ✅ Coupon (Nested Routes محمية) */}
       <Route path="coupon">
         <Route
           index
@@ -917,6 +921,7 @@ export default function AppRoutes() {
           }
         />
       </Route>
+      {/* ✅ Purchase (Nested Routes محمية) */}
       {/* ✅ Purchase (Nested Routes محمية) */}
       <Route path="purchase">
         <Route
@@ -951,6 +956,33 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <Payments />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+      {/* ✅ Purchase (Nested Routes محمية) */}
+      <Route path="purchase-return">
+        <Route
+          index
+          element={
+            <ProtectedRoute>
+              <ReturnPurchase />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add/:id"
+          element={
+            <ProtectedRoute>
+              <ReturnPurchaseAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute>
+              <PurchaseEdit />
             </ProtectedRoute>
           }
         />
