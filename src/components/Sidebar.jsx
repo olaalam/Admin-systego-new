@@ -42,6 +42,7 @@ const menuItems = [
     icon: ShoppingCart,
     children: [
       { name: "List", path: "/purchase" },
+       { name: "Return", path: "/purchase-return" },
 
     ],
   },
