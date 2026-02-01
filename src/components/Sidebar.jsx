@@ -95,6 +95,7 @@ const menuItems = [
     children: [
       { name: "List", path: "/accounting" },
       { name: "PaymentMethod", path: "/payment_method" },
+      { name: "Payments", path: "/payments" },
     ],
   },
   {
@@ -152,7 +153,7 @@ export default function Sidebar() {
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const { t  } = useTranslation();
+  const { t } = useTranslation();
 
   const toggleDropdown = (name) => {
     setOpenDropdown(openDropdown === name ? null : name);
