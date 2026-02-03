@@ -1,23 +1,29 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Eye } from "lucide-react"; // أيقونة العين
 import DataTable from "@/components/DataTable"; 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useGet from "@/hooks/useGet";
-import usePost from "@/hooks/usePost"; // ✅ 1. تم استدعاء usePost
+import usePost from "@/hooks/usePost";
+import ReturnDetailsModal from "./ReturnDetailsModal"; // استيراد المكون الجديد
 
 export default function PurchaseReturnList() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  
+  // States للمودال الخاص بإضافة مرجع
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reference, setReference] = useState("");
 
-  // جلب قائمة المرتجعات للعرض في الجدول
-  const { data, loading: getLoading } = useGet("api/admin/return-purchase/all-returns");
-  
-  // ✅ 2. استخدام usePost للتحقق من الفاتورة قبل الانتقال
+  // States للمودال الخاص بعرض التفاصيل
+  const [selectedId, setSelectedId] = useState(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  // جلب قائمة المرتجعات
+  const { data: response, loading: getLoading } = useGet("api/admin/return-purchase/all-returns");
   const { postData, loading: postLoading } = usePost();
 
   const columns = [
@@ -28,46 +34,52 @@ export default function PurchaseReturnList() {
     },
     { header: t("Reference"), key: "reference" },
     { header: t("Purchase Reference"), key: "purchase_reference" },
-    { header: t("Supplier"), key: "supplier_name" }, 
+    { 
+      header: t("Supplier"), 
+      key: "supplier_id",
+      render: (val) => val?.company_name || t("N/A") 
+    },
     { header: t("Total Amount"), key: "total_amount" },
     { 
-        header: t("Payment Status"), 
-        key: "payment_status",
-        render: (val) => (
-          <span className={`px-2 py-1 rounded text-xs ${
-            val === "paid" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-          }`}>
-            {val}
-          </span>
+        header: t("Details"), 
+        key: "actions",
+        render: (_, row) => (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex items-center gap-2 bg-slate-900 text-white hover:bg-slate-700 rounded-full px-4"
+            onClick={() => {
+              setSelectedId(row._id);
+              setIsDetailsOpen(true);
+            }}
+          >
+            <Eye size={14} />
+            {t("View")}
+          </Button>
         )
     },
   ];
 
-  // ✅ 3. دالة التعامل مع الزر Submit المعدلة
   const handleGoToCreate = async (e) => {
     e.preventDefault();
     if (!reference) return;
 
-    // إرسال Reference للباك إند للتحقق (تأكد من الرابط الصحيح في الباك إند)
-    // نرسل { reference: reference }
-    const response = await postData(
+    const res = await postData(
       { reference: reference }, 
       "api/admin/return-purchase/purchase-for-return" 
     );
 
-    // إذا عاد الباك إند بنجاح (success: true) ننتقل للصفحة
-    if (response?.success) {
+    if (res?.success) {
         setIsModalOpen(false);
         navigate(`/purchase-return/add/${reference}`);
     }
-    // ملاحظة: لو فشل، usePost سيظهر رسالة الخطأ تلقائياً ولن يتم تنفيذ الكود أعلاه
   };
 
   return (
     <div className="p-6">
       <DataTable
         title={t("Purchase Return List")}
-        data={data?.returns || []} 
+        data={response?.returns || []} 
         columns={columns}
         addButtonText={t("Add Return")}
         onAdd={() => setIsModalOpen(true)}
@@ -75,6 +87,7 @@ export default function PurchaseReturnList() {
         loading={getLoading}
       />
 
+      {/* مودال إضافة مرتجع جديد بالـ Reference */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -94,17 +107,25 @@ export default function PurchaseReturnList() {
               />
             </div>
             <DialogFooter>
-              <Button 
-                type="submit" 
-                className="bg-purple-600 w-full text-white"
-                disabled={postLoading} // تعطيل الزر أثناء التحميل
-              >
+              <Button type="submit" className="bg-purple-600 w-full text-white" disabled={postLoading}>
                 {postLoading ? t("Checking...") : t("Submit")}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* مودال عرض التفاصيل (يستدعى فقط عند الحاجة) */}
+      {isDetailsOpen && (
+        <ReturnDetailsModal 
+          id={selectedId} 
+          isOpen={isDetailsOpen} 
+          onClose={() => {
+            setIsDetailsOpen(false);
+            setSelectedId(null);
+          }} 
+        />
+      )}
     </div>
   );
 }

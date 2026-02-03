@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -14,184 +15,216 @@ import {
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 import usePost from "@/hooks/usePost"; 
-import AddPage from "@/components/AddPage";
 
 export default function ReturnPurchaseAdd() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { id } = useParams(); // هذا هو الـ Reference
+  const { id: reference_no } = useParams(); // الـ Reference الممرر في الرابط
 
-  const { postData, loading } = usePost();
+  const { postData, loading: postLoading } = usePost();
   
   const [purchaseData, setPurchaseData] = useState(null);
   const [returnItems, setReturnItems] = useState([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  // 1. جلب بيانات الفاتورة فور دخول الصفحة باستخدام الـ Reference (id)
+  // حقول الفورم بناءً على الصور والـ Payload المطلوب
+  const [formData, setFormData] = useState({
+    refund_account_id: "", // سيتم إدخاله كـ Input نصي كما طلبتِ
+    reason: "Defective items",
+    note: "",
+    image: ""
+  });
+
+  // 1. جلب بيانات الفاتورة الأصلية عند تحميل الصفحة
   useEffect(() => {
     const fetchInitialData = async () => {
       setIsInitialLoading(true);
-      // مناداة رابط الـ create-return لجلب تفاصيل الفاتورة بناءً على المرجع
-      const res = await postData({ reference: id }, "api/admin/return-purchase/create-return");
+      // استخدام api/admin/return-purchase/purchase-for-return لجلب بيانات الفاتورة
+      const res = await postData({ reference: reference_no }, "api/admin/return-purchase/purchase-for-return");
       
-      // بناءً على الـ JSON اللي بعتيه: الداتا موجودة داخل res.data.data
-      if (res?.success && res?.data?.data) {
-        const actualData = res.data.data;
-        setPurchaseData(actualData);
+      if (res?.success && res?.data) {
+        setPurchaseData(res.data);
         
-        // التحقق من وجود المصفوفة داخل items
-        if (actualData.items && Array.isArray(actualData.items)) {
-            const initialItems = actualData.items.map(item => ({
+        if (res.data.items) {
+            const initialItems = res.data.items.map(item => ({
                 ...item,
-                return_quantity: 0 // نبدأ الكمية بـ 0
+                return_quantity: 0, // القيمة الافتراضية 0 كما في الصورة
+                isSelected: false
             }));
             setReturnItems(initialItems);
         }
       } else {
-          // إذا لم يجد بيانات أو حدث خطأ
-          toast.error(t("Invoice not found"));
+          toast.error(t("Purchase not found"));
           navigate("/purchase-return");
       }
       setIsInitialLoading(false);
     };
 
-    if (id) fetchInitialData();
-  }, [id]);
+    if (reference_no) fetchInitialData();
+  }, [reference_no]);
 
-  // 2. دالة الحفظ النهائي (Store)
-  const handleFinalSubmit = async (formData) => {
-    // تصفية العناصر التي تم إدخال كمية لها
-    const selectedItems = returnItems.filter(item => item.return_quantity > 0);
+  // حساب الإجمالي للمنتجات المختارة
+  const calculateGrandTotal = () => {
+    return returnItems
+      .filter(item => item.isSelected)
+      .reduce((acc, item) => acc + (item.return_quantity * item.price), 0);
+  };
+
+  // 2. دالة الحفظ النهائي (Submit)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const selectedItems = returnItems.filter(item => item.isSelected && item.return_quantity > 0);
 
     if (selectedItems.length === 0) {
-        toast.error(t("Please enter quantity to return"));
+        toast.error(t("Please select items and enter quantities"));
         return;
     }
 
-    // تجهيز الـ Payload حسب طلبك
+    // تجهيز الـ Payload المطلوب للـ API
     const payload = {
-        purchase_id: purchaseData?.purchase?._id, // من بيانات الفاتورة التي جلبناها
+        purchase_id: purchaseData?.purchase?._id,
         items: selectedItems.map(item => ({
             product_id: item.product?._id,
-            product_price_id: item.options?.[0]?.purchase_item_id || null, // مثال للـ Variation
+            product_price_id: item.product_price?._id || null, 
             quantity: item.return_quantity
         })),
-        reason: formData.reason || "Defective items", // نأخذها من الفورم
+        reason: formData.reason,
         note: formData.note,
-        date: formData.date,
-        // refund_account_id: formData.refund_account_id, // أضيفيه إذا كان موجود في AddPage
+        refund_account_id: formData.refund_account_id, // القيمة من الـ Input
+        image: formData.image
     };
 
-    const res = await postData(payload, "api/admin/return-purchase/store");
+    // نداء API الـ create-return للحفظ
+    const res = await postData(payload, "api/admin/return-purchase/create-return");
     if (res?.success) {
+        toast.success(t("Return created successfully"));
         navigate("/purchase-return");
     }
   };
 
-  // تعريف الحقول لـ AddPage
-  const formFields = [
-    { key: "date", label: t("Date"), type: "date", required: true },
-    { key: "reason", label: t("Return Reason"), type: "text", placeholder: t("e.g. Damaged goods") },
-    { key: "note", label: t("Note"), type: "textarea" },
-  ];
-
   if (isInitialLoading) {
     return (
-      <div className="flex flex-col items-center justify-center p-20 space-y-4">
-        <Loader2 className="h-10 w-10 animate-spin text-purple-600" />
-        <p className="text-gray-500">{t("Fetching Invoice Data...")}</p>
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin text-purple-600" size={40} />
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <Card>
-        <CardHeader className="border-b">
-            <CardTitle>{t("Return Purchase Items")} - Ref: {id}</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-            {/* معلومات المورد والمخزن */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 p-4 bg-gray-50 rounded-lg text-sm">
-                <div>
-                    <p className="text-gray-500">{t("Supplier")}</p>
-                    <p className="font-bold text-lg">{purchaseData?.purchase?.supplier?.company_name || purchaseData?.purchase?.supplier?.username}</p>
-                    <p>{purchaseData?.purchase?.supplier?.email}</p>
-                </div>
-                <div className="md:text-right">
-                    <p className="text-gray-500">{t("Warehouse")}</p>
-                    <p className="font-bold text-lg">{purchaseData?.purchase?.warehouse?.name}</p>
-                    <p>{t("Total Invoice")}: {purchaseData?.purchase?.grand_total} EGP</p>
-                </div>
-            </div>
+    <div className="p-6 bg-white min-h-screen">
+      <h2 className="text-xl font-bold mb-6">{t("Add Return")}</h2>
 
-            <div className="border rounded-lg overflow-hidden">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Order Table - جدول المنتجات */}
+        <div className="space-y-3">
+            <h3 className="font-semibold text-gray-700">{t("Order Table *")}</h3>
+            <div className="border rounded-md overflow-hidden">
                 <Table>
-                <TableHeader>
-                    <TableRow className="bg-gray-100">
-                    <TableHead className="text-center w-12">#</TableHead>
-                    <TableHead>{t("Product Name")}</TableHead>
-                    <TableHead className="text-center">{t("Unit Price")}</TableHead>
-                    <TableHead className="text-center">{t("Available Qty")}</TableHead>
-                    <TableHead className="text-center w-[150px]">{t("Return Qty")}</TableHead>
-                    <TableHead className="text-center">{t("Subtotal")}</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {returnItems.map((item, idx) => (
-                    <TableRow key={item._id || idx}>
-                        <TableCell className="text-center">{idx + 1}</TableCell>
-                        <TableCell>
-                            <div className="font-medium">{item.product?.name}</div>
-                            <div className="text-xs text-gray-400">{item.product?.code}</div>
-                        </TableCell>
-                        <TableCell className="text-center">{item.price} EGP</TableCell>
-                        <TableCell className="text-center">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {item.available_to_return}
-                            </span>
-                        </TableCell>
-                        <TableCell>
-                            <Input 
-                                type="number" 
-                                className="h-9 text-center border-purple-200 focus:border-purple-500"
-                                value={item.return_quantity} 
-                                onChange={(e) => {
-                                    const val = parseInt(e.target.value) || 0;
-                                    const max = item.available_to_return;
-                                    const updated = [...returnItems];
-                                    updated[idx] = {
-                                        ...updated[idx],
-                                        return_quantity: Math.max(0, Math.min(val, max))
-                                    };
-                                    setReturnItems(updated);
-                                }} 
-                            />
-                        </TableCell>
-                        <TableCell className="text-center font-bold text-purple-600">
-                            {(item.return_quantity * item.price).toFixed(2)}
-                        </TableCell>
-                    </TableRow>
-                    ))}
-                </TableBody>
+                    <TableHeader className="bg-gray-50">
+                        <TableRow>
+                            <TableHead>{t("Name")}</TableHead>
+                            <TableHead>{t("Code")}</TableHead>
+                            <TableHead className="text-center">{t("Quantity")}</TableHead>
+                            <TableHead>{t("Net Unit Cost")}</TableHead>
+                            <TableHead>{t("SubTotal")}</TableHead>
+                            <TableHead className="text-center">{t("Choose")}</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {returnItems.map((item, idx) => (
+                            <TableRow key={idx}>
+                                <TableCell className="font-medium">{item.product?.name}</TableCell>
+                                <TableCell className="text-gray-500 text-xs">{item.product?._id?.substring(0,8)}</TableCell>
+                                <TableCell className="w-24">
+                                    <Input 
+                                        type="number" 
+                                        className="h-8 text-center"
+                                        value={item.return_quantity}
+                                        max={item.available_to_return}
+                                        onChange={(e) => {
+                                            const val = Math.max(0, Math.min(Number(e.target.value), item.available_to_return));
+                                            const updated = [...returnItems];
+                                            updated[idx].return_quantity = val;
+                                            if (val > 0) updated[idx].isSelected = true;
+                                            setReturnItems(updated);
+                                        }}
+                                    />
+                                    <p className="text-[10px] text-center text-blue-500 mt-1">Max: {item.available_to_return}</p>
+                                </TableCell>
+                                <TableCell>{item.price?.toFixed(2)}</TableCell>
+                                <TableCell className="font-bold">{(item.return_quantity * item.price).toFixed(2)}</TableCell>
+                                <TableCell className="text-center">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={item.isSelected}
+                                        onChange={(e) => {
+                                            const updated = [...returnItems];
+                                            updated[idx].isSelected = e.target.checked;
+                                            setReturnItems(updated);
+                                        }}
+                                        className="w-4 h-4 accent-purple-600 cursor-pointer"
+                                    />
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
                 </Table>
             </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <AddPage 
-        title={t("Return Details")}
-        description={t("Please provide the reason and date for this return")}
-        fields={formFields}
-        onSubmit={handleFinalSubmit}
-        onCancel={() => navigate("/purchase-return")}
-        loading={loading}
-        submitButtonText={t("Create Return")}
-        initialData={{ 
-            date: new Date().toISOString().split('T')[0],
-            reason: "Defective items" 
-        }}
-      />
+        {/* الحقول الإضافية أسفل الجدول */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+            <div className="space-y-2">
+                <label className="text-sm font-medium">{t("Account ID / Name")} *</label>
+                <Input 
+                    placeholder={t("Enter Account ID")} 
+                    value={formData.refund_account_id}
+                    onChange={(e) => setFormData({...formData, refund_account_id: e.target.value})}
+                    required
+                />
+            </div>
+            <div className="space-y-2">
+                <label className="text-sm font-medium">{t("Return Reason")}</label>
+                <Input 
+                    value={formData.reason}
+                    onChange={(e) => setFormData({...formData, reason: e.target.value})}
+                />
+            </div>
+        </div>
+
+        <div className="space-y-2">
+            <label className="text-sm font-medium">{t("Return Note")}</label>
+            <Textarea 
+                placeholder={t("Enter notes here...")}
+                value={formData.note}
+                onChange={(e) => setFormData({...formData, note: e.target.value})}
+            />
+        </div>
+
+        <Button type="submit" className="bg-purple-700 hover:bg-purple-800 text-white px-12" disabled={postLoading}>
+            {postLoading && <Loader2 className="animate-spin mr-2" size={18} />}
+            {t("Submit")}
+        </Button>
+
+        {/* شريط الإجماليات السفلي */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-0 border rounded-lg bg-slate-50 mt-10 text-center">
+            <div className="p-4 border-r">
+                <p className="text-[10px] text-gray-400 uppercase font-bold">{t("Items")}</p>
+                <p className="font-bold text-lg">{returnItems.filter(i => i.isSelected).length}</p>
+            </div>
+            <div className="p-4 border-r">
+                <p className="text-[10px] text-gray-400 uppercase font-bold">{t("Total Items Qty")}</p>
+                <p className="font-bold text-lg">
+                    {returnItems.filter(i => i.isSelected).reduce((acc, i) => acc + i.return_quantity, 0)}
+                </p>
+            </div>
+            <div className="p-4 bg-white">
+                <p className="text-[10px] text-purple-600 uppercase font-black">{t("Grand Total")}</p>
+                <p className="font-black text-xl text-purple-700">{calculateGrandTotal().toFixed(2)}</p>
+            </div>
+        </div>
+      </form>
     </div>
   );
 }

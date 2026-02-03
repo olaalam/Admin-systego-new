@@ -4,21 +4,22 @@ import Loader from "@/components/Loader";
 import useGet from "@/hooks/useGet";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { 
-  CalendarDays, X, CreditCard, AlertTriangle, 
+import {
+  CalendarDays, X, CreditCard, AlertTriangle,
   Timer, Ban, PackageSearch, Box, CheckCircle2,
-  Wallet, Receipt, Clock
+  Wallet, Receipt, Clock, Eye
 } from "lucide-react";
+import PurchaseReturnsModal from "./PurchaseReturnsModal";
 
 const PurchasesPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isArabic = i18n.language === "ar";
-  
+
   const [activeFilter, setActiveFilter] = useState("/api/admin/purchase");
   const { data, loading, error } = useGet(activeFilter);
   const [selectedPurchase, setSelectedPurchase] = useState(null);
-
+  const [returnModalData, setReturnModalData] = useState({ isOpen: false, purchaseId: null });
   // --- 1. حساب الإحصائيات (Stats) للعرض في الأعلى ---
   const statsData = useMemo(() => {
     if (!data) return null;
@@ -66,14 +67,14 @@ const PurchasesPage = () => {
 
     return [
       { key: "reference", header: t("Reference") },
-      { key: "supplier_id", header: t("Supplier"), render: (sup) => sup?.company_name || sup?.username || "---"},
+      { key: "supplier_id", header: t("Supplier"), render: (sup) => sup?.company_name || sup?.username || "---" },
       { key: "warehouse_id", header: t("Warehouse"), render: (wh) => wh?.name || "---", filterable: true },
       { key: "grand_total", header: t("Total"), render: (val) => <span className="font-bold">{val} EGP</span> },
-      
+
       // --- عمود الـ Invoices (المدفوعات الفعلية) ---
-      { 
-        key: "invoices", 
-        header: t("Paid"), 
+      {
+        key: "invoices",
+        header: t("Paid"),
         render: (invoices) => {
           const totalPaid = invoices?.reduce((sum, inv) => sum + (inv.amount || 0), 0) || 0;
           return (
@@ -85,24 +86,41 @@ const PurchasesPage = () => {
         }
       },
 
-      { 
-        key: "payment_status", 
+      {
+        key: "payment_status",
         header: t("Status"),
         filterable: true,
         render: (status, item) => (
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-              status === 'full' ? 'bg-green-100 text-green-700' : 'bg-teal-100 text-teal-700'
-            }`}>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${status === 'full' ? 'bg-green-100 text-green-700' : 'bg-teal-100 text-teal-700'
+              }`}>
               {t(status || 'N/A')}
             </span>
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); setSelectedPurchase(item); }}
               className="text-teal-600 p-1 bg-white border border-teal-100 rounded-full shadow-sm hover:bg-teal-50"
             >
               <CalendarDays size={14} />
             </button>
           </div>
+        )
+      },
+      {
+        key: "returns",
+        header: t("Returns"),
+        render: (_, item) => (
+          <button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1 text-purple-600 hover:bg-purple-50 rounded-full border border-purple-100 h-8"
+            onClick={(e) => {
+              e.stopPropagation(); // منع فتح مودال التفاصيل الأساسي
+              setReturnModalData({ isOpen: true, purchaseId: item._id });
+            }}
+          >
+            <Eye size={14} />
+            <span className="text-[10px] font-bold">{t("View Returns")}</span>
+          </button>
         )
       },
       { key: "date", header: t("Date"), render: (date) => date ? new Date(date).toLocaleDateString() : '---' },
@@ -118,7 +136,7 @@ const PurchasesPage = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      
+
       {/* --- الإحصائيات العلوية الشاملة (Stats) --- */}
       {statsData && statsData.type === 'purchases' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -181,11 +199,10 @@ const PurchasesPage = () => {
           <button
             key={f.path}
             onClick={() => setActiveFilter(f.path)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${
-              activeFilter === f.path 
-              ? "bg-gray-900 text-white border-gray-900 shadow-xl -translate-y-1" 
-              : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
-            }`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${activeFilter === f.path
+                ? "bg-gray-900 text-white border-gray-900 shadow-xl -translate-y-1"
+                : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
+              }`}
           >
             {f.icon} {f.label}
           </button>
@@ -202,10 +219,15 @@ const PurchasesPage = () => {
           addButtonText={t("Add")}
           onEdit={(item) => navigate(`edit/${item._id}`)}
           showActions={true}
-           onAdd={() => alert("Add new payment method clicked!")}
-            addPath="add"
+          onAdd={() => alert("Add new payment method clicked!")}
+          addPath="add"
         />
       )}
+      <PurchaseReturnsModal
+        purchaseId={returnModalData.purchaseId}
+        isOpen={returnModalData.isOpen}
+        onClose={() => setReturnModalData({ isOpen: false, purchaseId: null })}
+      />
 
       {/* المودال التفصيلي (Invoices + Due Payments) */}
       {selectedPurchase && (
@@ -216,22 +238,22 @@ const PurchasesPage = () => {
               <button onClick={() => setSelectedPurchase(null)}><X size={20} /></button>
             </div>
             <div className="p-5 max-h-[70vh] overflow-y-auto">
-                {/* نفس محتوى المودال السابق لعرض المدفوعات والمواعيد */}
-                <h4 className="text-[10px] font-black text-gray-400 uppercase mb-3 tracking-widest">{t("Paid History")}</h4>
-                {selectedPurchase.invoices?.map((inv, i) => (
-                  <div key={i} className="flex justify-between p-3 bg-green-50 border border-green-100 rounded-xl mb-2">
-                    <span className="text-xs font-bold text-gray-600">{new Date(inv.date).toLocaleDateString()}</span>
-                    <span className="text-sm font-black text-green-700">{inv.amount} EGP</span>
-                  </div>
-                ))}
-                <h4 className="text-[10px] font-black text-gray-400 uppercase mt-4 mb-3 tracking-widest">{t("Future Dues")}</h4>
-                {selectedPurchase.duePayments?.map((due, i) => (
-                  <div key={i} className="flex justify-between p-3 bg-orange-50 border border-orange-100 rounded-xl mb-2">
-                    <span className="text-xs font-bold text-gray-600">{new Date(due.date).toLocaleDateString()}</span>
-                    <span className="text-sm font-black text-orange-700">{due.amount} EGP</span>
-                  </div>
-                ))}
-                <button onClick={() => setSelectedPurchase(null)} className="w-full mt-4 bg-gray-900 text-white py-3 rounded-xl font-bold">{t("Done")}</button>
+              {/* نفس محتوى المودال السابق لعرض المدفوعات والمواعيد */}
+              <h4 className="text-[10px] font-black text-gray-400 uppercase mb-3 tracking-widest">{t("Paid History")}</h4>
+              {selectedPurchase.invoices?.map((inv, i) => (
+                <div key={i} className="flex justify-between p-3 bg-green-50 border border-green-100 rounded-xl mb-2">
+                  <span className="text-xs font-bold text-gray-600">{new Date(inv.date).toLocaleDateString()}</span>
+                  <span className="text-sm font-black text-green-700">{inv.amount} EGP</span>
+                </div>
+              ))}
+              <h4 className="text-[10px] font-black text-gray-400 uppercase mt-4 mb-3 tracking-widest">{t("Future Dues")}</h4>
+              {selectedPurchase.duePayments?.map((due, i) => (
+                <div key={i} className="flex justify-between p-3 bg-orange-50 border border-orange-100 rounded-xl mb-2">
+                  <span className="text-xs font-bold text-gray-600">{new Date(due.date).toLocaleDateString()}</span>
+                  <span className="text-sm font-black text-orange-700">{due.amount} EGP</span>
+                </div>
+              ))}
+              <button onClick={() => setSelectedPurchase(null)} className="w-full mt-4 bg-gray-900 text-white py-3 rounded-xl font-bold">{t("Done")}</button>
             </div>
           </div>
         </div>

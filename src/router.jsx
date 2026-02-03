@@ -978,14 +978,7 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="edit/:id"
-          element={
-            <ProtectedRoute>
-              <PurchaseEdit />
-            </ProtectedRoute>
-          }
-        />
+
       </Route>
 
       <Route path="cashier-shift">
