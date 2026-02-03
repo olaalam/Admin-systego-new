@@ -28,7 +28,7 @@ const CashierShift = () => {
             key: "cashier_id",
             header: t("Cashier"),
             render: (val, item) => (
-                <Link to={`/${item._id}`} className="group flex items-center gap-4 cursor-pointer">
+                <Link to={`/cashier-shift/${item._id}`} className="group flex items-center gap-4 cursor-pointer">
                     <div className="relative">
                         <div className="flex items-center gap-2">
                             <p className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-300">

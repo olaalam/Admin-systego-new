@@ -101,6 +101,7 @@ import ReturnPurchase from "./Pages/ReturnPurchase/ReturnPurchase";
 import ReturnPurchaseAdd from "./Pages/ReturnPurchase/ReturnPurchaseAdd";
 import CashierShift from "./Pages/CashierShift/CashierShift";
 import CashierShiftDetails from "./Pages/CashierShift/CashierShiftDetails";
+import PermissionAdd from "./Pages/Permission/PermissionAdd";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -501,6 +502,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <Permission />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute>
+              <PermissionAdd />
             </ProtectedRoute>
           }
         />
