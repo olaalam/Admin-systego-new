@@ -27,23 +27,24 @@ const menuItems = [
   {
     name: "Product",
     icon: Package,
+    
     children: [
-      { name: "Products", path: "/product" },
-      { name: "Category", path: "/category" },
-      { name: "Brand", path: "/brand" },
-      { name: "Attribute", path: "/attribute" },
-      { name: "Unit", path: "/unit" },
-      { name: "Barcode", path: "/barcode" },
-      { name: "Taxes", path: "/taxes" },
-      { name: "Bundels", path: "/pandel" },
+      { name: "Products", path: "/product" ,module: "product",},
+      { name: "Category", path: "/category" ,module: "category",},
+      { name: "Brand", path: "/brand" ,module: "brand",},
+      { name: "Attribute", path: "/attribute" ,module: "variation",},
+      { name: "Unit", path: "/unit" ,module: "units",},
+      { name: "Barcode", path: "/barcode" ,module: "product",},
+      { name: "Taxes", path: "/taxes" ,module: "taxes",},
+      { name: "Bundels", path: "/pandel" ,module: "pandel",},
     ],
   },
   {
     name: "Purchase",
     icon: ShoppingCart,
     children: [
-      { name: "List", path: "/purchase" },
-       { name: "Return", path: "/purchase-return" },
+      { name: "List", path: "/purchase" , module: "purchase",},
+       { name: "Return", path: "/purchase-return" ,module: "purchase return",},
 
     ],
   },
@@ -51,19 +52,19 @@ const menuItems = [
     name: "Locations",
     icon: MapPin,
     children: [
-      { name: "City", path: "/city" },
-      { name: "Country", path: "/country" },
-      { name: "Zone", path: "/zone" },
+      { name: "City", path: "/city" ,module: "city",},
+      { name: "Country", path: "/country" ,module: "country",},
+      { name: "Zone", path: "/zone" ,module: "zone",},
     ],
   },
   {
     name: "Sale",
     icon: TrendingUp,
     children: [
-      { name: "List", path: "/sale/list" },
-      { name: "Discount", path: "/discount" },
-      { name: "Currency", path: "/currency" },
-      { name: "Coupon", path: "/coupon" },
+      { name: "List", path: "/sale/list" , module: "pos",},
+      { name: "Discount", path: "/discount" ,module: "discount", },
+      { name: "Currency", path: "/currency" , module: "currency", },
+      { name: "Coupon", path: "/coupon" ,module: "coupon",  },
 
 
     ],
@@ -72,72 +73,53 @@ const menuItems = [
     name: "Expense",
     icon: Wallet,
     children: [
-      { name: "List", path: "/expense" },
-      { name: "ExpensesCategory", path: "/expense-category" },
+      { name: "List", path: "/expense" , module: "expenseadmin", },
+      { name: "ExpensesCategory", path: "/expense-category" ,module: "expense category",},
     ],
   },
   {
     name: "Revenue",
     icon: Handshake,
-    children: [{ name: "List", path: "/revenue" }],
+    children: [{ name: "List", path: "/revenue" , module: "revenue", }],
   },
-  {
-    name: "Quotation",
-    icon: FileText,
-    children: [
-      { name: "List", path: "/quotation/list" },
-      { name: "Add", path: "/quotation/add" },
-    ],
-  },
-  { name: "Transfer", icon: Puzzle, path: "/transfer" },
-  { name: "Return", icon: Scale, path: "/return" },
-  { name: "Cashier Shift", icon: History, path: "/cashier-shift" },
+  { name: "Transfer", icon: Puzzle, path: "/transfer" , module: "transfer",},
+  { name: "Cashier Shift", icon: History, path: "/cashier-shift" , module: "cashier shift_report",},
   {
     name: "Accounting",
     icon: BookOpen,
     children: [
-      { name: "List", path: "/accounting" },
-      { name: "PaymentMethod", path: "/payment_method" },
-      { name: "Payments", path: "/payments" },
-    ],
-  },
-  {
-    name: "HRM",
-    icon: UserRound,
-    children: [
-      { name: "List", path: "/hrm/list" },
-      { name: "Add", path: "/hrm/add" },
+      { name: "List", path: "/accounting" , module: " financial account", },
+      { name: "PaymentMethod", path: "/payment_method" , module: "payment method",},
+      { name: "Payments", path: "/payments" , module: "payment",},
     ],
   },
   {
     name: "People",
     icon: Users,
     children: [
-      { name: "Admin", path: "/admin" },
-      { name: "Supplier", path: "/supplier" },
-      { name: "Customer", path: "/customer" },
-      { name: "CustomerGroup", path: "/customer-group" },
-      { name: "Cashier", path: "/cashier" },
-      { name: "Permission", path: "/permission" },
+      { name: "Admin", path: "/admin" , module: "admin",},
+      { name: "Supplier", path: "/supplier" , module: "supplier",},
+      { name: "Customer", path: "/customer" , module: "customer",},
+      { name: "CustomerGroup", path: "/customer-group" , module: "customer group",},
+      { name: "Cashier", path: "/cashier" , module: "cashier",},
+      { name: "Permission", path: "/permission" , module: "permission",},
     ],
   },
   {
     name: "Reports",
     icon: FileText,
     children: [
-      { name: "List", path: "/reports/list" },
-      { name: "Popup", path: "/popup" },
-      { name: "Point", path: "/point" },
-      { name: "RedeemPoint", path: "/redeem-point" },
+      { name: "Popup", path: "/popup" , module: "popup",},
+      { name: "Point", path: "/point" , module: "point",},
+      { name: "RedeemPoint", path: "/redeem-point" , module: "redeem points",},
     ],
   },
-  { name: "Addons", icon: Puzzle, path: "/addons" },
   {
     name: "Manufacturing",
     icon: Factory,
     children: [
-      { name: "List", path: "/manufacturing/list" },
-      { name: "WareHouse", path: "/warehouse" },
+      { name: "List", path: "/manufacturing/list" , module: "manufacturing list",},
+      { name: "WareHouse", path: "/warehouse" , module: "warehouse",},
 
     ],
   },
@@ -157,6 +139,16 @@ export default function Sidebar() {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { t } = useTranslation();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userPermissions = user.permissions || [];
+  const isSuperAdmin = user.role === "superadmin";
+  const hasAccess = (moduleName) => {
+    // السوبر أدمن والداشبورد متاحين دائماً
+    if (isSuperAdmin || moduleName === "dashboard") return true;
+    
+    // البحث عن الموديول داخل مصفوفة الصلاحيات
+    return userPermissions.some(p => p.module.toLowerCase() === moduleName.toLowerCase());
+  };
 
   const toggleDropdown = (name) => {
     setOpenDropdown(openDropdown === name ? null : name);

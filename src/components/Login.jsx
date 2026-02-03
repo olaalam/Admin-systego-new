@@ -55,11 +55,12 @@ export default function LoginPage() {
       const res = await postData(values); // التوست جوه الهوك
 
       if (res.success) {
-        const { token, admin } = res.data;
+        const {token,user} = res.data;
 
         // تخزين البيانات
         localStorage.setItem("token", token);
-        localStorage.setItem("admin", JSON.stringify(admin));
+
+        localStorage.setItem("user", JSON.stringify(user));
 
         // ✅ بعد النجاح يروح للصفحة الرئيسية
         navigate("/");
