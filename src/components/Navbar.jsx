@@ -13,6 +13,7 @@ export default function Navbar() {
   const handleLogout = () => {
     // احذف بيانات اليوزر (token/session)
     localStorage.removeItem("token");
+    localStorage.clear();
     // روح لصفحة الـ login
     navigate("/login");
   };

@@ -86,7 +86,7 @@ const Permission = () => {
             {/* Body: عرض الصلاحيات بشكل منظم */}
             <div className="p-6 overflow-y-auto custom-scrollbar">
               <div className="grid gap-6">
-                {viewTarget.permissions.map((moduleItem, idx) => (
+                {viewTarget.permissions?.map((moduleItem, idx) => (
                   <div key={idx} className="border-b border-gray-50 pb-4 last:border-0">
                     <h3 className="text-sm font-bold text-gray-900 mb-3 capitalize flex items-center">
                       <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>

@@ -20,7 +20,7 @@ const PermissionEdit = () => {
     // تأكدي من الوصول للـ data الصحيحة بناءً على هيكل الـ JSON المرفق في الصورة (roleData.data)
     if (roleData && !initialFormData) {
       const { role, permissions } = roleData;
-      
+
       const formattedPermissions = permissions.map(p => ({
         module: p.module,
         actions: p.actions.filter(a => a.enabled).map(a => a.action)
@@ -38,7 +38,7 @@ const PermissionEdit = () => {
     const payload = {
       name: formData.name,
       status: formData.status ? "active" : "inactive",
-      permissions: formData.permissions, 
+      permissions: formData.permissions,
     };
     await putData(payload);
     navigate("/permission");
@@ -81,8 +81,8 @@ const PermissionEdit = () => {
           <div className="space-y-6 mt-4">
             {/* زر Select All الكبير */}
             <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id="globalSelectAll"
                 className="w-5 h-5 accent-red-600 cursor-pointer"
                 checked={currentPermissions.length === availablePermissions.length && availablePermissions.length > 0}
@@ -99,10 +99,10 @@ const PermissionEdit = () => {
                 const isModuleFull = moduleInState?.actions.length === m.actions.length;
 
                 return (
-                  <div key={m.module} className="border rounded-xl p-4 shadow-sm bg-white border-gray-100 hover:border-red-100 transition-colors">
+                  <div key={m.id || m.module || m.name} className="border rounded-xl p-4 shadow-sm bg-white border-gray-100 hover:border-red-100 transition-colors">
                     {/* Header الخاص بكل Card مع Select All للموديول */}
                     <div className="flex items-center gap-2 mb-3 border-b pb-2 border-gray-50">
-                      <input 
+                      <input
                         type="checkbox"
                         checked={isModuleFull || false}
                         className="w-4 h-4 accent-red-600 cursor-pointer"
@@ -120,10 +120,10 @@ const PermissionEdit = () => {
                       />
                       <h3 className="font-bold text-sm text-gray-800 uppercase">{m.module.replace('_', ' ')}</h3>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-2">
-                      {m.actions.map((act) => (
-                        <label key={act.id} className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer hover:text-red-600">
+                      {m.actions.map((act, actIdx) => (
+                        <label key={act.id || act.action || act.name || actIdx} className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer hover:text-red-600">
                           <input
                             type="checkbox"
                             checked={moduleInState?.actions.includes(act.action) || false}
@@ -131,7 +131,7 @@ const PermissionEdit = () => {
                             onChange={(e) => {
                               const otherModules = currentPermissions.filter(p => p.module !== m.module);
                               let newActions = moduleInState ? [...moduleInState.actions] : [];
-                              
+
                               if (e.target.checked) {
                                 newActions.push(act.action);
                               } else {
@@ -140,7 +140,7 @@ const PermissionEdit = () => {
 
                               setFormData({
                                 ...formData,
-                                permissions: newActions.length > 0 
+                                permissions: newActions.length > 0
                                   ? [...otherModules, { module: m.module, actions: newActions }]
                                   : otherModules
                               });
