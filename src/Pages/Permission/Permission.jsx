@@ -5,6 +5,7 @@ import DeleteDialog from "@/components/DeleteForm";
 import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Permission = () => {
   const { t } = useTranslation();
@@ -58,9 +59,9 @@ const Permission = () => {
         onDelete={(item) => setDeleteTarget(item)}
         editPath={(item) => `edit/${item.id}`}
         addPath="add"
-
         itemsPerPage={10}
         searchable={true}
+        moduleName={AppModules.PERMISSION}
       />
 
       {/* مودال عرض الصلاحيات المحسن */}

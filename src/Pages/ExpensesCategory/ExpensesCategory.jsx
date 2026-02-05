@@ -9,11 +9,12 @@ import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const ExpensesCategory = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/expenseCategory");
   const { deleteData, loading: deleting } = useDelete("/api/admin/expenseCategory");
-  
+
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const { t, i18n } = useTranslation();
@@ -37,7 +38,7 @@ const ExpensesCategory = () => {
       toast.success(t("Statusupdatedsuccessfully"));
       refetch();
     } catch (err) {
-      toast.error(t("Failedtoupdatestatus"),err);
+      toast.error(t("Failedtoupdatestatus"), err);
     } finally {
       setUpdatingId(null);
     }
@@ -66,13 +67,13 @@ const ExpensesCategory = () => {
       key: "name",
       header: t("CategoryDetails"),
       filterable: true,
-      
+
     },
-        {
+    {
       key: "ar_name",
       header: t("ArabicName"),
       filterable: true,
-     
+
     },
 
     {
@@ -97,23 +98,24 @@ const ExpensesCategory = () => {
       <DataTable
         data={expenseCategories}
         columns={columns}
-     title={t("ExpenseCategoryManagement")}
-  addButtonText={t("AddExpenseCategory")}
+        title={t("ExpenseCategoryManagement")}
+        addButtonText={t("AddExpenseCategory")}
         onAdd={() => navigate("add")}
-        onEdit={(item) => {}} // DataTable handles navigation via editPath
+        onEdit={(item) => { }} // DataTable handles navigation via editPath
         onDelete={(item) => setDeleteTarget(item)}
         addPath="add"
         editPath={(item) => `edit/${item._id}`}
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.EXPENSE_CATEGORY}
       />
 
       {/* Delete Dialog */}
       {deleteTarget && (
         <DeleteDialog
-         title={t("DeleteExpenseCategory")}
-  message={t("DeleteExpenseCategoryMessage", { name: deleteTarget.name })}
+          title={t("DeleteExpenseCategory")}
+          message={t("DeleteExpenseCategoryMessage", { name: deleteTarget.name })}
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}

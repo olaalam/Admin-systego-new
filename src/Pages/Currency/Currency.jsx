@@ -7,13 +7,14 @@ import useDelete from "@/hooks/useDelete";
 import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Currency = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/currency"); // تأكد من الرابط الصحيح
   const { deleteData, loading: deleting } = useDelete("/api/admin/currency/delete");
-const [updatingId, setUpdatingId] = useState(null);
+  const [updatingId, setUpdatingId] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   // تعديل هنا: نستخدم data.currencies بدل countries
   const currencies = data?.currencies || [];
@@ -27,59 +28,59 @@ const { t, i18n } = useTranslation();
     }
   };
   const handleSetDefault = async (item) => {
-  if (item.isdefault) return; // already default
+    if (item.isdefault) return; // already default
 
-  setUpdatingId(item._id);
-  try {
-    await api.put(`/api/admin/currency/${item._id}`, {
-      isdefault: true,
-    });
+    setUpdatingId(item._id);
+    try {
+      await api.put(`/api/admin/currency/${item._id}`, {
+        isdefault: true,
+      });
 
-    toast.success(t("default_currency_updated"));
-    refetch();
-  } catch (err) {
-    toast.error(t("failed_to_update_default_currency"));
-    console.error(err);
-  } finally {
-    setUpdatingId(null);
-  }
-};
+      toast.success(t("default_currency_updated"));
+      refetch();
+    } catch (err) {
+      toast.error(t("failed_to_update_default_currency"));
+      console.error(err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
 
-const columns = [
-  { key: "name", header: t("CurrencyName"), filterable: true },
-  { key: "ar_name", header: t("ArabicName"), filterable: true },
-{
-  key: "isdefault",
-  header: t("Default"),
-  filterable: false,
-  render: (value, item) => (
-    <label className="relative inline-flex items-center cursor-pointer">
-      <input
-        type="checkbox"
-        checked={!!value}
-        disabled={value || updatingId === item._id}
-        onChange={() => handleSetDefault(item)}
-        className="sr-only peer"
-      />
-      <div
- className={`
+  const columns = [
+    { key: "name", header: t("CurrencyName"), filterable: true },
+    { key: "ar_name", header: t("ArabicName"), filterable: true },
+    {
+      key: "isdefault",
+      header: t("Default"),
+      filterable: false,
+      render: (value, item) => (
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={!!value}
+            disabled={value || updatingId === item._id}
+            onChange={() => handleSetDefault(item)}
+            className="sr-only peer"
+          />
+          <div
+            className={`
       w-11 h-6 bg-gray-300 rounded-full peer 
       peer-checked:bg-primary 
       after:content-[''] after:absolute after:top-[2px] after:bg-white  after:rounded-full after:h-5 after:w-5 after:transition-all 
-      ${isRTL 
-        ? "peer-checked:after:-translate-x-full" 
-        : "peer-checked:after:translate-x-full"}
+      ${isRTL
+                ? "peer-checked:after:-translate-x-full"
+                : "peer-checked:after:translate-x-full"}
       after:start-[2px]
     `} />    {updatingId === item._id && (
-        <span className="ml-2 text-xs text-gray-500">{t("Updating")}</span>
-      )}
-    </label>
-  ),
-}
-,
-  { key: "amount", header: t("Amount"), filterable: true },
-];
+            <span className="ml-2 text-xs text-gray-500">{t("Updating")}</span>
+          )}
+        </label>
+      ),
+    }
+    ,
+    { key: "amount", header: t("Amount"), filterable: true },
+  ];
 
 
   if (loading) return <Loader />;
@@ -101,12 +102,13 @@ const columns = [
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.CURRENCY}
       />
 
       {deleteTarget && (
         <DeleteDialog
-       title={t("delete_currency_title")}
-message={t("confirm_delete_currency", { name: deleteTarget.name })}
+          title={t("delete_currency_title")}
+          message={t("confirm_delete_currency", { name: deleteTarget.name })}
 
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}

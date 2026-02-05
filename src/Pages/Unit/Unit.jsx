@@ -10,20 +10,21 @@ import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Unit = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/units");
   const { deleteData, loading: deleting } = useDelete("/api/admin/units");
-  
+
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [bulkDeleteIds, setBulkDeleteIds] = useState(null);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
-  
+
   const navigate = useNavigate();
   const units = data?.units || [];
-const { t ,i18n } = useTranslation();
- const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const handleDelete = async (item) => {
     try {
       await deleteData(`/api/admin/units/${item._id}`);
@@ -49,7 +50,7 @@ const { t ,i18n } = useTranslation();
       await deleteData("/api/admin/units", { ids: bulkDeleteIds });
 
       refetch();
-toast.success(t("UnitsDeletedSuccessfully", { count: bulkDeleteIds.length }));
+      toast.success(t("UnitsDeletedSuccessfully", { count: bulkDeleteIds.length }));
     } catch (err) {
       console.error("Bulk delete error:", err);
       // Error toast is already handled by useDelete hook
@@ -82,7 +83,7 @@ toast.success(t("UnitsDeletedSuccessfully", { count: bulkDeleteIds.length }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Units");
 
-    XLSX.writeFile(wb, `units_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(wb, `units_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const handleImport = async (file) => {
@@ -142,7 +143,7 @@ toast.success(t("UnitsDeletedSuccessfully", { count: bulkDeleteIds.length }));
       toast.success(t("Status updated successfully"));
       refetch();
     } catch (err) {
-      toast.error(t("Failed to update status"),err);
+      toast.error(t("Failed to update status"), err);
     } finally {
       setUpdatingId(null);
     }
@@ -158,14 +159,14 @@ toast.success(t("UnitsDeletedSuccessfully", { count: bulkDeleteIds.length }));
         className="sr-only peer"
       />
       <div
-      
- className={`
+
+        className={`
       w-11 h-6 bg-gray-300 rounded-full peer 
       peer-checked:bg-primary 
       after:content-[''] after:absolute after:top-[2px] after:bg-white  after:rounded-full after:h-5 after:w-5 after:transition-all 
-      ${isRTL 
-        ? "peer-checked:after:-translate-x-full" 
-        : "peer-checked:after:translate-x-full"}
+      ${isRTL
+            ? "peer-checked:after:-translate-x-full"
+            : "peer-checked:after:translate-x-full"}
       after:start-[2px]
     `}></div>
       {updatingId === item._id && (
@@ -196,7 +197,7 @@ toast.success(t("UnitsDeletedSuccessfully", { count: bulkDeleteIds.length }));
     if (!item.base_unit) {
       return <span className="text-gray-400 italic text-sm">—</span>;
     }
-    
+
     return (
       <div className="space-y-1">
         <div className="font-medium text-sm text-gray-900">{item.base_unit.name}</div>
@@ -249,22 +250,20 @@ toast.success(t("UnitsDeletedSuccessfully", { count: bulkDeleteIds.length }));
     },
     {
       key: "is_base_unit",
-      header:t( "Is Base Unit"),
+      header: t("Is Base Unit"),
       filterable: true,
       render: (value) => (
         <span
-          className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${
-            value
+          className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${value
               ? "bg-green-50 text-green-700 ring-1 ring-green-600/20"
               : "bg-gray-50 text-gray-600 ring-1 ring-gray-300/50"
-          }`}
+            }`}
         >
           <span
-            className={`h-1.5 w-1.5 rounded-full mr-1.5 ${
-              value ? "bg-green-500" : "bg-gray-400"
-            }`}
+            className={`h-1.5 w-1.5 rounded-full mr-1.5 ${value ? "bg-green-500" : "bg-gray-400"
+              }`}
           />
-          {value ? t("Yes") :t("No")}
+          {value ? t("Yes") : t("No")}
         </span>
       ),
     },
@@ -292,7 +291,7 @@ toast.success(t("UnitsDeletedSuccessfully", { count: bulkDeleteIds.length }));
         columns={columns}
         title={t("Unit Management")}
         onAdd={() => navigate("add")}
-        onEdit={(item) => {}} // DataTable handles navigation via editPath
+        onEdit={(item) => { }} // DataTable handles navigation via editPath
         onDelete={(item) => setDeleteTarget(item)}
         onBulkDelete={handleBulkDelete}
         onExport={handleExport}
@@ -304,13 +303,14 @@ toast.success(t("UnitsDeletedSuccessfully", { count: bulkDeleteIds.length }));
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.UNITS}
       />
 
       {/* Delete Dialog */}
       {deleteTarget && (
         <DeleteDialog
-     title={t("DeleteUnit")}
-message={t("ConfirmDeleteUnit", { name: deleteTarget.name })}
+          title={t("DeleteUnit")}
+          message={t("ConfirmDeleteUnit", { name: deleteTarget.name })}
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
@@ -320,9 +320,9 @@ message={t("ConfirmDeleteUnit", { name: deleteTarget.name })}
       {/* Bulk Delete Dialog */}
       {bulkDeleteIds && (
         <DeleteDialog
-        title={t("DeleteMultipleUnits")}
-message={t("ConfirmDeleteMultipleUnits", { count: bulkDeleteIds.length })}
-  onConfirm={confirmBulkDelete}
+          title={t("DeleteMultipleUnits")}
+          message={t("ConfirmDeleteMultipleUnits", { count: bulkDeleteIds.length })}
+          onConfirm={confirmBulkDelete}
           onCancel={() => setBulkDeleteIds(null)}
           loading={bulkDeleting}
         />

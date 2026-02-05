@@ -5,6 +5,7 @@ import DeleteDialog from "@/components/DeleteForm";
 import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Customer = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/customer");
@@ -13,7 +14,7 @@ const Customer = () => {
   );
 
   const [deleteTarget, setDeleteTarget] = useState(null);
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   // 👇 الريسبونس: data.customers
   const customers = data?.customers || [];
@@ -85,7 +86,6 @@ const { t, i18n } = useTranslation();
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <DataTable
-
         data={customers}
         columns={columns}
         title={t("customer_management")}
@@ -98,12 +98,13 @@ const { t, i18n } = useTranslation();
         itemsPerPage={10}
         searchable
         filterable
+        moduleName={AppModules.CUSTOMER}
       />
 
       {deleteTarget && (
         <DeleteDialog
-       title={t("delete_customer_title")}
-message={t("confirm_delete_customer", { name: deleteTarget.name })}
+          title={t("delete_customer_title")}
+          message={t("confirm_delete_customer", { name: deleteTarget.name })}
 
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}

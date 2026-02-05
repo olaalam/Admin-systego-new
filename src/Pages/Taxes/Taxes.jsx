@@ -9,6 +9,7 @@ import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Taxes = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/taxes");
@@ -22,8 +23,8 @@ const Taxes = () => {
   const navigate = useNavigate();
 
   const taxes = data?.taxes || [];
-const { t ,i18n } = useTranslation();
- const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   /* =======================
      Delete Single
   ======================= */
@@ -53,11 +54,10 @@ const { t ,i18n } = useTranslation();
       await deleteData("/api/admin/taxes", {
         ids: bulkDeleteIds,
       });
-    toast.success(
-  `Successfully deleted ${bulkDeleteIds.length} tax${
-    bulkDeleteIds.length > 1 ? "es" : ""
-  }`
-);
+      toast.success(
+        `Successfully deleted ${bulkDeleteIds.length} tax${bulkDeleteIds.length > 1 ? "es" : ""
+        }`
+      );
 
       refetch();
     } catch (err) {
@@ -80,7 +80,7 @@ const { t ,i18n } = useTranslation();
       toast.success(t("Status updated successfully"));
       refetch();
     } catch (err) {
-      toast.error(t("Failed to update status"),err);
+      toast.error(t("Failed to update status"), err);
     } finally {
       setUpdatingId(null);
     }
@@ -95,14 +95,14 @@ const { t ,i18n } = useTranslation();
         disabled={updatingId === item._id}
         className="sr-only peer"
       />
-      <div 
-      className={`
+      <div
+        className={`
       w-11 h-6 bg-gray-300 rounded-full peer 
       peer-checked:bg-primary 
       after:content-[''] after:absolute after:top-[2px] after:bg-white  after:rounded-full after:h-5 after:w-5 after:transition-all 
-      ${isRTL 
-        ? "peer-checked:after:-translate-x-full" 
-        : "peer-checked:after:translate-x-full"}
+      ${isRTL
+            ? "peer-checked:after:-translate-x-full"
+            : "peer-checked:after:translate-x-full"}
       after:start-[2px]
     `}></div>
       {updatingId === item._id && (
@@ -131,19 +131,18 @@ const { t ,i18n } = useTranslation();
       filterable: true,
       render: (value) => (
         <span
-          className={`px-2 py-1 rounded text-xs font-medium ${
-            value === "percentage"
+          className={`px-2 py-1 rounded text-xs font-medium ${value === "percentage"
               ? "bg-blue-50 text-blue-700"
               : "bg-purple-50 text-purple-700"
-          }`}
+            }`}
         >
-          {value === "percentage" ? t("Percentage" ): t("Fixed")}
+          {value === "percentage" ? t("Percentage") : t("Fixed")}
         </span>
       ),
     },
     {
       key: "amount",
-      header:t("Amount"),
+      header: t("Amount"),
       filterable: false,
       render: (value, item) =>
         item.type === "percentage" ? `${value * 100}%` : value,
@@ -173,7 +172,7 @@ const { t ,i18n } = useTranslation();
         columns={columns}
         title={t("Tax Management")}
         onAdd={() => navigate("add")}
-        onEdit={() => {}}
+        onEdit={() => { }}
         onDelete={(item) => setDeleteTarget(item)}
         onBulkDelete={handleBulkDelete}
         addButtonText={t("Add Tax")}
@@ -182,6 +181,7 @@ const { t ,i18n } = useTranslation();
         itemsPerPage={10}
         searchable
         filterable
+        moduleName={AppModules.TAXES}
       />
 
       {/* Delete Single */}
@@ -199,7 +199,7 @@ const { t ,i18n } = useTranslation();
       {bulkDeleteIds && (
         <DeleteDialog
           title={t("Delete Multiple Taxes")}
-       message={t("ConfirmDeleteTaxes", { count: bulkDeleteIds.length })}
+          message={t("ConfirmDeleteTaxes", { count: bulkDeleteIds.length })}
 
           onConfirm={confirmBulkDelete}
           onCancel={() => setBulkDeleteIds(null)}

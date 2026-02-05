@@ -5,6 +5,7 @@ import useGet from "@/hooks/useGet";
 import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 import {
     CheckCircle2, X, Clock, Eye, Wallet, CreditCard, Info
 } from "lucide-react";
@@ -252,6 +253,7 @@ const Payments = () => {
                             columns={columns}
                             title={`${t(activeTab.charAt(0).toUpperCase() + activeTab.slice(1))} ${t("Payments")}`}
                             showActions={false}
+                            moduleName={AppModules.PAYMENT}
                         />
                     </div>
                 )}

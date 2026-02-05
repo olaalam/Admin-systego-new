@@ -7,6 +7,7 @@ import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Transfer = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/transfer"); // افترض أن الـ endpoint هو هذا بناءً على الـ response
@@ -17,13 +18,13 @@ const Transfer = () => {
   const transfers = data?.transfers || [];
 
   // دوال لحساب الإجماليات
-  const getTotal = (array = []) => 
+  const getTotal = (array = []) =>
     array.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
   const getRequestedQty = (transfer) => getTotal(transfer.products);
-  
+
   const getApprovedQty = (transfer) => getTotal(transfer.approved_products);
-  
+
   const getRejectedQty = (transfer) => getTotal(transfer.rejected_products);
 
   // عرض حالة التحويلة بشارة ملونة
@@ -135,6 +136,7 @@ const Transfer = () => {
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.TRANSFER}
       />
     </div>
   );

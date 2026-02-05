@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import api from "@/api/api";
 import { Switch } from "@/components/ui/switch"; // تأكد من مسار الـ Switch الصحيح في مشروعك
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Cashier = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/cashier");
@@ -16,9 +17,9 @@ const Cashier = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showBankAccountsModal, setShowBankAccountsModal] = useState(false);
   const [selectedBankAccounts, setSelectedBankAccounts] = useState([]);
-  
+
   const cashiers = data?.cashiers || [];
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   // --- Functions ---
 
@@ -33,9 +34,8 @@ const { t, i18n } = useTranslation();
 
   const renderStatus = (status) => (
     <span
-      className={`px-2 py-1 rounded text-xs font-medium ${
-        status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-      }`}
+      className={`px-2 py-1 rounded text-xs font-medium ${status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+        }`}
     >
       {status ? t("Active") : t("Inactive")}
     </span>
@@ -57,13 +57,13 @@ const { t, i18n } = useTranslation();
         await api.put(`/api/admin/cashier/${row._id}`, {
           status: newStatus,
         });
-toast.success(
-t("status_updated_for", { name: row.name || t("unknown") })
-);
+        toast.success(
+          t("status_updated_for", { name: row.name || t("unknown") })
+        );
         refetch(); // لتحديث البيانات في الجدول بالكامل إذا لزم الأمر
       } catch (err) {
         setChecked(previousStatus);
-        toast.error(t("failed_to_update_status"),err);
+        toast.error(t("failed_to_update_status"), err);
       } finally {
         setIsUpdating(false);
       }
@@ -71,10 +71,10 @@ t("status_updated_for", { name: row.name || t("unknown") })
 
     return (
       <div className="flex items-center justify-center">
-        <Switch 
-           dir={isRTL ? "rtl" : "ltr"}
-          checked={checked} 
-          onCheckedChange={toggleStatus} 
+        <Switch
+          dir={isRTL ? "rtl" : "ltr"}
+          checked={checked}
+          onCheckedChange={toggleStatus}
           disabled={isUpdating}
         />
       </div>
@@ -150,15 +150,16 @@ t("status_updated_for", { name: row.name || t("unknown") })
         onDelete={(item) => setDeleteTarget(item)}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.CASHIER}
       />
 
       {/* Delete Confirmation Dialog */}
       {deleteTarget && (
         <DeleteDialog
           title={t("DeleteCashier")}
-message={t("confirm_delete_message", {
-  name: deleteTarget.name || deleteTarget.ar_name
-})}
+          message={t("confirm_delete_message", {
+            name: deleteTarget.name || deleteTarget.ar_name
+          })}
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
@@ -173,11 +174,11 @@ message={t("confirm_delete_message", {
             <div className="bg-teal-600 px-6 py-4 flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-bold text-white">{t("BankAccounts")}</h3>
-<p className="text-teal-100 text-xs">
-  {t("total_linked_accounts", {
-    count: selectedBankAccounts.length
-  })}
-</p>
+                <p className="text-teal-100 text-xs">
+                  {t("total_linked_accounts", {
+                    count: selectedBankAccounts.length
+                  })}
+                </p>
               </div>
               <button onClick={() => setShowBankAccountsModal(false)} className="text-white hover:rotate-90 transition-transform">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -193,10 +194,10 @@ message={t("confirm_delete_message", {
                   <div>
                     <p className="font-bold text-gray-800">{account.name}</p>
                     <div className="flex gap-2 mt-1">
-                       <span className={`text-[10px] px-2 py-0.5 rounded-full ${account.status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                         {account.status ? "Active" : "Inactive"}
-                       </span>
-                       {account.in_POS && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">POS</span>}
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${account.status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                        {account.status ? "Active" : "Inactive"}
+                      </span>
+                      {account.in_POS && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">POS</span>}
                     </div>
                   </div>
                   <div className="text-right">

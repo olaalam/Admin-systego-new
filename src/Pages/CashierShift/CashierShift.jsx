@@ -4,6 +4,7 @@ import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
 import useGet from "@/hooks/useGet";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 import {
     Clock,
     Calendar,
@@ -184,6 +185,9 @@ const CashierShift = () => {
                             columns={columns}
                             title={t("Shift Records")}
                             showActions={false}
+                            moduleName={AppModules.CASHIER_SHIFT}
+                            filterable={true}
+                            searchable={true}
                         />
                     </div>
                 )}

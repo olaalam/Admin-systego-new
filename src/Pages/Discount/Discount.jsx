@@ -9,11 +9,12 @@ import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Discount = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/discount");
   const { deleteData, loading: deleting } = useDelete("/api/admin/discount");
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [bulkDeleteIds, setBulkDeleteIds] = useState(null);
@@ -54,9 +55,9 @@ const { t, i18n } = useTranslation();
       await deleteData("/api/admin/discount", {
         ids: bulkDeleteIds,
       });
-    toast.success(
-  t("DeletedDiscount", { count: bulkDeleteIds.length })
-);
+      toast.success(
+        t("DeletedDiscount", { count: bulkDeleteIds.length })
+      );
       refetch();
     } finally {
       setBulkDeleting(false);
@@ -92,16 +93,16 @@ const { t, i18n } = useTranslation();
         disabled={updatingId === item._id}
         className="sr-only peer"
       />
-         <div
- className={`
+      <div
+        className={`
       w-11 h-6 bg-gray-300 rounded-full peer 
       peer-checked:bg-primary 
       after:content-[''] after:absolute after:top-[2px] after:bg-white  after:rounded-full after:h-5 after:w-5 after:transition-all 
-      ${isRTL 
-        ? "peer-checked:after:-translate-x-full" 
-        : "peer-checked:after:translate-x-full"}
+      ${isRTL
+            ? "peer-checked:after:-translate-x-full"
+            : "peer-checked:after:translate-x-full"}
       after:start-[2px]
-    `} /> 
+    `} />
       {updatingId === item._id && (
         <span className="ml-2 text-xs text-gray-500">{t("Updating")}</span>
       )}
@@ -120,18 +121,17 @@ const { t, i18n } = useTranslation();
         <span className="font-medium text-gray-900 text-sm">{value}</span>
       ),
     },
- 
+
     {
       key: "type",
       header: t("Type"),
       filterable: true,
       render: (value) => (
         <span
-          className={`px-2 py-1 rounded text-xs font-medium ${
-            value === "percentage"
+          className={`px-2 py-1 rounded text-xs font-medium ${value === "percentage"
               ? "bg-blue-50 text-blue-700"
               : "bg-purple-50 text-purple-700"
-          }`}
+            }`}
         >
           {value === "percentage" ? t("Percentage") : t("Fixed")}
         </span>
@@ -169,7 +169,7 @@ const { t, i18n } = useTranslation();
         columns={columns}
         title={t("DiscountManagement")}
         onAdd={() => navigate("add")}
-        onEdit={(item)=>alert("edits")}
+        onEdit={(item) => alert("edits")}
         onDelete={(item) => setDeleteTarget(item)}
         onBulkDelete={handleBulkDelete}
         addButtonText={t("AddDiscount")}
@@ -178,13 +178,14 @@ const { t, i18n } = useTranslation();
         itemsPerPage={10}
         searchable
         filterable
+        moduleName={AppModules.DISCOUNT}
       />
 
       {/* Delete Single */}
       {deleteTarget && (
         <DeleteDialog
-       title={t("DeleteDiscount")}
-  message={t("DeleteDiscountMessage", { name: deleteTarget.name })}
+          title={t("DeleteDiscount")}
+          message={t("DeleteDiscountMessage", { name: deleteTarget.name })}
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
@@ -194,10 +195,10 @@ const { t, i18n } = useTranslation();
       {/* Bulk Delete */}
       {bulkDeleteIds && (
         <DeleteDialog
-           title={t("DeleteMultipleDiscounts")}
-  message={t("DeleteMultipleDiscountsMessage", {
-    count: bulkDeleteIds.length,
-  })}
+          title={t("DeleteMultipleDiscounts")}
+          message={t("DeleteMultipleDiscountsMessage", {
+            count: bulkDeleteIds.length,
+          })}
           onConfirm={confirmBulkDelete}
           onCancel={() => setBulkDeleteIds(null)}
           loading={bulkDeleting}

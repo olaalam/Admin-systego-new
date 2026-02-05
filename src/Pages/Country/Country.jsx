@@ -5,6 +5,7 @@ import DeleteDialog from "@/components/DeleteForm";
 import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Country = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/country");
@@ -12,7 +13,7 @@ const Country = () => {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const cities = data?.countries || [];
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const handleDelete = async (item) => {
     try {
@@ -47,12 +48,13 @@ const { t, i18n } = useTranslation();
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.COUNTRY}
       />
 
       {deleteTarget && (
         <DeleteDialog
-       title={t("delete_country_title")}
-message={t("confirm_delete_country", { name: deleteTarget.name })}
+          title={t("delete_country_title")}
+          message={t("confirm_delete_country", { name: deleteTarget.name })}
 
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}

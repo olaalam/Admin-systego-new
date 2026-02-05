@@ -3,6 +3,7 @@ import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
 import useGet from "@/hooks/useGet";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 import { useNavigate } from "react-router-dom";
 import {
   CalendarDays, X, CreditCard, AlertTriangle,
@@ -200,8 +201,8 @@ const PurchasesPage = () => {
             key={f.path}
             onClick={() => setActiveFilter(f.path)}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${activeFilter === f.path
-                ? "bg-gray-900 text-white border-gray-900 shadow-xl -translate-y-1"
-                : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
+              ? "bg-gray-900 text-white border-gray-900 shadow-xl -translate-y-1"
+              : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
               }`}
           >
             {f.icon} {f.label}
@@ -221,6 +222,7 @@ const PurchasesPage = () => {
           showActions={true}
           onAdd={() => alert("Add new payment method clicked!")}
           addPath="add"
+          moduleName={AppModules.PURCHASE}
         />
       )}
       <PurchaseReturnsModal

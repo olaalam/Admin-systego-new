@@ -9,11 +9,12 @@ import api from "@/api/api";
 import { toast } from "react-toastify";
 import { Switch } from "@/components/ui/switch"; // لو عندك مكون Switch جاهز
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const CustomerGroup = () => {
     const navigate = useNavigate();
-const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === "ar";
+    const { t, i18n } = useTranslation();
+    const isRTL = i18n.language === "ar";
     const { data, loading, error, refetch } = useGet(
         "/api/admin/customer/group"
     );
@@ -37,22 +38,22 @@ const { t, i18n } = useTranslation();
     };
 
     // 🔹 تعديل الحالة
-const handleStatusChange = async (group) => {
-    if (!group?._id) return; // حماية إضافية
-    try {
-        setUpdatingStatus(true);
-        await api.put(`/api/admin/customer/group/${group._id}`, {
-            status: !group.status,
-        });
-        toast.success(t("Statusupdatedsuccessfully"));
-        refetch();
-    } catch (err) {
-        toast.error(t("Failedtoupdatestatus"));
-        console.error(err);
-    } finally {
-        setUpdatingStatus(false);
-    }
-};
+    const handleStatusChange = async (group) => {
+        if (!group?._id) return; // حماية إضافية
+        try {
+            setUpdatingStatus(true);
+            await api.put(`/api/admin/customer/group/${group._id}`, {
+                status: !group.status,
+            });
+            toast.success(t("Statusupdatedsuccessfully"));
+            refetch();
+        } catch (err) {
+            toast.error(t("Failedtoupdatestatus"));
+            console.error(err);
+        } finally {
+            setUpdatingStatus(false);
+        }
+    };
 
 
     const columns = [
@@ -61,18 +62,18 @@ const handleStatusChange = async (group) => {
             header: t("GroupName"),
             filterable: true,
         },
-{
-    key: "status",
-    header: t("Status"),
-    filterable: true,
-    render: (value, group) => (
-        <Switch
-            checked={group.status}
-            onCheckedChange={() => handleStatusChange(group)}
-            disabled={updatingStatus}
-        />
-    ),
-}
+        {
+            key: "status",
+            header: t("Status"),
+            filterable: true,
+            render: (value, group) => (
+                <Switch
+                    checked={group.status}
+                    onCheckedChange={() => handleStatusChange(group)}
+                    disabled={updatingStatus}
+                />
+            ),
+        }
 
     ];
 
@@ -90,7 +91,7 @@ const handleStatusChange = async (group) => {
             <DataTable
                 data={groups}
                 columns={columns}
-                    title={t("Customer Groups")}
+                title={t("Customer Groups")}
                 addButtonText={t("Add Group")}
                 onAdd={() => navigate("add")}
                 onEdit={(item) => navigate(`edit/${item._id}`)}
@@ -98,12 +99,13 @@ const handleStatusChange = async (group) => {
                 itemsPerPage={10}
                 searchable
                 filterable
+                moduleName={AppModules.CUSTOMER_GROUP}
             />
 
             {deleteTarget && (
                 <DeleteDialog
-title={t("delete_customer_group_title")}
-message={t("confirm_delete_customer_group", { name: deleteTarget.name })}
+                    title={t("delete_customer_group_title")}
+                    message={t("confirm_delete_customer_group", { name: deleteTarget.name })}
                     onConfirm={() => handleDelete(deleteTarget)}
                     onCancel={() => setDeleteTarget(null)}
                     loading={deleting}

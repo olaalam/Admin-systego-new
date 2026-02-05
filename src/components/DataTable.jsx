@@ -14,6 +14,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import SmartSearch from "@/components/SmartSearch";
 import { useTranslation } from "react-i18next";
+import { hasPermission } from "@/lib/checkPermission";
+import { AppModules } from "@/config/modules";
 
 export default function DataTable({
   data = [],
@@ -36,6 +38,7 @@ export default function DataTable({
   onImport = null,
   downloadTemplate = null,
   onRowClick = null,
+  moduleName = null,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,6 +49,12 @@ export default function DataTable({
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const safeData = Array.isArray(data) ? data : [];
+
+  // Permission Checks
+  const canAdd = !moduleName || hasPermission(moduleName, "add");
+  const canEdit = !moduleName || hasPermission(moduleName, "edit");
+  const canDelete = !moduleName || hasPermission(moduleName, "delete");
+  const canView = !moduleName || hasPermission(moduleName, "view");
 
   // ✅ FIX: لو في onSearchApi، متفلترش local
   const filteredData = useMemo(() => {
@@ -80,7 +89,7 @@ export default function DataTable({
     });
 
     return filtered;
-  }, [safeData, searchTerm, selectedFilters, onSearchApi]);
+  }, [searchTerm, selectedFilters, onSearchApi]);
 
   const startIndex = (currentPage - 1) * itemsPerPageState;
   const endIndex = startIndex + itemsPerPageState;
@@ -177,7 +186,7 @@ export default function DataTable({
               </button>
             )}
 
-            {onImport && (
+            {onImport && canAdd && (
               <label className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                 <Upload size={16} />
                 <span className="hidden sm:inline">{t("Import")}</span>
@@ -195,7 +204,7 @@ export default function DataTable({
               </label>
             )}
 
-            {onExport && (
+            {onExport && canView && (
               <button
                 onClick={() => onExport(filteredData)}
                 className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -207,7 +216,7 @@ export default function DataTable({
             )}
           </div>
 
-          {onAdd && (
+          {onAdd && canAdd && (
             <button
               onClick={() => {
                 if (addPath) navigate(addPath);
@@ -310,7 +319,7 @@ export default function DataTable({
                 {selectedRows.size} {t("selected")}
               </span>
 
-              {onBulkDelete && (
+              {onBulkDelete && canDelete && (
                 <button
                   onClick={() => {
                     onBulkDelete(Array.from(selectedRows));
@@ -362,7 +371,7 @@ export default function DataTable({
 
                 {showActions && (onEdit || onDelete) && (
                   <th className={`px-6 py-3  ${lang === "ar" ? " text-right" : " text-left"} text-xs  font-medium text-gray-500 uppercase tracking-wider`}>
-                    {t("dataTable.actions")}
+                    {(onEdit && canEdit) || (onDelete && canDelete) ? t("dataTable.actions") : ""}
                   </th>
                 )}
               </tr>
@@ -415,7 +424,7 @@ export default function DataTable({
                       {showActions && (onEdit || onDelete) && (
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <div className="flex items-center gap-2">
-                            {onEdit && (
+                            {onEdit && canEdit && (
                               <button
                                 onClick={() => {
                                   if (editPath) {
@@ -434,7 +443,7 @@ export default function DataTable({
                                 <Edit size={16} />
                               </button>
                             )}
-                            {onDelete && (
+                            {onDelete && canDelete && (
                               <button
                                 onClick={() => onDelete(item)}
                                 className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded transition-colors"
@@ -531,8 +540,8 @@ export default function DataTable({
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
-                            ? "bg-primary text-white"
-                            : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-300"
+                          ? "bg-primary text-white"
+                          : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-300"
                           }`}
                       >
                         {pageNum}

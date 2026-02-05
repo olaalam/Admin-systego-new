@@ -7,6 +7,7 @@ import useDelete from "@/hooks/useDelete";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Popup = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const Popup = () => {
   // ✅ endpoint الصح
   const { data, loading, error, refetch } = useGet("/api/admin/popup");
   const { deleteData, loading: deleting } = useDelete("/api/admin/popup");
-const { t ,i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -27,7 +28,7 @@ const { t ,i18n } = useTranslation();
       toast.success(t("Popupdeletedsuccessfully"));
       refetch();
     } catch (err) {
-      toast.error(t("Failed to delete popup"),err);
+      toast.error(t("Failed to delete popup"), err);
     } finally {
       setDeleteTarget(null);
     }
@@ -60,25 +61,25 @@ const { t ,i18n } = useTranslation();
 
   const columns = [
     {
-    key: "title_En",
-    header: t("TitleEN"),
-    filterable: true,
-  },
-  {
-    key: "title_ar",
-    header: t("TitleAR"),
-    filterable: true,
-  },
-  {
-    key: "description_En",
-    header: t("DescriptionEN"),
-    filterable: true,
-  },
-  {
-    key: "description_ar",
-    header: t("DescriptionAR"),
-    filterable: true,
-  },
+      key: "title_En",
+      header: t("TitleEN"),
+      filterable: true,
+    },
+    {
+      key: "title_ar",
+      header: t("TitleAR"),
+      filterable: true,
+    },
+    {
+      key: "description_En",
+      header: t("DescriptionEN"),
+      filterable: true,
+    },
+    {
+      key: "description_ar",
+      header: t("DescriptionAR"),
+      filterable: true,
+    },
     {
       key: "image",
       header: t("Image"),
@@ -110,20 +111,21 @@ const { t ,i18n } = useTranslation();
         title={t("PopupManagement")}
         addButtonText={t("AddPopup")}
         onAdd={() => navigate("add")}
-        onEdit={() => {}}
+        onEdit={() => { }}
         onDelete={(item) => setDeleteTarget(item)}
         addPath="add"
         editPath={(item) => `edit/${item._id}`}
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.POPUP}
       />
 
       {deleteTarget && (
         <DeleteDialog
-            title={t("DeletePopup")}
-  message={t("DeletePopupMessage", { title: deleteTarget.title_En })}
-  onConfirm={() => handleDelete(deleteTarget)}
+          title={t("DeletePopup")}
+          message={t("DeletePopupMessage", { title: deleteTarget.title_En })}
+          onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
         />

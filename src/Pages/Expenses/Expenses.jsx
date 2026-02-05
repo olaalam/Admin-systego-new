@@ -4,9 +4,10 @@ import Loader from "@/components/Loader";
 import useGet from "@/hooks/useGet";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 const Expenses = () => {
   const { data, loading, error } = useGet("/api/admin/expenseAdmin");
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const navigate = useNavigate();
 
@@ -76,13 +77,14 @@ const { t, i18n } = useTranslation();
         columns={columns}
         title={t("ExpenseAdminManagement")}
         onAdd={() => navigate("add")}
-        onEdit={() => {}}
+        onEdit={() => { }}
         addButtonText={t("AddExpenseAdmin")}
         addPath="add"
         editPath={(item) => `edit/${item._id}`}
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.EXPENSE_ADMIN}
       />
 
     </div>

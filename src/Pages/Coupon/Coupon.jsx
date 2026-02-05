@@ -8,6 +8,7 @@ import useDelete from "@/hooks/useDelete";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Coupon = () => {
   // غيّرنا الـ endpoint إلى coupon بناءً على الـ response الجديد
@@ -91,11 +92,10 @@ const Coupon = () => {
       filterable: true,
       render: (value) => (
         <span
-          className={`px-2 py-1 rounded text-xs font-medium ${
-            value === "percentage"
+          className={`px-2 py-1 rounded text-xs font-medium ${value === "percentage"
               ? "bg-blue-50 text-blue-700"
               : "bg-purple-50 text-purple-700"
-          }`}
+            }`}
         >
           {value === "percentage" ? t("Percentage") : t("Flat")}
         </span>
@@ -169,6 +169,7 @@ const Coupon = () => {
         itemsPerPage={10}
         searchable
         filterable
+        moduleName={AppModules.COUPON}
       />
 
       {/* Delete Single */}

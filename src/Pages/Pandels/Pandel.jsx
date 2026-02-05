@@ -9,6 +9,7 @@ import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 /* =======================
    Pandels Page
@@ -17,7 +18,7 @@ const Pandels = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/pandel");
   const { deleteData, loading: deleting } = useDelete("/api/admin/pandel");
   const { t, i18n } = useTranslation();
-const isRTL = i18n.language === "ar";
+  const isRTL = i18n.language === "ar";
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showProductsDialog, setShowProductsDialog] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -67,14 +68,14 @@ const isRTL = i18n.language === "ar";
         disabled={updatingId === item._id}
         className="sr-only peer"
       />
-      <div 
-    className={`
+      <div
+        className={`
       w-11 h-6 bg-gray-300 rounded-full peer 
       peer-checked:bg-primary 
       after:content-[''] after:absolute after:top-[2px] after:bg-white  after:rounded-full after:h-5 after:w-5 after:transition-all 
-      ${isRTL 
-        ? "peer-checked:after:-translate-x-full" 
-        : "peer-checked:after:translate-x-full"}
+      ${isRTL
+            ? "peer-checked:after:-translate-x-full"
+            : "peer-checked:after:translate-x-full"}
       after:start-[2px]
     `} ></div>
       {updatingId === item._id && (
@@ -94,56 +95,56 @@ const isRTL = i18n.language === "ar";
   /* =======================
      Columns
   ======================= */
-const columns = [
-  {
-    key: "name",
-    header:t("BundleName"),
-    filterable: true,
-  },
-  {
-    key: "startdate",
-    header: t("StartDate"),
-    filterable: true,
-    render: (value) => {
-      if (!value) return "-";
-      const date = new Date(value);
-      return new Intl.DateTimeFormat("en-GB").format(date); // dd/mm/yyyy
+  const columns = [
+    {
+      key: "name",
+      header: t("BundleName"),
+      filterable: true,
     },
-  },
-  {
-    key: "enddate",
-    header: t("EndDate"),
-    filterable: true,
-    render: (value) => {
-      if (!value) return "-";
-      const date = new Date(value);
-      return new Intl.DateTimeFormat("en-GB").format(date); // dd/mm/yyyy
+    {
+      key: "startdate",
+      header: t("StartDate"),
+      filterable: true,
+      render: (value) => {
+        if (!value) return "-";
+        const date = new Date(value);
+        return new Intl.DateTimeFormat("en-GB").format(date); // dd/mm/yyyy
+      },
     },
-  },
-  {
-    key: "price",
-    header: t("Price"),
-    filterable: false,
-  },
-  {
-    key: "products",
-    header: t("Products"),
-    render: (_, item) => (
-      <button
-        className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
-        onClick={() => handleViewProducts(item)}
-      >
-        {/* أيقونة */}
-       {t("ViewProducts")}
-      </button>
-    ),
-  },
-  {
-    key: "status",
-    header: t("Status"),
-    render: (value, item) => renderStatusSwitch(value, item),
-  },
-];
+    {
+      key: "enddate",
+      header: t("EndDate"),
+      filterable: true,
+      render: (value) => {
+        if (!value) return "-";
+        const date = new Date(value);
+        return new Intl.DateTimeFormat("en-GB").format(date); // dd/mm/yyyy
+      },
+    },
+    {
+      key: "price",
+      header: t("Price"),
+      filterable: false,
+    },
+    {
+      key: "products",
+      header: t("Products"),
+      render: (_, item) => (
+        <button
+          className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
+          onClick={() => handleViewProducts(item)}
+        >
+          {/* أيقونة */}
+          {t("ViewProducts")}
+        </button>
+      ),
+    },
+    {
+      key: "status",
+      header: t("Status"),
+      render: (value, item) => renderStatusSwitch(value, item),
+    },
+  ];
 
 
   if (loading) return <Loader />;
@@ -169,13 +170,14 @@ const columns = [
         itemsPerPage={10}
         searchable
         filterable
+        moduleName={AppModules.PANDEL}
       />
 
       {/* Delete Single */}
       {deleteTarget && (
         <DeleteDialog
-         title={t("DeleteBundle")}
-  message={t("DeleteBundleMessage", { name: deleteTarget.name })}  onConfirm={() => handleDelete(deleteTarget)}
+          title={t("DeleteBundle")}
+          message={t("DeleteBundleMessage", { name: deleteTarget.name })} onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
         />
