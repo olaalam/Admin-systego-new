@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft, LogOut, Bell } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import '../translation/i18n';
+import NotificationDropdown from "./NotificationDropdown";
+
 export default function Navbar() {
   const navigate = useNavigate();
-  const { t ,i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const handleBack = () => {
     navigate(-1); // 👈 يرجع خطوة ورا
@@ -17,13 +19,13 @@ export default function Navbar() {
     // روح لصفحة الـ login
     navigate("/login");
   };
-const handleLanguage = (event) => {
-  const newLang = event.target.value;
-  i18n.changeLanguage(newLang);
-  localStorage.setItem('language', newLang);
-  
+ const handleLanguage = (event) => {
+    const newLang = event.target.value;
+    i18n.changeLanguage(newLang);
+    localStorage.setItem('language', newLang);
+
     document.body.dir = newLang === 'ar' ? 'rtl' : 'ltr';
-};
+  };
   return (
     <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center">
       {/* Back Button */}
@@ -37,24 +39,29 @@ const handleLanguage = (event) => {
 
       {/* Logo / Title */}
       <h1 className="text-lg font-bold text-secondary">SysteGo</h1>
-  {/* Language Selector */}
-      <select
-        onChange={handleLanguage}
-        value={i18n.language}
-        className="flex gap-1 items-center justify-center bg-black text-white px-2 py-1 rounded"
-      >
-        <option value='ar'>AR</option>
-        <option value='en'>EN</option>
-      </select>
 
-      {/* Logout Button */}
-      <button
-        onClick={handleLogout}
-        className="flex items-center gap-2 text-secondary hover:text-purple-600 cursor-pointer"
-      >
-        <LogOut className="w-5 h-5" />
-        <span className="text-sm font-medium">{t("navbar.logout")}</span>
-      </button>
+      <div className="flex items-center gap-4">
+        <NotificationDropdown />
+
+        {/* Language Selector */}
+        <select
+          onChange={handleLanguage}
+          value={i18n.language}
+          className="flex gap-1 items-center justify-center bg-black text-white px-2 py-1 rounded outline-none"
+        >
+          <option value='ar'>AR</option>
+          <option value='en'>EN</option>
+        </select>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 text-secondary hover:text-purple-600 cursor-pointer"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="text-sm font-medium">{t("navbar.logout")}</span>
+        </button>
+      </div>
     </nav>
   );
 }

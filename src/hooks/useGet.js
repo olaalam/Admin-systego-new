@@ -9,8 +9,14 @@ export default function useGet(url, options = {}) {
   const [error, setError] = useState(null);
 
   const fetchData = async (overrideOptions = {}) => {
+    if (!url) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
+      setError(null);
       const res = await api.get(url, { ...options, ...overrideOptions });
 
       if (res.data?.success) {
