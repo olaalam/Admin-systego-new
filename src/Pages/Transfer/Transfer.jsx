@@ -8,6 +8,8 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import usePut from "@/hooks/usePut";
+import { CheckCircle, XCircle } from "lucide-react";
 
 const Transfer = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/transfer"); // افترض أن الـ endpoint هو هذا بناءً على الـ response
@@ -16,6 +18,7 @@ const Transfer = () => {
   const navigate = useNavigate();
 
   const transfers = data?.transfers || [];
+  const { putData, loading: putting } = usePut();
 
   // دوال لحساب الإجماليات
   const getTotal = (array = []) =>
@@ -26,6 +29,15 @@ const Transfer = () => {
   const getApprovedQty = (transfer) => getTotal(transfer.approved_products);
 
   const getRejectedQty = (transfer) => getTotal(transfer.rejected_products);
+
+  const handleAction = async (id, warehouseId, status) => {
+    try {
+      await putData({ warehouseId, status }, `/api/admin/transfer/${id}`);
+      refetch();
+    } catch (err) {
+      console.error("Action error:", err);
+    }
+  };
 
   // عرض حالة التحويلة بشارة ملونة
   const renderStatus = (status) => {
@@ -112,6 +124,35 @@ const Transfer = () => {
       header: t("Quantities"),
       render: (_, item) => renderQuantities(item),
     },
+    {
+      header: t("Approve/Reject"),
+      render: (_, item) => (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          {item.status === "pending" && (
+            <>
+              <button
+                onClick={() => handleAction(item._id, item.toWarehouseId?._id, "received")}
+                className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition-colors font-bold text-xs"
+                title={t("Receive")}
+                disabled={putting}
+              >
+                <CheckCircle size={14} />
+                {t("Receive")}
+              </button>
+              <button
+                onClick={() => handleAction(item._id, item.toWarehouseId?._id, "rejected")}
+                className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition-colors font-bold text-xs"
+                title={t("Reject")}
+                disabled={putting}
+              >
+                <XCircle size={14} />
+                {t("Reject")}
+              </button>
+            </>
+          )}
+        </div>
+      )
+    }
   ];
 
   if (loading) return <Loader />;
@@ -131,8 +172,7 @@ const Transfer = () => {
         title={t("WarehouseTransfers")}
         addButtonText={t("AddTransfer")}
         onAdd={() => navigate("add")}
-        // إذا كان هناك صفحة تفاصيل/عرض أو تعديل للتحويلة
-        editPath={(item) => `details/${item._id}`} // أو `edit/${item._id}` إذا كان قابل للتعديل
+        onRowClick={(item) => navigate(`details/${item._id}`)}
         itemsPerPage={10}
         searchable={true}
         filterable={true}

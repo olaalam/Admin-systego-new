@@ -52,7 +52,7 @@ import PermissionEdit from "./Pages/Permission/PermissionEdit";
 import Permission from "./Pages/Permission/Permission";
 import Transfer from "./Pages/Transfer/Transfer";
 import TransferAdd from "./Pages/Transfer/TransferAdd";
-import TransferEdit from "./Pages/Transfer/TransferEdit";
+import TransferDetails from "./Pages/Transfer/TransferDetails";
 import Revenue from "./Pages/Revenue/Revenue";
 import RevenueAdd from "./Pages/Revenue/RevenueAdd";
 import RevenueEdit from "./Pages/Revenue/RevenueEdit";
@@ -543,10 +543,10 @@ export default function AppRoutes() {
           }
         />
         <Route
-          path="edit/:id"
+          path="details/:id"
           element={
-            <ProtectedRoute module={AppModules.TRANSFER} action={ModuleActions.EDIT}>
-              <TransferEdit />
+            <ProtectedRoute module={AppModules.TRANSFER} action={ModuleActions.VIEW}>
+              <TransferDetails />
             </ProtectedRoute>
           }
         />
