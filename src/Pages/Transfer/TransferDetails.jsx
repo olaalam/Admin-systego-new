@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import useGet from '@/hooks/useGet';
 import Loader from '@/components/Loader';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Warehouse, Package, Calendar, Info, ShieldCheck, Tag, XCircle, CheckCircle2, CheckCircle, Send } from 'lucide-react';
+import { ArrowLeft, Warehouse, Package, Calendar, Info, ShieldCheck, Tag, XCircle, CheckCircle2 } from 'lucide-react';
+import { useEffect } from 'react';
 import usePut from '@/hooks/usePut';
 import { toast } from 'react-toastify';
 
@@ -53,17 +54,10 @@ const TransferDetails = () => {
     };
 
     const handleStatusUpdate = async (status) => {
-        if (!statusReason.trim() && status === 'rejected') {
-            toast.error(t('Please provide a reason for rejection'));
-            return;
-        }
-
         const payload = {
             warehouseId: transfer.toWarehouseId?._id,
             status: status,
             reason: statusReason,
-            // Assuming all products are approved/rejected based on header button for now
-            // as per simplified requirements
             approved_products: status === 'received' ? transfer.products.map(p => ({
                 productId: p.productId?._id,
                 quantity: p.quantity
@@ -278,38 +272,37 @@ const TransferDetails = () => {
                                     {t('Process Transfer')}
                                 </h2>
 
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2">
-                                            <Tag size={12} />
-                                            {t('Note / Reason')}
-                                        </label>
-                                        <textarea
-                                            value={statusReason}
-                                            onChange={(e) => setStatusReason(e.target.value)}
-                                            placeholder={t('Add a note to this action...')}
-                                            className="w-full border rounded-2xl p-3 text-sm focus:ring-2 focus:ring-teal-500 outline-none resize-none h-24 bg-gray-50"
-                                        />
-                                    </div>
 
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <button
-                                            onClick={() => handleStatusUpdate('received')}
-                                            disabled={updating}
-                                            className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-2xl font-black shadow-lg shadow-teal-100 transition-all disabled:opacity-50"
-                                        >
-                                            <CheckCircle2 size={18} />
-                                            {t('Receive')}
-                                        </button>
-                                        <button
-                                            onClick={() => handleStatusUpdate('rejected')}
-                                            disabled={updating}
-                                            className="flex items-center justify-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 py-3 rounded-2xl font-black border border-red-100 transition-all disabled:opacity-50"
-                                        >
-                                            <XCircle size={18} />
-                                            {t('Reject')}
-                                        </button>
-                                    </div>
+                                <div className="space-y-2 mb-4">
+                                    <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2">
+                                        <Tag size={12} />
+                                        {t('Note / Reason')}
+                                    </label>
+                                    <textarea
+                                        value={statusReason}
+                                        onChange={(e) => setStatusReason(e.target.value)}
+                                        placeholder={t('Add a note to this action...')}
+                                        className="w-full border rounded-2xl p-3 text-sm focus:ring-2 focus:ring-teal-500 outline-none resize-none h-24 bg-gray-50"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        onClick={() => handleStatusUpdate('received')}
+                                        disabled={updating}
+                                        className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-2xl font-black shadow-lg shadow-teal-100 transition-all disabled:opacity-50"
+                                    >
+                                        <CheckCircle2 size={18} />
+                                        {t('Receive')}
+                                    </button>
+                                    <button
+                                        onClick={() => handleStatusUpdate('rejected')}
+                                        disabled={updating}
+                                        className="flex items-center justify-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 py-3 rounded-2xl font-black border border-red-100 transition-all disabled:opacity-50"
+                                    >
+                                        <XCircle size={18} />
+                                        {t('Reject')}
+                                    </button>
                                 </div>
                             </div>
                         )}
