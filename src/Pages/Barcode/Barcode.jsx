@@ -45,15 +45,18 @@ const PrintBarcode = () => {
     const search = searchTerm.toLowerCase();
     return (
       product.name?.toLowerCase().includes(search) ||
+      product.code?.toLowerCase().includes(search) || // إضافة البحث في الكود الأساسي
       product.prices?.some((p) => p.code?.toLowerCase().includes(search))
     );
   });
 
   // --- 2. Selection Actions ---
-  const addProduct = (product, priceVariation) => {
+  const addProduct = (product, priceVariation = null) => {
+    // إذا لم يوجد variation، نستخدم معرف المنتج نفسه كمعرف للسعر
+    const priceId = priceVariation ? priceVariation._id : product._id;
+
     const exists = selectedProducts.find(
-      (p) =>
-        p.productId === product._id && p.productPriceId === priceVariation._id
+      (p) => p.productPriceId === priceId
     );
 
     if (!exists) {
@@ -61,11 +64,12 @@ const PrintBarcode = () => {
         ...selectedProducts,
         {
           productId: product._id,
-          productPriceId: priceVariation._id,
+          productPriceId: priceId,
           quantity: 1,
           productName: product.name,
-          code: priceVariation.code,
-          price: priceVariation.price,
+          // نأخذ الكود والسعر من التنوع، وإذا لم يوجد نأخذه من المنتج الأساسي
+          code: priceVariation ? priceVariation.code : (product.code || ""),
+          price: priceVariation ? priceVariation.price : (product.price || 0),
         },
       ]);
     }
@@ -90,6 +94,13 @@ const PrintBarcode = () => {
   const handleBarcodeScanned = (scannedCode) => {
     if (!scannedCode) return;
     for (const product of products) {
+      // 1. فحص الكود الأساسي للمنتج
+      if (product.code === scannedCode) {
+        addProduct(product);
+        toast.success(`${t("Added")}: ${product.name}`);
+        return;
+      }
+      // 2. فحص الأكواد داخل التنوعات
       const priceMatch = product.prices?.find((p) => p.code === scannedCode);
       if (priceMatch) {
         addProduct(product, priceMatch);
@@ -97,7 +108,6 @@ const PrintBarcode = () => {
         return;
       }
     }
-    // لا تظهر خطأ إذا كان المستخدم يكتب يدوياً ولم ينتهِ بعد
   };
 
   // --- 3. Print Logic ---
@@ -246,20 +256,36 @@ const PrintBarcode = () => {
                           {product.category?.name}
                         </span>
                       </div>
+
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {product.prices?.map((pv) => (
+                        {/* الحالة الأولى: إذا كان المنتج يحتوي على تنوعات أسعار */}
+                        {product.prices && product.prices.length > 0 ? (
+                          product.prices.map((pv) => (
+                            <button
+                              key={pv._id}
+                              onClick={() => addProduct(product, pv)}
+                              className="text-xs bg-white border border-purple-200 hover:border-purple-500 px-2 py-1 rounded-md flex items-center gap-1 transition-all"
+                            >
+                              <Plus className="w-3 h-3 text-purple-600" />
+                              <span className="font-mono">{pv.code}</span> -{" "}
+                              <span className="text-purple-700 font-bold">
+                                ${pv.price}
+                              </span>
+                            </button>
+                          ))
+                        ) : (
+                          /* الحالة الثانية: إذا كان المنتج بسيطاً (بدون تنوعات) */
                           <button
-                            key={pv._id}
-                            onClick={() => addProduct(product, pv)}
-                            className="text-xs bg-white border border-purple-200 hover:border-purple-500 px-2 py-1 rounded-md flex items-center gap-1 transition-all"
+                            onClick={() => addProduct(product, null)}
+                            className="text-xs bg-white border border-blue-200 hover:border-blue-500 px-2 py-1 rounded-md flex items-center gap-1 transition-all"
                           >
-                            <Plus className="w-3 h-3 text-purple-600" />
-                            <span className="font-mono">{pv.code}</span> -{" "}
-                            <span className="text-purple-700 font-bold">
-                              ${pv.price}
+                            <Plus className="w-3 h-3 text-blue-600" />
+                            <span className="font-mono">{product.code || "No Code"}</span> -{" "}
+                            <span className="text-blue-700 font-bold">
+                              ${product.price || 0}
                             </span>
                           </button>
-                        ))}
+                        )}
                       </div>
                     </div>
                   ))}
@@ -339,7 +365,7 @@ const PrintBarcode = () => {
                     className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 cursor-pointer"
                     checked={
                       labelConfig[
-                        `show${item.charAt(0).toUpperCase() + item.slice(1)}`
+                      `show${item.charAt(0).toUpperCase() + item.slice(1)}`
                       ]
                     }
                     onChange={(e) =>
@@ -426,10 +452,10 @@ const PrintBarcode = () => {
               <FileText className="w-6 h-6" />
             )}
             {isSubmitting
-? t("generating_print_file")
-: t("generate_and_print_labels")
+              ? t("generating_print_file")
+              : t("generate_and_print_labels")
 
-              }
+            }
           </button>
         </div>
       </div>
