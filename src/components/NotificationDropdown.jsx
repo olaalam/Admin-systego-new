@@ -4,14 +4,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import useGet from "@/hooks/useGet";
-import usePost from "@/hooks/usePost";
+import usePut from "@/hooks/usePut";
 import { useTranslation } from "react-i18next";
 import NotificationDetailModal from "./NotificationDetailModal";
+import { cn } from "@/lib/utils";
 
 const NotificationDropdown = () => {
     const { t } = useTranslation();
     const { data, loading, refetch } = useGet("/api/admin/notification");
-    const { postData } = usePost("/api/admin/notification");
+    const { putData } = usePut("");
 
     const [notifications, setNotifications] = useState([]);
     const [visibleCount, setVisibleCount] = useState(10);
@@ -28,10 +29,19 @@ const NotificationDropdown = () => {
     const handleMarkAsRead = async (id, e) => {
         e.stopPropagation();
         try {
-            await postData({ isRead: true }, `/api/admin/notification/${id}`);
+            await putData({}, `/api/admin/notification/${id}/read`);
             setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
         } catch (err) {
             console.error("Failed to mark as read", err);
+        }
+    };
+
+    const handleReadAll = async () => {
+        try {
+            await putData({}, "/api/admin/notification/read-all");
+            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+        } catch (err) {
+            console.error("Failed to mark all as read", err);
         }
     };
 
@@ -65,8 +75,20 @@ const NotificationDropdown = () => {
                 <PopoverContent className="w-80 p-0 mr-2 bg-white/80 backdrop-blur-md border-gray-200 shadow-xl rounded-xl" align="end">
                     <div className="flex flex-col h-[450px]">
                         <div className="flex items-center justify-between p-4 border-b">
-                            <h3 className="font-semibold text-gray-800">{t("Notifications")}</h3>
-                            {loading && <Loader2 className="w-4 h-4 animate-spin text-gray-400" />}
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-gray-800">{t("Notifications")}</h3>
+                                {loading && <Loader2 className="w-4 h-4 animate-spin text-gray-400" />}
+                            </div>
+                            {unreadCount > 0 && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-auto p-0 px-2 py-1 text-[10px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                    onClick={handleReadAll}
+                                >
+                                    {t("Mark all as read")}
+                                </Button>
+                            )}
                         </div>
 
                         <div className="flex-1 overflow-y-auto">
@@ -80,13 +102,21 @@ const NotificationDropdown = () => {
                                     {visibleNotifications.map((notif) => (
                                         <div
                                             key={notif._id}
-                                            className={`group flex gap-3 p-4 border-b last:border-0 transition-colors hover:bg-gray-50/50 ${!notif.isRead ? 'bg-blue-50/30' : ''}`}
+                                            className={cn(
+                                                "group flex gap-3 p-4 border-b last:border-0 transition-all hover:bg-gray-50/70",
+                                                !notif.isRead
+                                                    ? "bg-blue-50/60 border-l-4 border-l-blue-600 shadow-sm"
+                                                    : "bg-white border-l-4 border-l-transparent"
+                                            )}
                                         >
                                             <div className="mt-1 flex-shrink-0">
                                                 {getIcon(notif.type)}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className={`text-sm leading-relaxed ${!notif.isRead ? 'font-medium text-gray-900' : 'text-gray-600'}`}>
+                                                <p className={cn(
+                                                    "text-sm leading-relaxed transition-colors",
+                                                    !notif.isRead ? "font-bold text-gray-900" : "text-gray-500"
+                                                )}>
                                                     {notif.message}
                                                 </p>
                                                 <div className="flex items-center justify-between mt-2">
