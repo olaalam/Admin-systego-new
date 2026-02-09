@@ -12,7 +12,7 @@ import usePut from "@/hooks/usePut";
 import { CheckCircle, XCircle } from "lucide-react";
 
 const Transfer = () => {
-  const { data, loading, error, refetch } = useGet("/api/admin/transfer"); // افترض أن الـ endpoint هو هذا بناءً على الـ response
+  const { data, loading, error, refetch } = useGet("/api/admin/transfer");
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const navigate = useNavigate();
@@ -97,11 +97,13 @@ const Transfer = () => {
       searchable: true,
     },
     {
+      key: "fromWarehouseId",
       header: t("FromWarehouse"),
       render: (_, item) => item.fromWarehouseId?.name || "-",
       filterable: true,
     },
     {
+      key: "toWarehouseId",
       header: t("ToWarehouse"),
       render: (_, item) => item.toWarehouseId?.name || "-",
       filterable: true,

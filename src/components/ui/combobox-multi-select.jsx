@@ -26,7 +26,7 @@ const ComboboxMultiSelect = ({
 }) => {
     const [open, setOpen] = React.useState(false);
     const [inputValue, setInputValue] = React.useState("");
-const { t ,i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     const handleSelect = (value) => {
         const isSelected = selected.includes(value);
@@ -39,7 +39,7 @@ const { t ,i18n } = useTranslation();
             // إضافة القيمة إلى المصفوفة
             newSelection = [...selected, value];
         }
-        
+
         onChange(newSelection);
         setInputValue(""); // مسح حقل البحث
         // لا نغلق القائمة للسماح بالاختيار المتعدد
@@ -51,11 +51,11 @@ const { t ,i18n } = useTranslation();
             const value = newOptionValue.trim();
             // هنا يجب عليك تحديث قائمة الـ options في الـ state الأب أيضاً
             // لكن هنا نكتفي بإضافتها إلى قائمة الخيارات المختارة
-            
+
             // تحقق من عدم وجودها بالفعل كخيار أو كقيمة مختارة
             const optionExists = options.some(opt => opt.value === value || opt.label === value);
             if (!optionExists && !selected.includes(value)) {
-                 onChange([...selected, value]);
+                onChange([...selected, value]);
             }
         }
         setInputValue("");
@@ -66,10 +66,10 @@ const { t ,i18n } = useTranslation();
         onChange(newSelection);
     };
 
-    const selectedOptions = selected.map(selectedValue => 
+    const selectedOptions = selected.map(selectedValue =>
         options.find(opt => opt.value === selectedValue) || { label: selectedValue, value: selectedValue }
     );
-    
+
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
@@ -83,8 +83,8 @@ const { t ,i18n } = useTranslation();
                     <div className="flex flex-wrap gap-1 items-center min-h-6">
                         {selectedOptions.length > 0 ? (
                             selectedOptions.map((option) => (
-                                <Badge 
-                                    key={option.value} 
+                                <Badge
+                                    key={option.value}
                                     variant="secondary"
                                     className="text-xs pr-1"
                                     onClick={(e) => {
@@ -105,14 +105,14 @@ const { t ,i18n } = useTranslation();
             </PopoverTrigger>
             <PopoverContent className="w-full p-0" align="start">
                 <Command>
-                    <CommandInput 
+                    <CommandInput
                         placeholder="Search or add option..."
                         value={inputValue}
                         onValueChange={setInputValue}
                     />
                     <CommandList>
                         <CommandEmpty>
-                             {creatable && inputValue.length > 0 ? (
+                            {creatable && inputValue.length > 0 ? (
                                 <CommandItem onSelect={() => handleCreate(inputValue)} className="text-blue-600">
                                     + {t("Addnew")}: "{inputValue}"
                                 </CommandItem>
@@ -125,7 +125,11 @@ const { t ,i18n } = useTranslation();
                                 <CommandItem
                                     key={option.value}
                                     value={option.label}
-                                    onSelect={() => handleSelect(option.value)}
+                                    disabled={option.disabled}
+                                    onSelect={() => !option.disabled && handleSelect(option.value)}
+                                    className={cn(
+                                        option.disabled && "opacity-50 cursor-not-allowed pointer-events-none"
+                                    )}
                                 >
                                     <Check
                                         className={cn(

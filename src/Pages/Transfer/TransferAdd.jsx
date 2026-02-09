@@ -3,8 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import useGet from '@/hooks/useGet';
 import usePost from '@/hooks/usePost';
 import { useTranslation } from 'react-i18next';
-import { Warehouse, Package, ArrowRight, Trash2, Plus, Send, ArrowLeft, FileText } from 'lucide-react';
+import { Warehouse, Package, ArrowRight, Trash2, Plus, Send, ArrowLeft, FileText, Search } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { ComboboxMultiSelect } from '@/components/ui/combobox-multi-select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function TransferAdd() {
   const { t } = useTranslation();
@@ -19,8 +27,6 @@ export default function TransferAdd() {
     products: []
   });
 
-  const [selectedProducts, setSelectedProducts] = useState([]);
-
   // Fetch products when "from warehouse" is selected using useGet hook
   const productUrl = formData.fromWarehouseId
     ? `/api/admin/product_warehouse/${formData.fromWarehouseId}`
@@ -31,74 +37,42 @@ export default function TransferAdd() {
   // Clear selected products when warehouse changes
   useEffect(() => {
     setFormData(prev => ({ ...prev, products: [] }));
-    setSelectedProducts([]);
   }, [formData.fromWarehouseId]);
 
-  // Toggle individual product selection
-  const toggleProductSelection = (productId) => {
-    setSelectedProducts(prev =>
-      prev.includes(productId)
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
-  };
+  // Handle product selection from combobox (Reactive)
+  const handleProductSelectionChange = (newSelectedIds) => {
+    const currentProducts = formData.products;
+    const currentIds = currentProducts.map(p => p.productId);
 
-  // Toggle select all products
-  const toggleSelectAll = () => {
-    if (selectedProducts.length === productsData?.products?.length) {
-      setSelectedProducts([]);
-    } else {
-      setSelectedProducts(productsData?.products?.map(p => p._id) || []);
-    }
-  };
+    // Identify products to add
+    const idsToAdd = newSelectedIds.filter(id => !currentIds.includes(id));
 
-  // Add selected products to transfer list
-  const addSelectedProducts = () => {
-    if (!productsData?.products) return;
+    // Identify products to remove
+    const idsToRemove = currentIds.filter(id => !newSelectedIds.includes(id));
 
-    const productsToAdd = productsData.products.filter(p =>
-      selectedProducts.includes(p._id) &&
-      !formData.products.find(fp => fp.productId === p._id)
-    );
+    let updatedProducts = [...currentProducts];
 
-    if (productsToAdd.length === 0) {
-      toast.warning(t('All selected products are already added'));
-      return;
+    // Add new products
+    if (idsToAdd.length > 0) {
+      const productsToAdd = (productsData?.products || [])
+        .filter(p => idsToAdd.includes(p._id))
+        .map(product => ({
+          productId: product._id,
+          name: product.name,
+          availableQuantity: product.quantity || 0,
+          quantity: 1
+        }));
+      updatedProducts = [...updatedProducts, ...productsToAdd];
     }
 
-    const newProducts = productsToAdd.map(product => ({
-      productId: product._id,
-      name: product.name,
-      availableQuantity: product.quantity || 0,
-      quantity: 1
-    }));
-
-    setFormData(prev => ({
-      ...prev,
-      products: [...prev.products, ...newProducts]
-    }));
-
-    setSelectedProducts([]);
-    toast.success(t(`${productsToAdd.length} product(s) added`));
-  };
-
-  const addProduct = (product) => {
-    // Check if product already added
-    if (formData.products.find(p => p.productId === product._id)) {
-      toast.warning(t('Product already added'));
-      return;
+    // Remove products
+    if (idsToRemove.length > 0) {
+      updatedProducts = updatedProducts.filter(p => !idsToRemove.includes(p.productId));
     }
 
-    setFormData(prev => ({
-      ...prev,
-      products: [...prev.products, {
-        productId: product._id,
-        name: product.name,
-        availableQuantity: product.quantity || 0,
-        quantity: 1
-      }]
-    }));
+    setFormData(prev => ({ ...prev, products: updatedProducts }));
   };
+
 
   const removeProduct = (index) => {
     setFormData(prev => ({
@@ -204,18 +178,21 @@ export default function TransferAdd() {
               <Warehouse size={16} className="text-blue-600" />
               {t('From Warehouse')}
             </label>
-            <select
-              className="w-full border rounded-xl p-3 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+            <Select
               value={formData.fromWarehouseId}
-              onChange={(e) => setFormData({ ...formData, fromWarehouseId: e.target.value })}
+              onValueChange={(value) => setFormData({ ...formData, fromWarehouseId: value })}
             >
-              <option value="">{t('Select Source Warehouse')}</option>
-              {warehouses.map(w => (
-                <option key={w._id} value={w._id}>
-                  {w.name} ({t('Stock')}: {w.stock_Quantity})
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full h-12 rounded-xl focus:ring-2 focus:ring-blue-500">
+                <SelectValue placeholder={t('Select Source Warehouse')} />
+              </SelectTrigger>
+              <SelectContent>
+                {warehouses.map(w => (
+                  <SelectItem key={w._id} value={w._id}>
+                    {w.name} ({t('Stock')}: {w.stock_Quantity})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -223,20 +200,23 @@ export default function TransferAdd() {
               <Warehouse size={16} className="text-green-600" />
               {t('To Warehouse')}
             </label>
-            <select
-              className="w-full border rounded-xl p-3 bg-white focus:ring-2 focus:ring-green-500 outline-none"
+            <Select
               value={formData.toWarehouseId}
-              onChange={(e) => setFormData({ ...formData, toWarehouseId: e.target.value })}
+              onValueChange={(value) => setFormData({ ...formData, toWarehouseId: value })}
             >
-              <option value="">{t('Select Destination Warehouse')}</option>
-              {warehouses
-                .filter(w => w._id !== formData.fromWarehouseId)
-                .map(w => (
-                  <option key={w._id} value={w._id}>
-                    {w.name} ({t('Stock')}: {w.stock_Quantity})
-                  </option>
-                ))}
-            </select>
+              <SelectTrigger className="w-full h-12 rounded-xl focus:ring-2 focus:ring-green-500">
+                <SelectValue placeholder={t('Select Destination Warehouse')} />
+              </SelectTrigger>
+              <SelectContent>
+                {warehouses
+                  .filter(w => w._id !== formData.fromWarehouseId)
+                  .map(w => (
+                    <SelectItem key={w._id} value={w._id}>
+                      {w.name} ({t('Stock')}: {w.stock_Quantity})
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -254,77 +234,41 @@ export default function TransferAdd() {
             onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
           />
         </div>
-        {/* Available Products */}
+        {/* Available Products - Combobox Selection */}
         {formData.fromWarehouseId && (
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-3">
+          <div className="mb-8 p-6 bg-purple-50/30 rounded-2xl border border-purple-100/50 outline outline-1 outline-purple-100/30">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <label className="text-sm font-bold flex items-center gap-2">
-                <Package size={16} className="text-purple-600" />
-                {t('Available Products in Source Warehouse')}
+                <Package size={20} className="text-purple-600" />
+                <span className="text-lg text-purple-900">{t('Select Products to Transfer')}</span>
               </label>
-              {selectedProducts.length > 0 && (
-                <button
-                  onClick={addSelectedProducts}
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors"
-                >
-                  <Plus size={16} />
-                  {t('Add Selected')} ({selectedProducts.length})
-                </button>
-              )}
             </div>
 
             {loadingProducts ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="flex flex-col items-center justify-center py-10 text-purple-400 bg-white/50 rounded-xl border border-purple-50">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mb-2"></div>
                 {t('Loading products...')}
               </div>
             ) : !productsData?.products || productsData.products.length === 0 ? (
-              <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-xl border-2 border-dashed">
+              <div className="text-center py-10 text-purple-400 bg-white/50 rounded-xl border-2 border-dashed border-purple-100">
                 {t('No products available in this warehouse')}
               </div>
             ) : (
-              <div className="overflow-x-auto border rounded-2xl">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 text-gray-600">
-                    <tr>
-                      <th className="p-4 w-12">
-                        <input
-                          type="checkbox"
-                          className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
-                          checked={selectedProducts.length === productsData.products.length}
-                          onChange={toggleSelectAll}
-                        />
-                      </th>
-                      <th className="p-4 text-left">{t('Product Name')}</th>
-                      <th className="p-4 text-center">{t('Available Quantity')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {productsData.products.map(product => (
-                      <tr
-                        key={product._id}
-                        className={`hover:bg-gray-50/50 cursor-pointer transition-colors ${selectedProducts.includes(product._id) ? 'bg-teal-50' : ''
-                          }`}
-                        onClick={() => toggleProductSelection(product._id)}
-                      >
-                        <td className="p-4">
-                          <input
-                            type="checkbox"
-                            className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
-                            checked={selectedProducts.includes(product._id)}
-                            onChange={() => toggleProductSelection(product._id)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </td>
-                        <td className="p-4 font-bold text-gray-700">{product.name}</td>
-                        <td className="p-4 text-center">
-                          <span className="inline-block bg-teal-50 text-teal-700 px-3 py-1 rounded-lg font-bold">
-                            {product.quantity || 0}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="w-full">
+                <ComboboxMultiSelect
+                  options={productsData.products.map(p => ({
+                    label: `${p.name} (${t('Stock')}: ${p.quantity || 0})${(p.quantity || 0) === 0 ? ` - ${t('Out of Stock')}` : ''}`,
+                    value: p._id,
+                    disabled: (p.quantity || 0) === 0
+                  }))}
+                  selected={formData.products.map(p => p.productId)}
+                  onChange={handleProductSelectionChange}
+                  placeholder={t('Search and select products...')}
+                />
+                <p className="mt-2 text-xs text-purple-500 flex items-center gap-1">
+                  <Search size={12} />
+                  {t('Quick search by product name')}
+                </p>
               </div>
             )}
           </div>
