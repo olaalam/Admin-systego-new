@@ -15,10 +15,21 @@ const TransferDetails = () => {
     const isRTL = i18n.language === 'ar';
     const [activeTab, setActiveTab] = useState('all');
     const [statusReason, setStatusReason] = useState('');
+    const [productDecisions, setProductDecisions] = useState({}); // { productId: 'approved' | 'rejected' }
 
     const { data, loading, error, refetch } = useGet(`/api/admin/transfer/${id}`);
     const { putData, loading: updating } = usePut();
     const transfer = data?.transfer;
+
+    useEffect(() => {
+        if (data?.transfer?.products) {
+            const initialDecisions = {};
+            data.transfer.products.forEach(p => {
+                initialDecisions[p.productId?._id] = 'approved';
+            });
+            setProductDecisions(initialDecisions);
+        }
+    }, [data]);
 
     if (loading) return <Loader />;
 
@@ -53,28 +64,63 @@ const TransferDetails = () => {
         );
     };
 
-    const handleStatusUpdate = async (status) => {
+    const handleStatusUpdate = async (forceStatus = null) => {
+        if (!transfer) return;
+
+        let approved_products = [];
+        let rejected_products = [];
+        let finalStatus = 'received';
+
+        if (forceStatus === 'rejected') {
+            finalStatus = 'rejected';
+            rejected_products = transfer.products.map(p => ({
+                productId: p.productId?._id,
+                quantity: p.quantity
+            }));
+        } else {
+            approved_products = transfer.products
+                .filter(p => productDecisions[p.productId?._id] === 'approved')
+                .map(p => ({
+                    productId: p.productId?._id,
+                    quantity: p.quantity
+                }));
+
+            rejected_products = transfer.products
+                .filter(p => productDecisions[p.productId?._id] === 'rejected')
+                .map(p => ({
+                    productId: p.productId?._id,
+                    quantity: p.quantity
+                }));
+
+            if (approved_products.length === 0) {
+                finalStatus = 'rejected';
+            }
+        }
+
         const payload = {
             warehouseId: transfer.toWarehouseId?._id,
-            status: status,
+            status: finalStatus,
             reason: statusReason,
-            approved_products: status === 'received' ? transfer.products.map(p => ({
-                productId: p.productId?._id,
-                quantity: p.quantity
-            })) : [],
-            rejected_products: status === 'rejected' ? transfer.products.map(p => ({
-                productId: p.productId?._id,
-                quantity: p.quantity
-            })) : []
+            approved_products,
+            rejected_products
         };
 
         try {
             await putData(payload, `/api/admin/transfer/${id}`);
+            toast.success(t(finalStatus === 'rejected' ? 'Transfer rejected' : 'Transfer processed successfully'));
             refetch();
             setStatusReason('');
         } catch (err) {
             console.error("Status update error:", err);
+            toast.error(t('Failed to update transfer status'));
         }
+    };
+
+    const toggleProductDecision = (productId, decision) => {
+        setProductDecisions(prev => ({
+            ...prev,
+            [productId]: decision
+        }));
     };
 
     const tabs = [
@@ -192,30 +238,70 @@ const TransferDetails = () => {
                                             <tr>
                                                 <th className="p-5 text-left font-bold">{t('Product Name')}</th>
                                                 <th className="p-5 text-center font-bold">{t('Quantity')}</th>
-                                                <th className="p-5 text-center font-bold">{t('Status')}</th>
+                                                {activeTab === 'all' && transfer.status === 'pending' ? (
+                                                    <th className="p-5 text-center font-bold">{t('Decision')}</th>
+                                                ) : (
+                                                    <th className="p-5 text-center font-bold">{t('Status')}</th>
+                                                )}
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100">
                                             {products.map((item, idx) => (
-                                                <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                                                <tr key={idx} className={`hover:bg-gray-50/50 transition-colors ${activeTab === 'all' && transfer.status === 'pending'
+                                                    ? productDecisions[item.productId?._id] === 'approved'
+                                                        ? 'bg-green-50/30'
+                                                        : 'bg-red-50/30'
+                                                    : ''
+                                                    }`}>
                                                     <td className="p-5">
                                                         <div className="font-black text-gray-800">{item.productId?.name}</div>
                                                         <div className="text-xs text-gray-400 mt-1">ID: {item.productId?._id}</div>
                                                     </td>
                                                     <td className="p-5 text-center">
-                                                        <span className={`inline-block px-4 py-1.5 rounded-xl font-black text-lg ${activeTab === 'rejected' ? 'bg-red-50 text-red-700' : 'bg-teal-50 text-teal-700'
+                                                        <span className={`inline-block px-4 py-1.5 rounded-xl font-black text-lg ${(activeTab === 'all' && transfer.status === 'pending')
+                                                            ? productDecisions[item.productId?._id] === 'rejected'
+                                                                ? 'bg-red-50 text-red-700'
+                                                                : 'bg-teal-50 text-teal-700'
+                                                            : activeTab === 'rejected'
+                                                                ? 'bg-red-50 text-red-700'
+                                                                : 'bg-teal-50 text-teal-700'
                                                             }`}>
                                                             {item.quantity}
                                                         </span>
                                                     </td>
                                                     <td className="p-5 text-center">
-                                                        <span className={`flex items-center justify-center gap-1 font-bold ${activeTab === 'rejected' ? 'text-red-600' :
-                                                            activeTab === 'approved' ? 'text-green-600' : 'text-purple-600'
-                                                            }`}>
-                                                            {activeTab === 'rejected' ? <XCircle size={16} /> :
-                                                                activeTab === 'approved' ? <ShieldCheck size={16} /> : <Package size={16} />}
-                                                            {tabs.find(t => t.id === activeTab).label}
-                                                        </span>
+                                                        {activeTab === 'all' && transfer.status === 'pending' ? (
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                <button
+                                                                    onClick={() => toggleProductDecision(item.productId?._id, 'approved')}
+                                                                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-bold transition-all ${productDecisions[item.productId?._id] === 'approved'
+                                                                        ? 'bg-teal-600 text-white shadow-md'
+                                                                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                                                                        }`}
+                                                                >
+                                                                    <CheckCircle2 size={16} />
+                                                                    {t('Receive')}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => toggleProductDecision(item.productId?._id, 'rejected')}
+                                                                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-bold transition-all ${productDecisions[item.productId?._id] === 'rejected'
+                                                                        ? 'bg-red-600 text-white shadow-md'
+                                                                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                                                                        }`}
+                                                                >
+                                                                    <XCircle size={16} />
+                                                                    {t('Reject')}
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <span className={`flex items-center justify-center gap-1 font-bold ${activeTab === 'rejected' ? 'text-red-600' :
+                                                                activeTab === 'approved' ? 'text-green-600' : 'text-purple-600'
+                                                                }`}>
+                                                                {activeTab === 'rejected' ? <XCircle size={16} /> :
+                                                                    activeTab === 'approved' ? <ShieldCheck size={16} /> : <Package size={16} />}
+                                                                {tabs.find(t => t.id === activeTab).label}
+                                                            </span>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))}

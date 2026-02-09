@@ -126,35 +126,35 @@ const Transfer = () => {
       header: t("Quantities"),
       render: (_, item) => renderQuantities(item),
     },
-    {
-      header: t("Approve/Reject"),
-      render: (_, item) => (
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          {item.status === "pending" && (
-            <>
-              <button
-                onClick={() => handleAction(item._id, item.toWarehouseId?._id, "received")}
-                className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition-colors font-bold text-xs"
-                title={t("Receive")}
-                disabled={putting}
-              >
-                <CheckCircle size={14} />
-                {t("Receive")}
-              </button>
-              <button
-                onClick={() => handleAction(item._id, item.toWarehouseId?._id, "rejected")}
-                className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition-colors font-bold text-xs"
-                title={t("Reject")}
-                disabled={putting}
-              >
-                <XCircle size={14} />
-                {t("Reject")}
-              </button>
-            </>
-          )}
-        </div>
-      )
-    }
+    // {
+    //   header: t("Approve/Reject"),
+    //   render: (_, item) => (
+    //     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+    //       {item.status === "pending" && (
+    //         <>
+    //           <button
+    //             onClick={() => handleAction(item._id, item.toWarehouseId?._id, "received")}
+    //             className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition-colors font-bold text-xs"
+    //             title={t("Receive")}
+    //             disabled={putting}
+    //           >
+    //             <CheckCircle size={14} />
+    //             {t("Receive")}
+    //           </button>
+    //           <button
+    //             onClick={() => handleAction(item._id, item.toWarehouseId?._id, "rejected")}
+    //             className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition-colors font-bold text-xs"
+    //             title={t("Reject")}
+    //             disabled={putting}
+    //           >
+    //             <XCircle size={14} />
+    //             {t("Reject")}
+    //           </button>
+    //         </>
+    //       )}
+    //     </div>
+    //   )
+    // }
   ];
 
   if (loading) return <Loader />;
