@@ -103,6 +103,7 @@ import ReturnPurchaseAdd from "./Pages/ReturnPurchase/ReturnPurchaseAdd";
 import CashierShift from "./Pages/CashierShift/CashierShift";
 import CashierShiftDetails from "./Pages/CashierShift/CashierShiftDetails";
 import PermissionAdd from "./Pages/Permission/PermissionAdd";
+import TransferWarehouse from "./Pages/WareHouse/TransferWarehouse";
 
 export default function AppRoutes() {
   return (
@@ -331,6 +332,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.WAREHOUSE} action={ModuleActions.EDIT}>
               <WareHouseEdit />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="transfer/:id"
+          element={
+            <ProtectedRoute module={AppModules.WAREHOUSE} action={ModuleActions.VIEW}>
+              <TransferWarehouse />
             </ProtectedRoute>
           }
         />
