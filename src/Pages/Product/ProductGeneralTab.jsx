@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 
 const CategoryMultiSelect = ({ label, value, options, onChange, required = false }) => {
   const [open, setOpen] = React.useState(false);
-  const { t ,i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const selectedValues = new Set(value);
 
@@ -30,7 +30,7 @@ const CategoryMultiSelect = ({ label, value, options, onChange, required = false
     } else {
       selectedValues.add(optionId);
     }
-    
+
     onChange(Array.from(selectedValues));
   };
 
@@ -48,7 +48,7 @@ const CategoryMultiSelect = ({ label, value, options, onChange, required = false
       <Label className="text-sm font-medium text-gray-700 mb-2 block">
         {label} {required && <span className="text-red-500">*</span>}
       </Label>
-      
+
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -58,18 +58,18 @@ const CategoryMultiSelect = ({ label, value, options, onChange, required = false
             className="w-full justify-between h-11"
           >
             {selectedNames.length > 0 ? (
-                <div className="flex flex-wrap gap-1 max-w-[90%]">
-                    {selectedNames.map((name, index) => (
-                        <Badge key={index} variant="secondary" className="pl-2">
-                            {name}
-                            <X className="ml-1 h-3 w-3 cursor-pointer" onClick={(e) => {
-                                e.stopPropagation();
-                                const selectedOption = options.find(opt => opt.name === name);
-                                if (selectedOption) handleRemove(selectedOption._id);
-                            }} />
-                        </Badge>
-                    ))}
-                </div>
+              <div className="flex flex-wrap gap-1 max-w-[90%]">
+                {selectedNames.map((name, index) => (
+                  <Badge key={index} variant="secondary" className="pl-2">
+                    {name}
+                    <X className="ml-1 h-3 w-3 cursor-pointer" onClick={(e) => {
+                      e.stopPropagation();
+                      const selectedOption = options.find(opt => opt.name === name);
+                      if (selectedOption) handleRemove(selectedOption._id);
+                    }} />
+                  </Badge>
+                ))}
+              </div>
             ) : (
               t("Select Category")
             )}
@@ -110,8 +110,8 @@ const CategoryMultiSelect = ({ label, value, options, onChange, required = false
 // ProductGeneralTab Component (with Arabic fields and Taxes)
 // ----------------------------------------------------------------------
 
-const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, loading ,units }) => {
-  const { t ,i18n } = useTranslation();
+const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, loading, units }) => {
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   if (loading) {
     return <Loader />;
@@ -147,14 +147,14 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
 
       {/* Category, Brand, Tax Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
+
         {/* Category Multi-Select */}
         <CategoryMultiSelect
-            label={t("productss.category")}
-            value={form.categoryId || []}
-            options={categories}
-            onChange={(newIds) => handleChange("categoryId", newIds)}
-            required={true}
+          label={t("productss.category")}
+          value={form.categoryId || []}
+          options={categories}
+          onChange={(newIds) => handleChange("categoryId", newIds)}
+          required={true}
         />
 
         {/* Brand Single Select */}
@@ -197,26 +197,66 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
       </div>
 
       {/* Unit & Min Purchase */}
-<div>
-  <Label className="text-sm font-medium text-gray-700 mb-2 block">
-    {t("productss.unit")} <span className="text-red-500">*</span>
-  </Label>
-  <select
-    className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none"
-    value={form.unit} 
-    onChange={(e) => handleChange("unit", e.target.value)} 
-  >
-    {/* خيار افتراضي */}
-    <option value="">{t("select unit")}</option>
-    
-    {/* عرض الوحدات القادمة من الـ API */}
-    {units?.map((u) => (
-      <option key={u._id} value={u._id}>
-        {isRTL ? u.ar_name : u.name} ({u.code})
-      </option>
-    ))}
-  </select>
-</div>
+
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Product Unit */}
+        <div>
+          <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            {t("productss.product_unit")} <span className="text-red-500">*</span>
+          </Label>
+          <select
+            className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none"
+            value={form.product_unit}
+            onChange={(e) => handleChange("product_unit", e.target.value)}
+          >
+            <option value="">{t("select unit")}</option>
+            {units?.map((u) => (
+              <option key={u._id} value={u._id}>
+                {isRTL ? u.ar_name : u.name} ({u.code})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Purchase Unit */}
+        <div>
+          <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            {t("productss.purchase_unit")} <span className="text-red-500">*</span>
+          </Label>
+          <select
+            className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none"
+            value={form.purchase_unit}
+            onChange={(e) => handleChange("purchase_unit", e.target.value)}
+          >
+            <option value="">{t("select unit")}</option>
+            {units?.map((u) => (
+              <option key={u._id} value={u._id}>
+                {isRTL ? u.ar_name : u.name} ({u.code})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Sale Unit */}
+        <div>
+          <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            {t("productss.sale_unit")} <span className="text-red-500">*</span>
+          </Label>
+          <select
+            className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none"
+            value={form.sale_unit}
+            onChange={(e) => handleChange("sale_unit", e.target.value)}
+          >
+            <option value="">{t("select unit")}</option>
+            {units?.map((u) => (
+              <option key={u._id} value={u._id}>
+                {isRTL ? u.ar_name : u.name} ({u.code})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       {/* Description (English) */}
       <div>

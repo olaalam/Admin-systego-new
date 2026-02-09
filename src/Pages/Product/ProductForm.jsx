@@ -18,8 +18,8 @@ const ProductForm = ({
   submitLoading = false,
 }) => {
   const navigate = useNavigate();
-  const { t ,i18n } = useTranslation();
-const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   // fetch categories / brands / variations / taxes
   const { data, loading: metaLoading } = useGet("/api/admin/product/select");
 
@@ -30,15 +30,17 @@ const isRTL = i18n.language === "ar";
   const [brands, setBrands] = useState([]);
   const [taxes, setTaxes] = useState([]); // ✅ إضافة taxes
   const [isSubmitting, setIsSubmitting] = useState(false);
-const [units, setUnits] = useState([]);
-const [form, setForm] = useState({
+  const [units, setUnits] = useState([]);
+  const [form, setForm] = useState({
     name: "",
     ar_name: "", // ✅ إضافة ar_name
     ar_description: "", // ✅ إضافة ar_description
     categoryId: [],
     brandId: "",
     taxesId: "", // ✅ إضافة taxesId
-    unit: "piece",
+    product_unit: "",
+    purchase_unit: "",
+    sale_unit: "",
     description: "",
     minimum_quantity_sale: 1,
     image: "",
@@ -46,7 +48,7 @@ const [form, setForm] = useState({
     price: 0,
     different_price: false,
     prices: [],
-    discount: 0,
+    // discount: 0,
     quantity: 0,
     low_stock: 0,
     exp_ability: false,
@@ -127,7 +129,7 @@ const [form, setForm] = useState({
       setCategories(data.categories || []);
       setBrands(data.brands || []);
       setAllVariations(data.variations || []);
-      setTaxes(data.taxes || []); 
+      setTaxes(data.taxes || []);
       setUnits(data.units || []);
     }
   }, [data]);
@@ -145,7 +147,9 @@ const [form, setForm] = useState({
             : initialData.categoryId || [],
           brandId: initialData.brandId?._id || initialData.brandId || "",
           taxesId: initialData.taxesId?._id || initialData.taxesId || "", // ✅ إضافة taxesId
-          unit: initialData.unit || prev.unit,
+          product_unit: initialData.product_unit?._id || initialData.product_unit || "",
+          purchase_unit: initialData.purchase_unit?._id || initialData.purchase_unit || "",
+          sale_unit: initialData.sale_unit?._id || initialData.sale_unit || "",
           description: initialData.description || "",
           image: initialData.image || "",
           gallery_product: initialData.gallery_product || initialData.gallery || [],
@@ -178,7 +182,7 @@ const [form, setForm] = useState({
               _id: p._id,
               price: p.price,
               quantity: p.quantity || 0,
-              cost: p.cost || 0, 
+              cost: p.cost || 0,
               start_quantity: p.start_quantity || 0,
               code: p.code || "",
               image: p.gallery?.[0] || p.image || "",
@@ -334,6 +338,7 @@ const [form, setForm] = useState({
   const isFormValid = () => {
     if (!form.name || form.name.trim() === "") return false;
     if (!form.categoryId || form.categoryId.length === 0) return false;
+    if (!form.product_unit || !form.purchase_unit || !form.sale_unit) return false;
     if (!form.price || Number(form.price) <= 0) return false;
     if (!form.image) return false;
 
@@ -370,7 +375,9 @@ const [form, setForm] = useState({
         categoryId: form.categoryId,
         brandId: form.brandId || "",
         taxesId: form.taxesId || "", // ✅ إضافة taxesId
-        unit: form.unit,
+        product_unit: form.product_unit,
+        purchase_unit: form.purchase_unit,
+        sale_unit: form.sale_unit,
         price: form.price,
         description: form.description,
         image: cleanBase64(form.image),
@@ -408,7 +415,7 @@ const [form, setForm] = useState({
           quantity: form.quantity || 0,
           low_stock: form.low_stock || 0,
           minimum_quantity_sale: form.minimum_quantity_sale,
-          discount: form.discount,
+          // discount: form.discount,
         };
         delete finalForm.different_price;
         delete finalForm.prices;
@@ -450,16 +457,16 @@ const [form, setForm] = useState({
   const headerTitle = mode === "add" ? t("Add New Product") : t("Edit Product");
   const headerSubtitle =
     mode === "add"
-     ? t("productForm.subtitle_add")
-    : t("productForm.subtitle_edit");
+      ? t("productForm.subtitle_add")
+      : t("productForm.subtitle_edit");
   const submitLabel =
     submitLoading || isSubmitting
       ? mode === "add"
-       ? t("productForm.saving")
-      : t("productForm.updating")
+        ? t("productForm.saving")
+        : t("productForm.updating")
       : mode === "add"
-      ? t("productForm.save")
-    : t("productForm.update");
+        ? t("productForm.save")
+        : t("productForm.update");
 
   return (
     <div className="min-h-screen bg-gray-50 p-6" dir={isRTL ? "rtl" : "ltr"}>
@@ -471,9 +478,9 @@ const [form, setForm] = useState({
           </div>
         </div>
 
-        <div 
-        
-        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-24">
+        <div
+
+          className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-24">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="border-b border-gray-200 bg-gray-50">
               <TabsList className="w-full bg-transparent border-0 p-0 h-auto">
