@@ -147,6 +147,7 @@ const Cashier = () => {
         addButtonText="Add Cashier"
         addPath="add"
         editPath={(item) => `edit/${item._id}`}
+        onAdd={() => alert("Add new brand clicked!")}
         onDelete={(item) => setDeleteTarget(item)}
         searchable={true}
         filterable={true}

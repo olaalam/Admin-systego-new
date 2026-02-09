@@ -135,6 +135,8 @@ const PurchasesPage = () => {
     { label: t("Expired"), path: "/api/admin/purchase/expired", icon: <Ban size={16} /> },
   ];
 
+  const currentFilter = filters.find(f => f.path === activeFilter);
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
 
@@ -183,12 +185,16 @@ const PurchasesPage = () => {
         </div>
       )}
 
-      {/* إحصائيات الـ Low Stock */}
+      {/* إحصائيات المنتجات (Low Stock, Expiring, etc.) */}
       {statsData && statsData.type === 'products' && (
         <div className="bg-teal-600 p-4 rounded-2xl shadow-lg mb-6 text-white flex items-center gap-4">
-          <AlertTriangle size={24} />
+          <div className="*:w-6 *:h-6">
+            {currentFilter?.icon || <AlertTriangle size={24} />}
+          </div>
           <div>
-            <h3 className="font-black">{statsData.count} {t("Products with Low Stock")}</h3>
+            <h3 className="font-black">
+              {statsData.count} {currentFilter?.label}
+            </h3>
             <p className="text-xs opacity-80">{statsData.message}</p>
           </div>
         </div>
@@ -216,7 +222,7 @@ const PurchasesPage = () => {
         <DataTable
           data={displayData}
           columns={columns}
-          title={activeFilter.includes('low-stock') ? t("Low Stock Products") : t("Purchases")}
+          title={activeFilter === "/api/admin/purchase" ? t("Purchases") : (currentFilter?.label || t("Purchases"))}
           addButtonText={t("Add")}
           onEdit={(item) => navigate(`edit/${item._id}`)}
           showActions={true}
