@@ -8,11 +8,11 @@ import { useTranslation } from "react-i18next";
 
 const CustomerGroupAdd = () => {
   const navigate = useNavigate();
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   // ✅ endpoint الإضافة
   const { postData, loading: submitting } = usePost(
-    "/api/admin/customer/group"
+    "/api/admin/customer/groups"
   );
 
   // ✅ الحقول الخاصة بالـ customer group

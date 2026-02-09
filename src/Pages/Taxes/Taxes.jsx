@@ -124,7 +124,14 @@ const Taxes = () => {
       ),
     },
 
-
+    {
+      key: "ar_name",
+      header: t("TaxNameAr"),
+      filterable: true,
+      render: (value) => (
+        <span className="font-medium text-gray-900 text-sm">{value}</span>
+      ),
+    },
     {
       key: "type",
       header: t("Type"),
@@ -132,8 +139,8 @@ const Taxes = () => {
       render: (value) => (
         <span
           className={`px-2 py-1 rounded text-xs font-medium ${value === "percentage"
-              ? "bg-blue-50 text-blue-700"
-              : "bg-purple-50 text-purple-700"
+            ? "bg-blue-50 text-blue-700"
+            : "bg-purple-50 text-purple-700"
             }`}
         >
           {value === "percentage" ? t("Percentage") : t("Fixed")}

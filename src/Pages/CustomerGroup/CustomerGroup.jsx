@@ -16,11 +16,11 @@ const CustomerGroup = () => {
     const { t, i18n } = useTranslation();
     const isRTL = i18n.language === "ar";
     const { data, loading, error, refetch } = useGet(
-        "/api/admin/customer/group"
+        "/api/admin/customer/groups"
     );
 
     const { deleteData, loading: deleting } = useDelete(
-        "/api/admin/customer/group/delete"
+        "/api/admin/customer/groups/delete"
     );
 
     const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -30,7 +30,7 @@ const CustomerGroup = () => {
 
     const handleDelete = async (item) => {
         try {
-            await deleteData(`/api/admin/customer/group/${item._id}`);
+            await deleteData(`/api/admin/customer/groups/${item._id}`);
             refetch();
         } finally {
             setDeleteTarget(null);
@@ -42,7 +42,7 @@ const CustomerGroup = () => {
         if (!group?._id) return; // حماية إضافية
         try {
             setUpdatingStatus(true);
-            await api.put(`/api/admin/customer/group/${group._id}`, {
+            await api.put(`/api/admin/customer/groups/${group._id}`, {
                 status: !group.status,
             });
             toast.success(t("Statusupdatedsuccessfully"));
