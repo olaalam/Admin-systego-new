@@ -49,6 +49,21 @@ const WareHouse = () => {
     { key: "email", header: t("Email"), filterable: true },
     { key: "number_of_products", header: t("Products"), filterable: false },
     { key: "stock_Quantity", header: t("Stock Quantity"), filterable: false },
+    {
+      key: "transfer",
+      header: t("Transfer"),
+      render: (_, row) => (
+        <span
+          className="text-primary font-bold cursor-pointer hover:underline"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/warehouse/transfer/${row._id}`);
+          }}
+        >
+          {t("View Transfer")}
+        </span>
+      ),
+    },
   ];
 
   if (loading) return <Loader />;

@@ -89,7 +89,7 @@ export default function DataTable({
     });
 
     return filtered;
-  }, [searchTerm, selectedFilters, onSearchApi]);
+  }, [safeData, searchTerm, selectedFilters, onSearchApi]);
 
   const startIndex = (currentPage - 1) * itemsPerPageState;
   const endIndex = startIndex + itemsPerPageState;
