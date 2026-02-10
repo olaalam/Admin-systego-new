@@ -34,7 +34,7 @@ const Admin = () => {
     { key: "role", header: t("Role"), filterable: true },
     { key: "company_name", header: t("CompanyName"), filterable: true },
     {
-      key: "warehouse",
+      key: "warehouse_name",
       header: t("Warehouse"),
       filterable: true,
     },
