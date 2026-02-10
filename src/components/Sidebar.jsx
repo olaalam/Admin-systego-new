@@ -1,135 +1,109 @@
 import { Link } from "react-router-dom";
 import { Menu, ChevronDown, ChevronUp, MapPin, Search, X } from "lucide-react";
-import {
-  LayoutDashboard,
-  Users,
-  Package,
-  ShoppingCart,
-  TrendingUp,
-  Handshake,
-  Wallet,
-  Scale,
-  UserRound,
-  FileText,
-  Factory,
-  SlidersHorizontal,
-  Puzzle,
-  BookOpen,
-  History,
-} from "lucide-react";
+
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 import logo from "@/assets/logo.png";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
 
+import {
+  LayoutDashboard,
+  Package,
+  Layers,       // Product Management
+  CreditCard,   // Financial
+  Megaphone,    // Marketing
+  Settings,     // Settings
+  Warehouse,    // Inventory
+  Contact2,     // CRM
+  Users,        // HRM (بقيت كما هي لأنها معبرة)
+  BarChart3,    // Reports
+  History,
+  Puzzle,
+} from "lucide-react";
+
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/" },
   {
-    name: "Product",
-    icon: Package,
-
+    name: "Product Management",
+    icon: Layers, // تم التغيير من Package إلى Layers لتعبر عن إدارة التصنيفات والمنتجات
     children: [
       { name: "Products", path: "/product", module: AppModules.PRODUCT },
       { name: "Category", path: "/category", module: AppModules.CATEGORY },
       { name: "Brand", path: "/brand", module: AppModules.BRAND },
       { name: "Attribute", path: "/attribute", module: AppModules.VARIATION },
       { name: "Unit", path: "/unit", module: AppModules.UNITS },
-      { name: "Barcode", path: "/barcode", module: AppModules.PRODUCT },
+    ],
+  },
+  {
+    name: "Financial",
+    icon: CreditCard, // تم التغيير من BookOpen لتعبر عن المعاملات المالية
+    children: [
+      { name: "Financial", path: "/accounting", module: AppModules.FINANCIAL_ACCOUNT },
       { name: "Taxes", path: "/taxes", module: AppModules.TAXES },
-      { name: "Bundels", path: "/pandel", module: AppModules.PANDEL },
-    ],
-  },
-  {
-    name: "Purchase",
-    icon: ShoppingCart,
-    children: [
-      { name: "List", path: "/purchase", module: AppModules.PURCHASE },
-      { name: "Return", path: "/purchase-return", module: AppModules.PURCHASE_RETURN },
-
-    ],
-  },
-  {
-    name: "Locations",
-    icon: MapPin,
-    children: [
-      { name: "City", path: "/city", module: AppModules.CITY },
-      { name: "Country", path: "/country", module: AppModules.COUNTRY },
-      { name: "Zone", path: "/zone", module: AppModules.ZONE },
-    ],
-  },
-  {
-    name: "Sale",
-    icon: TrendingUp,
-    children: [
-      { name: "List", path: "/sale/list", module: AppModules.POS },
       { name: "Discount", path: "/discount", module: AppModules.DISCOUNT },
-      { name: "Currency", path: "/currency", module: AppModules.CURRENCY },
-      { name: "Coupon", path: "/coupon", module: AppModules.COUPON },
-
-
-    ],
-  },
-  {
-    name: "Expense",
-    icon: Wallet,
-    children: [
-      { name: "List", path: "/expense", module: AppModules.EXPENSE_ADMIN },
+      { name: "Expenses", path: "/expense", module: AppModules.EXPENSE_ADMIN },
       { name: "ExpensesCategory", path: "/expense-category", module: AppModules.EXPENSE_CATEGORY },
-    ],
-  },
-  {
-    name: "Revenue",
-    icon: Handshake,
-    children: [{ name: "List", path: "/revenue", module: AppModules.REVENUE }],
-  },
-  { name: "Transfer", icon: Puzzle, path: "/transfer", module: AppModules.TRANSFER },
-  { name: "Cashier Shift", icon: History, path: "/cashier-shift", module: AppModules.CASHIER_SHIFT_REPORT },
-  {
-    name: "Accounting",
-    icon: BookOpen,
-    children: [
-      { name: "List", path: "/accounting", module: AppModules.FINANCIAL_ACCOUNT },
+      { name: "Revenue", path: "/revenue", module: AppModules.REVENUE },
       { name: "PaymentMethod", path: "/payment_method", module: AppModules.PAYMENT_METHOD },
       { name: "Payments", path: "/payments", module: AppModules.PAYMENT },
     ],
   },
   {
-    name: "People",
-    icon: Users,
-    children: [
-      { name: "Admin", path: "/admin", module: AppModules.ADMIN },
-      { name: "Supplier", path: "/supplier", module: AppModules.SUPPLIER },
-      { name: "Customer", path: "/customer", module: AppModules.CUSTOMER },
-      { name: "CustomerGroup", path: "/customer-group", module: AppModules.CUSTOMER_GROUP },
-      { name: "Cashier", path: "/cashier", module: AppModules.CASHIER },
-      { name: "Permission", path: "/permission", module: AppModules.PERMISSION },
-    ],
-  },
-  {
-    name: "Reports",
-    icon: FileText,
+    name: "Marketing",
+    icon: Megaphone, // تم التغيير لتعبر عن الحملات التسويقية والـ Popups
     children: [
       { name: "Popup", path: "/popup", module: AppModules.POPUP },
       { name: "Point", path: "/point", module: AppModules.POINT },
       { name: "RedeemPoint", path: "/redeem-point", module: AppModules.REDEEM_POINTS },
-    ],
-  },
-  {
-    name: "Manufacturing",
-    icon: Factory,
-    children: [
-      { name: "List", path: "/manufacturing/list", module: AppModules.MANUFACTURING_LIST },
-      { name: "WareHouse", path: "/warehouse", module: AppModules.WAREHOUSE },
-
+      { name: "Bundels", path: "/pandel", module: AppModules.PANDEL },
+      { name: "Coupon", path: "/coupon", module: AppModules.COUPON },
     ],
   },
   {
     name: "Settings",
-    icon: SlidersHorizontal,
+    icon: Settings, // تم التغيير من SlidersHorizontal لشكل الترس التقليدي للإعدادات
     children: [
-      { name: "List", path: "/settings/list" },
-      { name: "Add", path: "/settings/add" },
+      { name: "Barcode", path: "/barcode", module: AppModules.PRODUCT },
+      { name: "City", path: "/city", module: AppModules.CITY },
+      { name: "Country", path: "/country", module: AppModules.COUNTRY },
+      { name: "Zone", path: "/zone", module: AppModules.ZONE },
+      { name: "Permission", path: "/permission", module: AppModules.PERMISSION },
+      { name: "Currency", path: "/currency", module: AppModules.CURRENCY },
+    ],
+  },
+  {
+    name: "Inventory",
+    icon: Warehouse, // تم التغيير من Factory إلى Warehouse لتعبر عن المخازن بشكل مباشر
+    children: [
+      { name: "WareHouse", path: "/warehouse", module: AppModules.WAREHOUSE },
+      { name: "Transfer", path: "/transfer", module: AppModules.TRANSFER },
+      { name: "Purchase", path: "/purchase", module: AppModules.PURCHASE },
+      { name: "Return", path: "/purchase-return", module: AppModules.PURCHASE_RETURN },
+    ],
+  },
+  {
+    name: "CRM",
+    icon: Contact2, // تم التغيير لتمييزها عن HRM، فهي تعبر عن جهات الاتصال والعملاء
+    children: [
+      { name: "Supplier", path: "/supplier", module: AppModules.SUPPLIER },
+      { name: "Customer", path: "/customer", module: AppModules.CUSTOMER },
+      { name: "CustomerGroup", path: "/customer-group", module: AppModules.CUSTOMER_GROUP },
+    ],
+  },
+  {
+    name: "HRM",
+    icon: Users, // بقيت كما هي لأنها تعبر عن الموظفين (الأدمن والكاشير)
+    children: [
+      { name: "Admin", path: "/admin", module: AppModules.ADMIN },
+      { name: "Cashier", path: "/cashier", module: AppModules.CASHIER },
+    ],
+  },
+  {
+    name: "Reports",
+    icon: BarChart3, // تم التغيير من FileText لتعبر عن الإحصائيات والرسوم البيانية
+    children: [
+      { name: "Cashier Shift", path: "/cashier-shift", module: AppModules.CASHIER_SHIFT_REPORT },
     ],
   },
 ];
