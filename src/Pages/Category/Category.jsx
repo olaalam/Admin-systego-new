@@ -17,10 +17,10 @@ const Category = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [bulkDeleteIds, setBulkDeleteIds] = useState(null);
   const [bulkDeleting, setBulkDeleting] = useState(false);
-const { postData, loading: importing } = usePost("/api/admin/category/import");
+  const { postData, loading: importing } = usePost("/api/admin/category/import");
 
   const categories = data?.categories || [];
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const handleDelete = async (item) => {
     try {
@@ -47,11 +47,11 @@ const { t, i18n } = useTranslation();
       await deleteData("/api/admin/category", { ids: bulkDeleteIds });
 
       refetch();
-toast.success(
-  t("category_deleted_successfully", {
-    count: bulkDeleteIds.length
-  })
-);
+      toast.success(
+        t("category_deleted_successfully", {
+          count: bulkDeleteIds.length
+        })
+      );
     } catch (err) {
       console.error("Bulk delete error:", err);
       // Error toast is already handled by useDelete hook
@@ -80,35 +80,35 @@ toast.success(
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Categories");
 
-    XLSX.writeFile(wb, `categories_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(wb, `categories_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-const handleImport = async (file) => {
-  if (!file) return;
+  const handleImport = async (file) => {
+    if (!file) return;
 
-  // 1. إنشاء الـ FormData
-  const formData = new FormData();
-  
-  // تأكد أن المفتاح "file" يطابق تماماً ما يتوقعه الباك إند (كما رأينا في Postman)
-  formData.append("file", file); 
+    // 1. إنشاء الـ FormData
+    const formData = new FormData();
 
-  try {
-    // 2. إرسال البيانات مع تحديد الـ Headers
-    // نمرر الـ formData كأول باراميتر (body)
-    // والـ config كالتالث باراميتر لضبط الـ headers
-    await postData(formData, null, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    // تأكد أن المفتاح "file" يطابق تماماً ما يتوقعه الباك إند (كما رأينا في Postman)
+    formData.append("file", file);
 
-    // 3. تحديث الجدول بعد النجاح
-    refetch();
-    console.log("Import successful");
-  } catch (err) {
-    console.error("Import error:", err);
-  }
-};
+    try {
+      // 2. إرسال البيانات مع تحديد الـ Headers
+      // نمرر الـ formData كأول باراميتر (body)
+      // والـ config كالتالث باراميتر لضبط الـ headers
+      await postData(formData, null, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // 3. تحديث الجدول بعد النجاح
+      refetch();
+      console.log("Import successful");
+    } catch (err) {
+      console.error("Import error:", err);
+    }
+  };
 
   const downloadTemplate = () => {
     const templateData = [
@@ -177,21 +177,22 @@ const handleImport = async (file) => {
   // Render product quantity with badge
   const renderProductQuantity = (item) => {
     const quantity = item.product_quantity || 0;
+
     return (
       <div className="flex items-center gap-2">
         <span
-          className={`inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded-full ${
-            quantity === 0
+          className={`inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded-full ${quantity === 0
               ? "bg-gray-100 text-gray-600"
               : quantity < 5
-              ? "bg-orange-100 text-orange-700"
-              : "bg-green-100 text-green-700"
-          }`}
+                ? "bg-orange-100 text-orange-700"
+                : "bg-green-100 text-green-700"
+            }`}
         >
           {quantity}
         </span>
         <span className="text-xs text-gray-500">
-          {quantity === 1 ? t("product") : t("products")}
+          {/* تعديل بسيط للتأكد من استدعاء نص وليس Object */}
+          {quantity === 1 ? t("product_singular", "product") : t("products")}
         </span>
       </div>
     );
@@ -204,7 +205,7 @@ const handleImport = async (file) => {
       filterable: true,
 
     },
-        {
+    {
       key: "ar_name",
       header: t("CategoryArabic"),
       filterable: true,
@@ -240,7 +241,7 @@ const handleImport = async (file) => {
         columns={columns}
         title={t("CategoryManagement")}
         onAdd={() => alert("Add new category clicked!")}
-        onEdit={(item) => {}} // DataTable handles navigation via editPath
+        onEdit={(item) => { }} // DataTable handles navigation via editPath
         onDelete={(item) => setDeleteTarget(item)}
         onBulkDelete={handleBulkDelete}
         onExport={handleExport}
@@ -258,8 +259,8 @@ const handleImport = async (file) => {
       {/* Delete Dialog */}
       {deleteTarget && (
         <DeleteDialog
- title={t("delete_category")}
-message={t("confirm_delete_category", { name: deleteTarget.name })}
+          title={t("delete_category")}
+          message={t("confirm_delete_category", { name: deleteTarget.name })}
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
@@ -269,9 +270,9 @@ message={t("confirm_delete_category", { name: deleteTarget.name })}
       {/* Bulk Delete Dialog */}
       {bulkDeleteIds && (
         <DeleteDialog
-         title={t("delete_multiple_categories")}
-message={t("confirm_delete_multiple_categories", { count: bulkDeleteIds.length })}
- onConfirm={confirmBulkDelete}
+          title={t("delete_multiple_categories")}
+          message={t("confirm_delete_multiple_categories", { count: bulkDeleteIds.length })}
+          onConfirm={confirmBulkDelete}
           onCancel={() => setBulkDeleteIds(null)}
           loading={bulkDeleting}
         />
