@@ -11,7 +11,8 @@ import {
   Wallet, Receipt, Clock, Eye
 } from "lucide-react";
 import PurchaseReturnsModal from "./PurchaseReturnsModal";
-
+import usePut from "@/hooks/usePut";
+import { toast } from "react-toastify";
 const PurchasesPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -21,6 +22,10 @@ const PurchasesPage = () => {
   const { data, loading, error } = useGet(activeFilter);
   const [selectedPurchase, setSelectedPurchase] = useState(null);
   const [returnModalData, setReturnModalData] = useState({ isOpen: false, purchaseId: null });
+  const { data: selection } = useGet("api/admin/purchase/selection");
+  const { putData: payInstallment, loading: isPaying } = usePut();
+  const [payingInstallmentId, setPayingInstallmentId] = useState(null);
+  const [selectedAccountId, setSelectedAccountId] = useState("");
   // --- 1. حساب الإحصائيات (Stats) للعرض في الأعلى ---
   const statsData = useMemo(() => {
     if (!data) return null;
@@ -38,9 +43,9 @@ const PurchasesPage = () => {
       partial_count: data.stats?.partial_count || 0,
       partial_amount: data.stats?.partial_amount || 0,
       full_count: data.stats?.full_count || 0,
-      full_amount: data.stats?.full_amount || 0,
+      full_amount: data.stats?.full_amount?.toFixed(2) || 0,
       later_count: data.stats?.later_count || 0,
-      later_amount: data.stats?.later_amount || 0,
+      later_amount: data.stats?.later_amount?.toFixed(2) || 0,
     };
   }, [data]);
 
@@ -48,12 +53,17 @@ const PurchasesPage = () => {
   const displayData = useMemo(() => {
     if (!data) return [];
     if (data.products) return data.products;
-    return [
+
+    // تجميع كل المشتريات في قائمة واحدة
+    const allPurchases = [
       ...(data?.purchases?.partial || []),
       ...(data?.purchases?.full || []),
       ...(data?.purchases?.later || []),
       ...(Array.isArray(data) ? data : [])
     ];
+
+
+    return allPurchases.sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [data]);
 
   // --- 3. تعريف الأعمدة ديناميكياً ---
@@ -136,6 +146,32 @@ const PurchasesPage = () => {
   ];
 
   const currentFilter = filters.find(f => f.path === activeFilter);
+
+  // أضف هذا الجزء داخل مكون PurchasesPage قبل الـ return
+  const handlePayInstallment = async (installmentId) => {
+    if (!selectedAccountId) {
+      toast.error(t("Please select a financial account"));
+      return;
+    }
+
+    try {
+      // الترتيب الصحيح حسب ملف usePut.js هو (body, url)
+      const result = await payInstallment(
+        { financial_id: selectedAccountId },
+        `/api/admin/purchase/installment/${installmentId}/pay`
+      );
+
+      if (result) {
+        toast.success(t("Payment successful!"));
+        setSelectedPurchase(null); // إغلاق المودال للتحديث
+        setPayingInstallmentId(null);
+        setSelectedAccountId("");
+      }
+    } catch (error) {
+      console.error("Payment failed", error);
+      // الخطأ يتم معالجته داخلياً في الـ hook ولكن يفضل التنبيه هنا أيضاً
+    }
+  };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -254,13 +290,71 @@ const PurchasesPage = () => {
                   <span className="text-sm font-black text-green-700">{inv.amount} EGP</span>
                 </div>
               ))}
-              <h4 className="text-[10px] font-black text-gray-400 uppercase mt-4 mb-3 tracking-widest">{t("Future Dues")}</h4>
-              {selectedPurchase.duePayments?.map((due, i) => (
-                <div key={i} className="flex justify-between p-3 bg-orange-50 border border-orange-100 rounded-xl mb-2">
-                  <span className="text-xs font-bold text-gray-600">{new Date(due.date).toLocaleDateString()}</span>
-                  <span className="text-sm font-black text-orange-700">{due.amount} EGP</span>
-                </div>
-              ))}
+              {/* المودال التفصيلي - قسم Future Dues */}
+              <h4 className="text-[10px] font-black text-gray-400 uppercase mt-4 mb-3 tracking-widest">
+                {t("Future Dues")}
+              </h4>
+
+              {selectedPurchase.installments?.map((due, i) => {
+                const isThisOne = payingInstallmentId === due._id;
+
+                return (
+                  <div key={i} className="flex flex-col p-3 bg-orange-50 border border-orange-100 rounded-xl mb-2 gap-3">
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-gray-600">
+                          {new Date(due.date).toLocaleDateString()}
+                        </span>
+                        <span className="text-sm font-black text-orange-700">
+                          {due.amount} EGP
+                        </span>
+                      </div>
+
+                      {!isThisOne ? (
+                        <button
+                          onClick={() => setPayingInstallmentId(due._id)}
+                          className="px-4 py-2 bg-orange-600 text-white text-[10px] font-bold rounded-lg hover:bg-orange-700 transition-all flex items-center gap-1"
+                        >
+                          <CreditCard size={12} />
+                          {t("Pay Now")}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setPayingInstallmentId(null)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* تظهر هذه القائمة فقط عند الضغط على زر الدفع لهذا القسط بالتحديد */}
+                    {isThisOne && (
+                      <div className="flex gap-2 animate-in slide-in-from-top-2 duration-200">
+                        <select
+                          className="flex-1 border rounded-lg p-2 text-xs bg-white focus:ring-2 focus:ring-orange-500 outline-none"
+                          value={selectedAccountId}
+                          onChange={(e) => setSelectedAccountId(e.target.value)}
+                        >
+                          <option value="">{t("Select Account")}</option>
+                          {selection?.financial?.map((fin) => (
+                            <option key={fin._id} value={fin._id}>
+                              {fin.name}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          disabled={isPaying || !selectedAccountId}
+                          onClick={() => handlePayInstallment(due._id)}
+                          className="bg-green-600 text-white px-3 py-2 rounded-lg text-[10px] font-bold hover:bg-green-700 disabled:opacity-50"
+                        >
+                          {isPaying ? "..." : t("Confirm")}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               <button onClick={() => setSelectedPurchase(null)} className="w-full mt-4 bg-gray-900 text-white py-3 rounded-xl font-bold">{t("Done")}</button>
             </div>
           </div>
