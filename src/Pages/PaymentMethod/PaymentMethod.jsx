@@ -8,6 +8,7 @@ import useDelete from "@/hooks/useDelete";
 import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const PaymentMethod = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/payment_method");
@@ -30,7 +31,7 @@ const PaymentMethod = () => {
   const handleStatusToggle = async (item) => {
     const newStatus = item.isActive ? "false" : "true";
     setUpdatingId(item._id);
-    
+
     try {
       await api.put(`/api/admin/payment_method/${item._id}`, { isActive: newStatus });
       toast.success(t("Statusupdatedsuccessfully"));
@@ -96,8 +97,8 @@ const PaymentMethod = () => {
       <DataTable
         data={paymentMethods}
         columns={columns}
-       title={t("PaymentMethodManagement")}
-  addButtonText={t("AddPaymentMethod")}
+        title={t("PaymentMethodManagement")}
+        addButtonText={t("AddPaymentMethod")}
         onAdd={() => alert("Add new payment method clicked!")}
         onEdit={(item) => alert(`Edit payment method: ${item.name}`)}
         onDelete={(item) => setDeleteTarget(item)}
@@ -106,12 +107,13 @@ const PaymentMethod = () => {
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.PAYMENT_METHOD}
       />
       {deleteTarget && (
         <DeleteDialog
-         title={t("DeletePaymentMethod")}
-  message={t("DeletePaymentMethodMessage", { name: deleteTarget.name })}
-  onConfirm={() => handleDelete(deleteTarget)}
+          title={t("DeletePaymentMethod")}
+          message={t("DeletePaymentMethodMessage", { name: deleteTarget.name })}
+          onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
         />

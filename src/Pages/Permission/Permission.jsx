@@ -5,6 +5,7 @@ import DeleteDialog from "@/components/DeleteForm";
 import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Permission = () => {
   const { t } = useTranslation();
@@ -58,9 +59,9 @@ const Permission = () => {
         onDelete={(item) => setDeleteTarget(item)}
         editPath={(item) => `edit/${item.id}`}
         addPath="add"
-
         itemsPerPage={10}
         searchable={true}
+        moduleName={AppModules.PERMISSION}
       />
 
       {/* مودال عرض الصلاحيات المحسن */}
@@ -86,7 +87,7 @@ const Permission = () => {
             {/* Body: عرض الصلاحيات بشكل منظم */}
             <div className="p-6 overflow-y-auto custom-scrollbar">
               <div className="grid gap-6">
-                {viewTarget.permissions.map((moduleItem, idx) => (
+                {viewTarget.permissions?.map((moduleItem, idx) => (
                   <div key={idx} className="border-b border-gray-50 pb-4 last:border-0">
                     <h3 className="text-sm font-bold text-gray-900 mb-3 capitalize flex items-center">
                       <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>

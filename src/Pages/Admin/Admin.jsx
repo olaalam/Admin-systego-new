@@ -34,7 +34,7 @@ const Admin = () => {
     { key: "role", header: t("Role"), filterable: true },
     { key: "company_name", header: t("CompanyName"), filterable: true },
     {
-      key: "warehouse",
+      key: "warehouse_name",
       header: t("Warehouse"),
       filterable: true,
     },
@@ -55,17 +55,18 @@ const Admin = () => {
         addPath="add"
         editPath={(item) => `edit/${item.id}`}
         onDelete={(item) => setDeleteTarget(item)}
-        onEdit={() => {}}
+        onEdit={() => { }}
         itemsPerPage={10}
         searchable
         filterable
+        moduleName="Admin"
       />
 
       {deleteTarget && (
         <DeleteDialog title={t("DeleteAdmin")}
-  message={t("DeleteAdminMessage", { username: deleteTarget.username })}
+          message={t("DeleteAdminMessage", { username: deleteTarget.username })}
 
-  onConfirm={() => handleDelete(deleteTarget)}
+          onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
         />

@@ -8,6 +8,7 @@ import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Attribute = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/variation");
@@ -69,10 +70,10 @@ const Attribute = () => {
       Options:
         attribute.options && attribute.options.length > 0
           ? attribute.options
-              .map(
-                (opt) => `${opt.name} (${opt.status ? "Active" : "Inactive"})`
-              )
-              .join(", ")
+            .map(
+              (opt) => `${opt.name} (${opt.status ? "Active" : "Inactive"})`
+            )
+            .join(", ")
           : "",
       "Total Options": attribute.options?.length || 0,
     }));
@@ -99,8 +100,7 @@ const Attribute = () => {
       console.log("Imported attributes data:", jsonData);
 
       toast.info(
-        `Read ${jsonData.length} row${
-          jsonData.length > 1 ? "s" : ""
+        `Read ${jsonData.length} row${jsonData.length > 1 ? "s" : ""
         } from file. (API integration pending)`
       );
 
@@ -162,16 +162,14 @@ const Attribute = () => {
         {options.map((opt) => (
           <span
             key={opt._id}
-            className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${
-              opt.status
+            className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${opt.status
                 ? "bg-green-50 text-green-700 ring-1 ring-green-600/20"
                 : "bg-red-50 text-red-700 ring-1 ring-red-600/20"
-            }`}
+              }`}
           >
             <span
-              className={`h-1.5 w-1.5 rounded-full mr-1.5 ${
-                opt.status ? "bg-green-500" : "bg-red-500"
-              }`}
+              className={`h-1.5 w-1.5 rounded-full mr-1.5 ${opt.status ? "bg-green-500" : "bg-red-500"
+                }`}
             />
             {opt.name}
           </span>
@@ -186,18 +184,17 @@ const Attribute = () => {
     return (
       <div className="flex items-center gap-2">
         <span
-          className={`inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded-full ${
-            count === 0
+          className={`inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded-full ${count === 0
               ? "bg-gray-100 text-gray-600"
               : count < 3
-              ? "bg-orange-100 text-orange-700"
-              : "bg-green-100 text-green-700"
-          }`}
+                ? "bg-orange-100 text-orange-700"
+                : "bg-green-100 text-green-700"
+            }`}
         >
           {count}
         </span>
-          <span className="text-xs text-gray-500">
-            {count === 1 ? t('option'): t("options")}
+        <span className="text-xs text-gray-500">
+          {count === 1 ? t('option') : t("options")}
         </span>
       </div>
     );
@@ -206,19 +203,19 @@ const Attribute = () => {
   const columns = [
     {
       key: "name",
-    header: t("AttributeDetails"),
+      header: t("AttributeDetails"),
       filterable: true,
       render: (_, item) => renderAttributeInfo(item),
     },
     {
       key: "options",
-    header: t("Options"),
+      header: t("Options"),
       filterable: false,
       render: (_, item) => renderOptions(item),
     },
     {
       key: "option_count",
-    header: t("TotalOptions"),
+      header: t("TotalOptions"),
       filterable: false,
       render: (_, item) => renderOptionCount(item),
     },
@@ -240,7 +237,7 @@ const Attribute = () => {
         columns={columns}
         title={t("AttributesManagement")}
         onAdd={() => alert("Add new attribute clicked!")}
-        onEdit={(item) => {}} // DataTable handles navigation via editPath
+        onEdit={(item) => { }} // DataTable handles navigation via editPath
         onDelete={(item) => setDeleteTarget(item)}
         onBulkDelete={handleBulkDelete}
         onExport={handleExport}
@@ -252,13 +249,14 @@ const Attribute = () => {
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.ATTRIBUTE}
       />
 
       {/* Delete Dialog */}
       {deleteTarget && (
         <DeleteDialog
           title={t("DeleteAttribute")}
-  message={t("DeleteItemConfirm", { name: deleteTarget.name })}
+          message={t("DeleteItemConfirm", { name: deleteTarget.name })}
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
@@ -268,8 +266,8 @@ const Attribute = () => {
       {/* Bulk Delete Dialog */}
       {bulkDeleteIds && (
         <DeleteDialog
-  title={t("DeleteMultipleAttributes")}
-  message={t("DeleteMultipleAttributesMessage", { count: bulkDeleteIds.length })}
+          title={t("DeleteMultipleAttributes")}
+          message={t("DeleteMultipleAttributesMessage", { count: bulkDeleteIds.length })}
 
           onConfirm={confirmBulkDelete}
           onCancel={() => setBulkDeleteIds(null)}

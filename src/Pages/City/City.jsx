@@ -5,11 +5,12 @@ import DeleteDialog from "@/components/DeleteForm";
 import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const City = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/city");
   const { deleteData, loading: deleting } = useDelete("/api/admin/city/delete");
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const [deleteTarget, setDeleteTarget] = useState(null);
   const cities = data?.cities || [];
@@ -58,12 +59,13 @@ const { t, i18n } = useTranslation();
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.CITY}
       />
 
       {deleteTarget && (
         <DeleteDialog
           title={t("DeleteCity")}
-message={t("confirm_delete_city", { name: deleteTarget.name })}
+          message={t("confirm_delete_city", { name: deleteTarget.name })}
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}

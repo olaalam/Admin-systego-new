@@ -8,6 +8,7 @@ import useDelete from "@/hooks/useDelete";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const RedeemPoint = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/redeem-points");
@@ -18,8 +19,8 @@ const RedeemPoint = () => {
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const navigate = useNavigate();
-  const { t ,i18n } = useTranslation();
- const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   // ✅ important
   const points = data?.points || [];
 
@@ -52,7 +53,7 @@ const RedeemPoint = () => {
       await deleteData("/api/admin/redeem-points", {
         ids: bulkDeleteIds,
       });
-  toast.success(t("pointss.deleted", { count: bulkDeleteIds.length }));
+      toast.success(t("pointss.deleted", { count: bulkDeleteIds.length }));
 
       refetch();
     } finally {
@@ -103,7 +104,7 @@ const RedeemPoint = () => {
         title={t("RedeemPointsManagement")}
         addButtonText={t("AddRedeemPoint")}
         onAdd={() => navigate("add")}
-        onEdit={() => {}}
+        onEdit={() => { }}
         onDelete={(item) => setDeleteTarget(item)}
         onBulkDelete={handleBulkDelete}
         addPath="add"
@@ -111,13 +112,14 @@ const RedeemPoint = () => {
         itemsPerPage={10}
         searchable
         filterable
+        moduleName={AppModules.REDEEM_POINTS}
       />
 
       {/* Delete Single */}
       {deleteTarget && (
         <DeleteDialog
-         title={t("redeemPoint.deleteTitle")}
-message={t("redeemPoint.deleteMessage")}
+          title={t("redeemPoint.deleteTitle")}
+          message={t("redeemPoint.deleteMessage")}
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
@@ -128,7 +130,7 @@ message={t("redeemPoint.deleteMessage")}
       {bulkDeleteIds && (
         <DeleteDialog
           title={t("DeleteMultipleRedeemPoints")}
-message={t("redeemPointa.deleteMultiple", { count: bulkDeleteIds.length })}
+          message={t("redeemPointa.deleteMultiple", { count: bulkDeleteIds.length })}
 
           onConfirm={confirmBulkDelete}
           onCancel={() => setBulkDeleteIds(null)}

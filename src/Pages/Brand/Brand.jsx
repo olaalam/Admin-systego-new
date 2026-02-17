@@ -8,6 +8,7 @@ import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Brand = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/brand");
@@ -18,7 +19,7 @@ const Brand = () => {
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const brands = data?.brands || [];
- const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const handleDelete = async (item) => {
     try {
@@ -45,9 +46,9 @@ const Brand = () => {
       await deleteData("/api/admin/brand", { ids: bulkDeleteIds });
 
       refetch();
-toast.success(
-  t("brand_deleted_successfully", { count: bulkDeleteIds.length })
-);
+      toast.success(
+        t("brand_deleted_successfully", { count: bulkDeleteIds.length })
+      );
     } catch (err) {
       console.error("Bulk delete error:", err);
       // Error toast is already handled by useDelete hook
@@ -73,7 +74,7 @@ toast.success(
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Brands");
 
-    XLSX.writeFile(wb, `brands_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(wb, `brands_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const handleImport = async (file) => {
@@ -87,9 +88,9 @@ toast.success(
 
       console.log("Imported brands data:", jsonData);
 
-toast.info(
-  t("file_rows_read_info", { count: jsonData.length })
-);
+      toast.info(
+        t("file_rows_read_info", { count: jsonData.length })
+      );
 
       // Here you should make an API call for bulk import
       // await fetch("/api/admin/brand/import", {
@@ -134,18 +135,18 @@ toast.info(
   };
 
   // Render brand info with logo
-const renderLogoOnly = (url) => {
-  if (!url)
-    return <span className="text-gray-400 text-xs">{t("NoImage")}</span>;
+  const renderLogoOnly = (url) => {
+    if (!url)
+      return <span className="text-gray-400 text-xs">{t("NoImage")}</span>;
 
-  return (
-    <img
-      src={url}
-      alt="brand logo"
-      className="h-12 w-12 object-cover rounded-lg border"
-    />
-  );
-};
+    return (
+      <img
+        src={url}
+        alt="brand logo"
+        className="h-12 w-12 object-cover rounded-lg border"
+      />
+    );
+  };
 
 
   const columns = [
@@ -154,17 +155,17 @@ const renderLogoOnly = (url) => {
       header: t("BrandDetails"),
       filterable: true,
     },
-        {
+    {
       key: "ar_name",
       header: t("BrandArabic"),
       filterable: true,
-    
+
     },
-   {
-    key: "logo",
-    header: t("Logo"),
-    render: (value) => renderLogoOnly(value),
-  },
+    {
+      key: "logo",
+      header: t("Logo"),
+      render: (value) => renderLogoOnly(value),
+    },
   ];
 
   if (loading) return <Loader />;
@@ -183,7 +184,7 @@ const renderLogoOnly = (url) => {
         columns={columns}
         title={t("BrandManagement")}
         onAdd={() => alert("Add new brand clicked!")}
-        onEdit={(item) => {}} // DataTable handles navigation via editPath
+        onEdit={(item) => { }} // DataTable handles navigation via editPath
         onDelete={(item) => setDeleteTarget(item)}
         onBulkDelete={handleBulkDelete}
         onExport={handleExport}
@@ -195,6 +196,7 @@ const renderLogoOnly = (url) => {
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.BRAND}
       />
 
       {/* Delete Dialog */}

@@ -10,12 +10,13 @@ import useDelete from "@/hooks/useDelete";
 import { toast } from "react-toastify";
 import usePost from "@/hooks/usePost";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Product = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/product");
   const { deleteData, loading: deleting } = useDelete("/api/admin/product/delete");
-  const { t ,i18n } = useTranslation();
- const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   // ✅ FIX: غيّر من [] لـ null
   const [searchedProduct, setSearchedProduct] = useState(null);
 
@@ -95,10 +96,10 @@ const Product = () => {
     try {
       await deleteData("/api/admin/product", { ids: bulkDeleteIds });
       refetch();
-  toast.success(t("ProductsDeleted", { count: bulkDeleteIds.length }));
+      toast.success(t("ProductsDeleted", { count: bulkDeleteIds.length }));
     } catch (err) {
       console.error("Bulk delete error:", err);
-        toast.error(t("FailedToDeleteProducts"));
+      toast.error(t("FailedToDeleteProducts"));
 
     } finally {
       setBulkDeleting(false);
@@ -132,7 +133,7 @@ const Product = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Products");
 
-    XLSX.writeFile(wb, `products_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(wb, `products_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const handleImport = async (file) => {
@@ -223,7 +224,7 @@ const Product = () => {
             <div className="flex items-center gap-1.5 text-xs">
               <span className="text-gray-500">{t("Category")}:</span>
               <span className="font-medium text-gray-700">
-                {Array.isArray(item.categoryId) 
+                {Array.isArray(item.categoryId)
                   ? item.categoryId[0]?.name || "—"
                   : item.categoryId?.name || "—"}
               </span>
@@ -237,7 +238,7 @@ const Product = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-1">
             <span className="text-base font-bold text-teal-600">
-             {typeof item.price === "object" ? item.price.price : item.price || 0} {t("EGP")}
+              {typeof item.price === "object" ? item.price.price : item.price || 0} {t("EGP")}
             </span>
             <span className="text-xs text-gray-500">/ {item.unit || "unit"}</span>
           </div>
@@ -255,26 +256,24 @@ const Product = () => {
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500 w-16">{t("Stock")}:</span>
           <span
-            className={`text-sm font-semibold ${
-              (item.quantity || 0) < 10
+            className={`text-sm font-semibold ${(item.quantity || 0) < 10
                 ? "text-red-600"
                 : (item.quantity || 0) < 50
-                ? "text-orange-600"
-                : "text-green-600"
-            }`}
+                  ? "text-orange-600"
+                  : "text-green-600"
+              }`}
           >
             {item.quantity || 0}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500 w-16">{t("MinSale")}:</span>
-            <span
-    className={`text-sm font-medium text-gray-700 ${
-      isRTL ? "pr-6" : "pl-3"
-    }`}
-  >
-    {item.minimum_quantity_sale ?? 1}
-  </span>
+          <span
+            className={`text-sm font-medium text-gray-700 ${isRTL ? "pr-6" : "pl-3"
+              }`}
+          >
+            {item.minimum_quantity_sale ?? 1}
+          </span>
         </div>
         {item.whole_price > 0 && (
           <div className="flex items-center gap-2">
@@ -290,16 +289,14 @@ const Product = () => {
 
   const renderBadge = (value) => (
     <span
-      className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${
-        value
+      className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${value
           ? "bg-green-50 text-green-700 ring-1 ring-green-600/20"
           : "bg-gray-50 text-gray-600 ring-1 ring-gray-300/50"
-      }`}
+        }`}
     >
       <span
-        className={`h-1.5 w-1.5 rounded-full mr-1.5 ${
-          value ? "bg-green-500" : "bg-gray-400"
-        }`}
+        className={`h-1.5 w-1.5 rounded-full mr-1.5 ${value ? "bg-green-500" : "bg-gray-400"
+          }`}
       />
       {value ? t("Yes") : t("No")}
     </span>
@@ -317,9 +314,8 @@ const Product = () => {
           <div className="flex items-center gap-1.5 text-xs">
             <span className="text-gray-500">{t("Expires")}:</span>
             <span
-              className={`font-medium ${
-                isExpiringSoon(item.date_of_expiery) ? "text-red-600" : "text-gray-700"
-              }`}
+              className={`font-medium ${isExpiringSoon(item.date_of_expiery) ? "text-red-600" : "text-gray-700"
+                }`}
             >
               {formatDate(item.date_of_expiery)}
             </span>
@@ -405,10 +401,10 @@ const Product = () => {
       <DataTable
         data={products}
         columns={columns}
-       title={t("ProductManagement")}
-  addButtonText={t("AddProduct")}
+        title={t("ProductManagement")}
+        addButtonText={t("AddProduct")}
         onAdd={() => alert("Add new product clicked!")}
-        onEdit={(item) => {}}
+        onEdit={(item) => { }}
         onDelete={(item) => setDeleteTarget(item)}
         onBulkDelete={handleBulkDelete}
         onExport={handleExport}
@@ -421,12 +417,13 @@ const Product = () => {
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.PRODUCT}
       />
 
       {deleteTarget && (
         <DeleteDialog
-       title={t("DeleteProduct")}
-  message={t("DeleteProductMessage", { name: deleteTarget.name })}
+          title={t("DeleteProduct")}
+          message={t("DeleteProductMessage", { name: deleteTarget.name })}
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
@@ -435,9 +432,9 @@ const Product = () => {
 
       {bulkDeleteIds && (
         <DeleteDialog
-           title={t("DeleteMultipleProducts")}
-  message={t("DeleteMultipleProducts", { count: bulkDeleteIds.length })}
-onConfirm={confirmBulkDelete}
+          title={t("DeleteMultipleProducts")}
+          message={t("DeleteMultipleProducts", { count: bulkDeleteIds.length })}
+          onConfirm={confirmBulkDelete}
           onCancel={() => setBulkDeleteIds(null)}
           loading={bulkDeleting}
         />

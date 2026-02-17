@@ -9,6 +9,7 @@ import useDelete from "@/hooks/useDelete";
 import { toast } from "react-toastify";
 import usePost from "@/hooks/usePost";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Category = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/category");
@@ -254,6 +255,7 @@ const Category = () => {
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.CATEGORY}
       />
 
       {/* Delete Dialog */}

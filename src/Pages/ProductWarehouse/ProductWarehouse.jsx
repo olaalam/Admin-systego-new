@@ -5,11 +5,12 @@ import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
 import useGet from "@/hooks/useGet";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const ProductWarehouse = () => {
   const { id } = useParams();
-const { t ,i18n } = useTranslation();
- const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   useEffect(() => {
     if (id) {
       localStorage.setItem("currentWarehouseId", id);
@@ -30,10 +31,10 @@ const { t ,i18n } = useTranslation();
         <div className="flex items-center gap-3">
           {/* إضافة الصورة إذا كانت متوفرة تعطي شكلاً أفضل للجدول */}
           {row.image && (
-            <img 
-              src={row.image} 
-              className="w-8 h-8 rounded object-cover border" 
-              alt="" 
+            <img
+              src={row.image}
+              className="w-8 h-8 rounded object-cover border"
+              alt=""
             />
           )}
           <span className="text-gray-700 font-medium">
@@ -42,10 +43,10 @@ const { t ,i18n } = useTranslation();
         </div>
       ),
     },
-    { 
+    {
       // استخدام الكود بدلاً من SKU
-      key: "prices", 
-      header: t("ProductCode"), 
+      key: "prices",
+      header: t("ProductCode"),
       filterable: true,
       render: (prices) => (
         <span className="font-mono text-sm text-gray-800 bg-blue-50 px-2 py-1 rounded">
@@ -53,9 +54,9 @@ const { t ,i18n } = useTranslation();
         </span>
       )
     },
-    { 
-      key: "prices", 
-      header: t("Price"), 
+    {
+      key: "prices",
+      header: t("Price"),
       filterable: false,
       render: (prices) => (
         <span className="text-primary font-bold">
@@ -63,9 +64,9 @@ const { t ,i18n } = useTranslation();
         </span>
       )
     },
-    { 
-      key: "quantity", 
-      header: t("InStock"), 
+    {
+      key: "quantity",
+      header: t("InStock"),
       filterable: false,
       render: (value) => (
         <span className={`px-3 py-1 rounded-full text-xs font-bold ${value > 5 ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-600'}`}>
@@ -80,7 +81,7 @@ const { t ,i18n } = useTranslation();
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen space-y-6">
-      
+
       {/* قسم تفاصيل المخزن بشكل أكثر احترافية */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-teal-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
@@ -111,16 +112,17 @@ const { t ,i18n } = useTranslation();
       {/* جدول المنتجات */}
       <div className="bg-white rounded-2xl shadow-sm border p-3 border-gray-100">
         <DataTable
-                onAdd={() => alert("Add new category clicked!")}
+          onAdd={() => alert("Add new category clicked!")}
 
           data={products}
           columns={columns}
-       title={t("InventoryManagement")}
-addButtonText={t("AddNewProduct")}
-          addPath={`/product-warehouse/add`} 
+          title={t("InventoryManagement")}
+          addButtonText={t("AddNewProduct")}
+          addPath={`/product-warehouse/add`}
           itemsPerPage={10}
           searchable={true}
           filterable={true}
+          moduleName={AppModules.PRODUCT_WAREHOUSE}
         />
       </div>
     </div>

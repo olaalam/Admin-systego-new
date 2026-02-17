@@ -8,6 +8,7 @@ import useDelete from "@/hooks/useDelete";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Points = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/point");
@@ -52,7 +53,7 @@ const Points = () => {
       await deleteData("/api/admin/point", {
         ids: bulkDeleteIds,
       });
-     toast.success(t("PointsDeleted", { count: bulkDeleteIds.length }));
+      toast.success(t("PointsDeleted", { count: bulkDeleteIds.length }));
 
       refetch();
     } finally {
@@ -103,7 +104,7 @@ const Points = () => {
         title={t("PointsManagement")}
         addButtonText={t("AddPoint")}
         onAdd={() => navigate("add")}
-        onEdit={() => {}}
+        onEdit={() => { }}
         onDelete={(item) => setDeleteTarget(item)}
         onBulkDelete={handleBulkDelete}
         addPath="add"
@@ -111,13 +112,14 @@ const Points = () => {
         itemsPerPage={10}
         searchable
         filterable
+        moduleName={AppModules.POINT}
       />
 
       {/* Delete Single */}
       {deleteTarget && (
         <DeleteDialog
-        title={t("DeletePoint")}
-  message={t("DeletePointMessage")}
+          title={t("DeletePoint")}
+          message={t("DeletePointMessage")}
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
@@ -127,8 +129,8 @@ const Points = () => {
       {/* Bulk Delete */}
       {bulkDeleteIds && (
         <DeleteDialog
- title={t("DeleteMultiplePoints")}
-  message={t("DeleteMultiplePoints", { count: bulkDeleteIds.length })}
+          title={t("DeleteMultiplePoints")}
+          message={t("DeleteMultiplePoints", { count: bulkDeleteIds.length })}
           onConfirm={confirmBulkDelete}
           onCancel={() => setBulkDeleteIds(null)}
           loading={bulkDeleting}

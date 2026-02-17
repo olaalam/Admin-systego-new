@@ -4,11 +4,12 @@ import Loader from "@/components/Loader";
 import useGet from "@/hooks/useGet";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Revenues = () => {
   const { data, loading, error } = useGet("/api/admin/revenue");
-const { t ,i18n } = useTranslation();
- const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const navigate = useNavigate();
 
   // ✅ البيانات جاية داخل revenues
@@ -78,12 +79,13 @@ const { t ,i18n } = useTranslation();
         title={t("RevenuesManagement")}
         addButtonText={t("Add Revenue")}
         onAdd={() => navigate("add")}
-        onEdit={() => {}}
+        onEdit={() => { }}
         addPath="add"
         editPath={(item) => `edit/${item._id}`}
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.REVENUE}
       />
 
     </div>

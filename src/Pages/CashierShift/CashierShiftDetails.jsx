@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useGet from "@/hooks/useGet";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 import Loader from "@/components/Loader";
 import DataTable from "@/components/DataTable";
 import {
@@ -277,6 +278,7 @@ const CashierShiftDetails = () => {
                                     title={t("Sales Transactions")}
                                     showActions={false}
                                     pagination={true}
+                                    moduleName={AppModules.CASHIER_SHIFT}
                                 />
                             </div>
                         ) : (
@@ -288,6 +290,7 @@ const CashierShiftDetails = () => {
                                         title={t("Expenses Sheet")}
                                         showActions={false}
                                         pagination={true}
+                                        moduleName={AppModules.CASHIER_SHIFT}
                                     />
                                 </div>
 

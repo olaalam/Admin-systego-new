@@ -5,14 +5,15 @@ import DeleteDialog from "@/components/DeleteForm";
 import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Supplier = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/supplier");
   const { deleteData, loading: deleting } = useDelete(
     "/api/admin/supplier/delete"
   );
-const { t ,i18n } = useTranslation();
- const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const [deleteTarget, setDeleteTarget] = useState(null);
   const suppliers = data?.suppliers || [];
 
@@ -82,14 +83,14 @@ const { t ,i18n } = useTranslation();
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.SUPPLIER}
       />
 
       {deleteTarget && (
         <DeleteDialog
           title={t("Delete Supplier")}
-          message={` ${t("Are you sure you want to delete supplier")} "${
-            deleteTarget.username || deleteTarget.company_name
-          }"?`}
+          message={` ${t("Are you sure you want to delete supplier")} "${deleteTarget.username || deleteTarget.company_name
+            }"?`}
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}

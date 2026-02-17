@@ -1,134 +1,109 @@
 import { Link } from "react-router-dom";
 import { Menu, ChevronDown, ChevronUp, MapPin, Search, X } from "lucide-react";
-import {
-  LayoutDashboard,
-  Users,
-  Package,
-  ShoppingCart,
-  TrendingUp,
-  Handshake,
-  Wallet,
-  Scale,
-  UserRound,
-  FileText,
-  Factory,
-  SlidersHorizontal,
-  Puzzle,
-  BookOpen,
-  History,
-} from "lucide-react";
+
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 import logo from "@/assets/logo.png";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
+
+import {
+  LayoutDashboard,
+  Package,
+  Layers,       // Product Management
+  CreditCard,   // Financial
+  Megaphone,    // Marketing
+  Settings,     // Settings
+  Warehouse,    // Inventory
+  Contact2,     // CRM
+  Users,        // HRM (بقيت كما هي لأنها معبرة)
+  BarChart3,    // Reports
+  History,
+  Puzzle,
+} from "lucide-react";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/" },
   {
-    name: "Product",
-    icon: Package,
-    
+    name: "Product Management",
+    icon: Layers, // تم التغيير من Package إلى Layers لتعبر عن إدارة التصنيفات والمنتجات
     children: [
-      { name: "Products", path: "/product" ,module: "product",},
-      { name: "Category", path: "/category" ,module: "category",},
-      { name: "Brand", path: "/brand" ,module: "brand",},
-      { name: "Attribute", path: "/attribute" ,module: "variation",},
-      { name: "Unit", path: "/unit" ,module: "units",},
-      { name: "Barcode", path: "/barcode" ,module: "product",},
-      { name: "Taxes", path: "/taxes" ,module: "taxes",},
-      { name: "Bundels", path: "/pandel" ,module: "pandel",},
+      { name: "Products", path: "/product", module: AppModules.PRODUCT },
+      { name: "Category", path: "/category", module: AppModules.CATEGORY },
+      { name: "Brand", path: "/brand", module: AppModules.BRAND },
+      { name: "Attribute", path: "/attribute", module: AppModules.VARIATION },
+      { name: "Unit", path: "/unit", module: AppModules.UNITS },
     ],
   },
   {
-    name: "Purchase",
-    icon: ShoppingCart,
+    name: "Financial",
+    icon: CreditCard, // تم التغيير من BookOpen لتعبر عن المعاملات المالية
     children: [
-      { name: "List", path: "/purchase" , module: "purchase",},
-       { name: "Return", path: "/purchase-return" ,module: "purchase return",},
-
+      { name: "Financial", path: "/accounting", module: AppModules.FINANCIAL_ACCOUNT },
+      { name: "Taxes", path: "/taxes", module: AppModules.TAXES },
+      { name: "Discount", path: "/discount", module: AppModules.DISCOUNT },
+      { name: "Expenses", path: "/expense", module: AppModules.EXPENSE_ADMIN },
+      { name: "ExpensesCategory", path: "/expense-category", module: AppModules.EXPENSE_CATEGORY },
+      { name: "Revenue", path: "/revenue", module: AppModules.REVENUE },
+      { name: "PaymentMethod", path: "/payment_method", module: AppModules.PAYMENT_METHOD },
+      { name: "Payments", path: "/payments", module: AppModules.PAYMENT },
     ],
   },
   {
-    name: "Locations",
-    icon: MapPin,
+    name: "Marketing",
+    icon: Megaphone, // تم التغيير لتعبر عن الحملات التسويقية والـ Popups
     children: [
-      { name: "City", path: "/city" ,module: "city",},
-      { name: "Country", path: "/country" ,module: "country",},
-      { name: "Zone", path: "/zone" ,module: "zone",},
-    ],
-  },
-  {
-    name: "Sale",
-    icon: TrendingUp,
-    children: [
-      { name: "List", path: "/sale/list" , module: "pos",},
-      { name: "Discount", path: "/discount" ,module: "discount", },
-      { name: "Currency", path: "/currency" , module: "currency", },
-      { name: "Coupon", path: "/coupon" ,module: "coupon",  },
-
-
-    ],
-  },
-  {
-    name: "Expense",
-    icon: Wallet,
-    children: [
-      { name: "List", path: "/expense" , module: "expenseadmin", },
-      { name: "ExpensesCategory", path: "/expense-category" ,module: "expense category",},
-    ],
-  },
-  {
-    name: "Revenue",
-    icon: Handshake,
-    children: [{ name: "List", path: "/revenue" , module: "revenue", }],
-  },
-  { name: "Transfer", icon: Puzzle, path: "/transfer" , module: "transfer",},
-  { name: "Cashier Shift", icon: History, path: "/cashier-shift" , module: "cashier shift_report",},
-  {
-    name: "Accounting",
-    icon: BookOpen,
-    children: [
-      { name: "List", path: "/accounting" , module: " financial account", },
-      { name: "PaymentMethod", path: "/payment_method" , module: "payment method",},
-      { name: "Payments", path: "/payments" , module: "payment",},
-    ],
-  },
-  {
-    name: "People",
-    icon: Users,
-    children: [
-      { name: "Admin", path: "/admin" , module: "admin",},
-      { name: "Supplier", path: "/supplier" , module: "supplier",},
-      { name: "Customer", path: "/customer" , module: "customer",},
-      { name: "CustomerGroup", path: "/customer-group" , module: "customer group",},
-      { name: "Cashier", path: "/cashier" , module: "cashier",},
-      { name: "Permission", path: "/permission" , module: "permission",},
-    ],
-  },
-  {
-    name: "Reports",
-    icon: FileText,
-    children: [
-      { name: "Popup", path: "/popup" , module: "popup",},
-      { name: "Point", path: "/point" , module: "point",},
-      { name: "RedeemPoint", path: "/redeem-point" , module: "redeem points",},
-    ],
-  },
-  {
-    name: "Manufacturing",
-    icon: Factory,
-    children: [
-      { name: "List", path: "/manufacturing/list" , module: "manufacturing list",},
-      { name: "WareHouse", path: "/warehouse" , module: "warehouse",},
-
+      { name: "Popup", path: "/popup", module: AppModules.POPUP },
+      { name: "Point", path: "/point", module: AppModules.POINT },
+      { name: "RedeemPoint", path: "/redeem-point", module: AppModules.REDEEM_POINTS },
+      { name: "Bundels", path: "/pandel", module: AppModules.PANDEL },
+      { name: "Coupon", path: "/coupon", module: AppModules.COUPON },
     ],
   },
   {
     name: "Settings",
-    icon: SlidersHorizontal,
+    icon: Settings, // تم التغيير من SlidersHorizontal لشكل الترس التقليدي للإعدادات
     children: [
-      { name: "List", path: "/settings/list" },
-      { name: "Add", path: "/settings/add" },
+      { name: "Barcode", path: "/barcode", module: AppModules.PRODUCT },
+      { name: "City", path: "/city", module: AppModules.CITY },
+      { name: "Country", path: "/country", module: AppModules.COUNTRY },
+      { name: "Zone", path: "/zone", module: AppModules.ZONE },
+      { name: "Permission", path: "/permission", module: AppModules.PERMISSION },
+      { name: "Currency", path: "/currency", module: AppModules.CURRENCY },
+    ],
+  },
+  {
+    name: "Inventory",
+    icon: Warehouse, // تم التغيير من Factory إلى Warehouse لتعبر عن المخازن بشكل مباشر
+    children: [
+      { name: "WareHouse", path: "/warehouse", module: AppModules.WAREHOUSE },
+      { name: "Transfer", path: "/transfer", module: AppModules.TRANSFER },
+      { name: "Purchase", path: "/purchase", module: AppModules.PURCHASE },
+      { name: "Return", path: "/purchase-return", module: AppModules.PURCHASE_RETURN },
+    ],
+  },
+  {
+    name: "CRM",
+    icon: Contact2, // تم التغيير لتمييزها عن HRM، فهي تعبر عن جهات الاتصال والعملاء
+    children: [
+      { name: "Supplier", path: "/supplier", module: AppModules.SUPPLIER },
+      { name: "Customer", path: "/customer", module: AppModules.CUSTOMER },
+      { name: "CustomerGroup", path: "/customer-group", module: AppModules.CUSTOMER_GROUP },
+    ],
+  },
+  {
+    name: "HRM",
+    icon: Users, // بقيت كما هي لأنها تعبر عن الموظفين (الأدمن والكاشير)
+    children: [
+      { name: "Admin", path: "/admin", module: AppModules.ADMIN },
+      { name: "Cashier", path: "/cashier", module: AppModules.CASHIER },
+    ],
+  },
+  {
+    name: "Reports",
+    icon: BarChart3, // تم التغيير من FileText لتعبر عن الإحصائيات والرسوم البيانية
+    children: [
+      { name: "Cashier Shift", path: "/cashier-shift", module: AppModules.CASHIER_SHIFT_REPORT },
     ],
   },
 ];
@@ -142,17 +117,37 @@ export default function Sidebar() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userPermissions = user.permissions || [];
   const isSuperAdmin = user.role === "superadmin";
-  const hasAccess = (moduleName) => {
-    // السوبر أدمن والداشبورد متاحين دائماً
-    if (isSuperAdmin || moduleName === "dashboard") return true;
-    
-    // البحث عن الموديول داخل مصفوفة الصلاحيات
-    return userPermissions.some(p => p.module.toLowerCase() === moduleName.toLowerCase());
+
+
+
+  // 1. Core access check (Uses your existing hasAccess logic)
+  const canViewModule = (moduleName) => {
+    if (isSuperAdmin || !moduleName) return true;
+    // We check for "View" action specifically for the sidebar
+    return userPermissions.some(
+      (p) => p.module.toLowerCase() === moduleName.toLowerCase() &&
+        p.actions.some(a => a.action === "View")
+    );
   };
 
-  const toggleDropdown = (name) => {
-    setOpenDropdown(openDropdown === name ? null : name);
-  };
+  // 2. Filter the main menuItems array
+  const authorizedMenuItems = menuItems
+    .map((item) => {
+      // If it has children, filter the children first
+      if (item.children) {
+        const allowedChildren = item.children.filter((child) => canViewModule(child.module));
+
+        // Only return the parent if it has at least one allowed child
+        if (allowedChildren.length > 0) {
+          return { ...item, children: allowedChildren };
+        }
+        return null;
+      }
+
+      // For top-level items without children (like Dashboard)
+      return canViewModule(item.module || item.name.toLowerCase()) ? item : null;
+    })
+    .filter(Boolean); // Remove null entries
 
   // Filter menu items based on search query
   const filterMenuItems = (items, query) => {
@@ -183,7 +178,12 @@ export default function Sidebar() {
       .filter(Boolean);
   };
 
-  const filteredMenuItems = filterMenuItems(menuItems, searchQuery);
+  // 3. Apply the search filter on top of the authorized items
+  const filteredMenuItems = filterMenuItems(authorizedMenuItems, searchQuery);
+
+  const toggleDropdown = (name) => {
+    setOpenDropdown(openDropdown === name ? null : name);
+  };
 
   // ✨ Auto-open dropdowns when searching
   useEffect(() => {

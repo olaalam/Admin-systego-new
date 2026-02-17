@@ -6,6 +6,7 @@ import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import api from "@/api/api"; // ✅ استيراد api مباشرة
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 // A placeholder for a simple Switch component
 const DefaultSwitch = ({ isDefault, onChange, loading }) => {
@@ -21,11 +22,10 @@ const DefaultSwitch = ({ isDefault, onChange, loading }) => {
   return (
     <button
       type="button"
-      className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
-        isDefault
-          ? "bg-primary text-white hover:bg-teal-600"
-          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-      } ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+      className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${isDefault
+        ? "bg-primary text-white hover:bg-teal-600"
+        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+        } ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
       onClick={handleClick}
       disabled={loading}
     >
@@ -38,7 +38,7 @@ const Accounting = () => {
   const { deleteData, deleting } = useDelete("/api/admin/bank_account/delete");
 
   const [deleteTarget, setDeleteTarget] = useState(null);
-    const { t } = useTranslation();
+  const { t } = useTranslation();
 
   // حالات التحديث المنفصلة
   const [updatingDefault, setUpdatingDefault] = useState(false);
@@ -54,7 +54,7 @@ const Accounting = () => {
       setDeleteTarget(null);
     }
   };
-    const renderIcon = (url) => {
+  const renderIcon = (url) => {
     if (!url) return <span className="text-gray-400">{t("NoIcon")}</span>;
     return (
       <img
@@ -66,21 +66,21 @@ const Accounting = () => {
   };
 
 
-// ✅ تغيير حالة الحساب (مفعل / غير مفعل) - toggle عادي
-const handleToggleStatus = async (account) => {
-  setUpdatingDefault(true); // هنستخدم نفس الـ state عشان الـ loading
-  try {
-    await api.put(`/api/admin/bank_account/${account._id}`, {
-      status: !account.status, // نبدل القيمة: true → false أو false → true
-    });
-    await refetch();
-  } catch (err) {
-    console.error(err);
-    alert("فشل تحديث حالة الحساب: " + (err.response?.data?.message || err.message));
-  } finally {
-    setUpdatingDefault(false);
-  }
-};
+  // ✅ تغيير حالة الحساب (مفعل / غير مفعل) - toggle عادي
+  const handleToggleStatus = async (account) => {
+    setUpdatingDefault(true); // هنستخدم نفس الـ state عشان الـ loading
+    try {
+      await api.put(`/api/admin/bank_account/${account._id}`, {
+        status: !account.status, // نبدل القيمة: true → false أو false → true
+      });
+      await refetch();
+    } catch (err) {
+      console.error(err);
+      alert("فشل تحديث حالة الحساب: " + (err.response?.data?.message || err.message));
+    } finally {
+      setUpdatingDefault(false);
+    }
+  };
 
   // ✅ تغيير ظهور الحساب في POS
   const handleTogglePOS = async (account) => {
@@ -99,26 +99,26 @@ const handleToggleStatus = async (account) => {
 
   const columns = [
     { key: "name", header: t("Name"), filterable: true },
-{
-  key: "image",
-  header: t("Image"),
-  filterable: false,
-  render: (_, item) => renderIcon(item.image),
-}
-,
+    {
+      key: "image",
+      header: t("Image"),
+      filterable: false,
+      render: (_, item) => renderIcon(item.image),
+    }
+    ,
     { key: "balance", header: t("InitialBalance"), filterable: false },
 
-{
-  key: "status",
-  header: t("Status"), // أو "Active" أو "Enabled" حسب المعنى اللي عايزاه
-  render: (status, item) => (
-    <DefaultSwitch
-      isDefault={!!status}
-      onChange={() => handleToggleStatus(item)}
-      loading={updatingDefault}
-    />
-  ),
-},
+    {
+      key: "status",
+      header: t("Status"), // أو "Active" أو "Enabled" حسب المعنى اللي عايزاه
+      render: (status, item) => (
+        <DefaultSwitch
+          isDefault={!!status}
+          onChange={() => handleToggleStatus(item)}
+          loading={updatingDefault}
+        />
+      ),
+    },
     {
       key: "in_POS",
       header: t("ShowinPOS"),
@@ -151,14 +151,15 @@ const handleToggleStatus = async (account) => {
         itemsPerPage={10}
         searchable={true}
         filterable={true}
+        moduleName={AppModules.ACCOUNTING}
       />
 
       {deleteTarget && (
         <DeleteDialog
           title={t("DeleteBankAccount")}
-     message={t("delete_bank_account_confirm", {
-  account: deleteTarget.account_no || deleteTarget.name,
-})}
+          message={t("delete_bank_account_confirm", {
+            account: deleteTarget.account_no || deleteTarget.name,
+          })}
 
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
