@@ -177,7 +177,7 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
         </div>
 
         {/* ✅ Tax Single Select */}
-        <div>
+        {/* <div>
           <Label className="text-sm font-medium text-gray-700 mb-2 block">
             {t("productss.tax")}
           </Label>
@@ -193,7 +193,7 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
       </div>
 
       {/* Unit & Min Purchase */}

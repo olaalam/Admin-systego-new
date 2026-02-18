@@ -31,10 +31,10 @@ const Admin = () => {
   const columns = [
     { key: "username", header: t("Name"), filterable: true },
     { key: "email", header: t("Email"), filterable: true },
-    { key: "role", header: t("Role"), filterable: true },
+    { key: "role_name", header: t("Role"), filterable: true },
     { key: "company_name", header: t("CompanyName"), filterable: true },
     {
-      key: "warehouse",
+      key: "warehouse_name",
       header: t("Warehouse"),
       filterable: true,
     },

@@ -12,30 +12,30 @@ const PurchaseAdd = () => {
   const navigate = useNavigate();
   const { postData, loading } = usePost("/api/admin/purchase");
   const { data: selection } = useGet("api/admin/purchase/selection");
-  
+
   const [searchProduct, setSearchProduct] = useState("");
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     warehouse_id: "",
     supplier_id: "",
-    tax_id: "", 
-    payment_status: "full", 
+    tax_id: "",
+    payment_status: "full",
     shipping_cost: 0,
     discount: 0,
-    exchange_rate: 1, 
+    exchange_rate: 1,
     purchase_items: [],
     financials: [{ financial_id: "", payment_amount: 0 }],
-    purchase_due_payment: [],
+    installments: [],
   });
 
   const currencyCode = selection?.currency?.code || "EGP";
 
   useEffect(() => {
     if (formData.payment_status === "full") {
-      setFormData(prev => ({ 
-        ...prev, 
-        purchase_due_payment: [], 
-        financials: prev.financials.length > 0 ? prev.financials : [{ financial_id: "", payment_amount: 0 }] 
+      setFormData(prev => ({
+        ...prev,
+        installments: [],
+        financials: prev.financials.length > 0 ? prev.financials : [{ financial_id: "", payment_amount: 0 }]
       }));
     } else if (formData.payment_status === "later") {
       setFormData(prev => ({ ...prev, financials: [] }));
@@ -48,13 +48,13 @@ const PurchaseAdd = () => {
 
   const totals = useMemo(() => {
     let itemsTotalBeforeAll = 0;
-    
+
     const processedItems = formData.purchase_items.map(item => {
       const qty = Number(item.quantity || 0);
       const cost = Number(item.unit_cost || 0);
       const itemDisc = Number(item.discount || 0);
       const itemTax = Number(item.tax || 0);
-      
+
       const subtotal = (cost - itemDisc + itemTax) * qty;
       itemsTotalBeforeAll += subtotal;
 
@@ -63,7 +63,7 @@ const PurchaseAdd = () => {
 
     const selectedTax = selection?.tax?.find(tx => tx._id === formData.tax_id);
     const generalTaxAmount = selectedTax ? (itemsTotalBeforeAll * (selectedTax.amount / 100)) : 0;
-    
+
     const grandTotal = itemsTotalBeforeAll + generalTaxAmount + Number(formData.shipping_cost) - Number(formData.discount);
 
     const paidAmount = formData.financials.reduce((acc, curr) => acc + Number(curr.payment_amount || 0), 0);
@@ -102,7 +102,7 @@ const PurchaseAdd = () => {
   const suggestions = useMemo(() => {
     const term = searchProduct.toLowerCase().trim();
     if (!term) return [];
-    return selection?.products?.filter(p => 
+    return selection?.products?.filter(p =>
       p.name?.toLowerCase().includes(term) || p.code?.toString().includes(term)
     ).slice(0, 8) || [];
   }, [searchProduct, selection]);
@@ -127,7 +127,7 @@ const PurchaseAdd = () => {
     setSearchProduct("");
   };
 
-const handleSave = async () => {
+  const handleSave = async () => {
     // 1. التحقق من تاريخ الصلاحية للمنتجات المطلوبة
     const missingExpiry = totals.itemsWithNetCost.find(item => item.exp_ability && !item.expiry_date);
     if (missingExpiry) {
@@ -147,8 +147,16 @@ const handleSave = async () => {
         }
         return item;
       }),
-      financials: formData.financials.filter(f => f.financial_id !== "" && Number(f.payment_amount) > 0)
+      financials: formData.financials.filter(f => f.financial_id !== "" && Number(f.payment_amount) > 0),
+      installments: [...formData.installments]
     };
+
+    // التحقق مما إذا كان هناك قسط مكتوب في الخانات ولم يتم الضغط على +
+    const qDate = document.getElementById('q_date')?.value;
+    const qAmt = document.getElementById('q_amt')?.value;
+    if (qDate && qAmt) {
+      payload.installments.push({ date: qDate, amount: qAmt });
+    }
 
     // 3. حذف tax_id إذا كان فارغاً
     if (!payload.tax_id) {
@@ -175,19 +183,19 @@ const handleSave = async () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-sm p-8 border">
-        
+
         {/* المورد والمخزن */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="space-y-2">
-            <label className="text-sm font-bold flex items-center gap-2"><Warehouse size={16}/> {t("Warehouse")}</label>
-            <select className="w-full border rounded-xl p-3 bg-white" value={formData.warehouse_id} onChange={(e) => setFormData({...formData, warehouse_id: e.target.value})}>
+            <label className="text-sm font-bold flex items-center gap-2"><Warehouse size={16} /> {t("Warehouse")}</label>
+            <select className="w-full border rounded-xl p-3 bg-white" value={formData.warehouse_id} onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })}>
               <option value="">{t("Select Warehouse")}</option>
               {selection?.warehouse?.map(w => <option key={w._id} value={w._id}>{w.name}</option>)}
             </select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-bold flex items-center gap-2"><User size={16}/> {t("Supplier")}</label>
-            <select className="w-full border rounded-xl p-3 bg-white" value={formData.supplier_id} onChange={(e) => setFormData({...formData, supplier_id: e.target.value})}>
+            <label className="text-sm font-bold flex items-center gap-2"><User size={16} /> {t("Supplier")}</label>
+            <select className="w-full border rounded-xl p-3 bg-white" value={formData.supplier_id} onChange={(e) => setFormData({ ...formData, supplier_id: e.target.value })}>
               <option value="">{t("Select Supplier")}</option>
               {selection?.supplier?.map(s => <option key={s._id} value={s._id}>{s.name || s.username}</option>)}
             </select>
@@ -233,16 +241,16 @@ const handleSave = async () => {
               {totals.itemsWithNetCost.map((item, idx) => (
                 <tr key={idx} className="hover:bg-gray-50/50">
                   <td className="p-4 font-bold">{item.name}</td>
-<td className="p-4">
+                  <td className="p-4">
                     {item.exp_ability ? (
-                      <input 
-                        type="date" 
-                        className="w-full border border-orange-300 rounded p-1.5 text-xs bg-orange-50/30" 
-                        value={item.expiry_date} 
+                      <input
+                        type="date"
+                        className="w-full border border-orange-300 rounded p-1.5 text-xs bg-orange-50/30"
+                        value={item.expiry_date}
                         onChange={(e) => {
                           const newItems = [...formData.purchase_items];
                           newItems[idx].expiry_date = e.target.value;
-                          setFormData({...formData, purchase_items: newItems});
+                          setFormData({ ...formData, purchase_items: newItems });
                         }}
                       />
                     ) : (
@@ -253,30 +261,30 @@ const handleSave = async () => {
                     <input type="number" className="w-full border rounded p-1 text-center" value={item.quantity} onChange={(e) => {
                       const items = [...formData.purchase_items];
                       items[idx].quantity = e.target.value;
-                      setFormData({...formData, purchase_items: items});
-                    }}/>
+                      setFormData({ ...formData, purchase_items: items });
+                    }} />
                   </td>
                   <td className="p-4 text-center font-mono">{item.unit_cost}</td>
                   <td className="p-4">
                     <input type="number" className="w-full border border-orange-200 rounded p-1 text-center" value={item.discount} onChange={(e) => {
                       const items = [...formData.purchase_items];
                       items[idx].discount = e.target.value;
-                      setFormData({...formData, purchase_items: items});
-                    }}/>
+                      setFormData({ ...formData, purchase_items: items });
+                    }} />
                   </td>
                   <td className="p-4">
                     <input type="number" className="w-full border border-blue-200 rounded p-1 text-center" value={item.tax} onChange={(e) => {
                       const items = [...formData.purchase_items];
                       items[idx].tax = e.target.value;
-                      setFormData({...formData, purchase_items: items});
-                    }}/>
+                      setFormData({ ...formData, purchase_items: items });
+                    }} />
                   </td>
                   <td className="p-4 text-center font-black text-teal-700 bg-teal-50/30">
                     {item.netUnitCost.toFixed(2)}
                   </td>
                   <td className="p-4 text-right font-bold text-gray-700">{item.subtotal.toFixed(2)}</td>
                   <td className="p-4 text-center">
-                    <button onClick={() => setFormData({...formData, purchase_items: formData.purchase_items.filter((_, i) => i !== idx)})} className="text-red-300 hover:text-red-500"><Trash2 size={16}/></button>
+                    <button onClick={() => setFormData({ ...formData, purchase_items: formData.purchase_items.filter((_, i) => i !== idx) })} className="text-red-300 hover:text-red-500"><Trash2 size={16} /></button>
                   </td>
                 </tr>
               ))}
@@ -286,11 +294,11 @@ const handleSave = async () => {
 
         {/* قسم الدفع والإجماليات */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          
+
           <div className="space-y-6">
             <div className="flex gap-2 p-1.5 bg-gray-100 rounded-2xl">
               {['full', 'partial', 'later'].map(m => (
-                <button key={m} onClick={() => setFormData({...formData, payment_status: m})} 
+                <button key={m} onClick={() => setFormData({ ...formData, payment_status: m })}
                   className={`flex-1 py-3 rounded-xl font-black transition-all ${formData.payment_status === m ? "bg-white text-teal-600 shadow-md" : "text-gray-400"}`}>
                   {t(m.toUpperCase())}
                 </button>
@@ -300,32 +308,32 @@ const handleSave = async () => {
             {formData.payment_status !== 'later' && (
               <div className="p-6 border-2 border-dashed border-gray-100 rounded-[2rem] space-y-4 bg-white shadow-sm">
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-black text-gray-700 flex items-center gap-2"><Wallet size={16} className="text-teal-600"/> {t("Split Payment Methods")}</label>
+                  <label className="text-sm font-black text-gray-700 flex items-center gap-2"><Wallet size={16} className="text-teal-600" /> {t("Split Payment Methods")}</label>
                   <button onClick={addFinancialRow} className="bg-teal-50 text-teal-600 p-1.5 rounded-full hover:bg-teal-100 transition-colors">
-                    <Plus size={18}/>
+                    <Plus size={18} />
                   </button>
                 </div>
-                
+
                 {formData.financials.map((f, i) => (
                   <div key={i} className="flex gap-2 items-center animate-in slide-in-from-top-1">
                     <select className="flex-1 border rounded-xl p-3 text-sm bg-gray-50 focus:ring-2 focus:ring-teal-500 outline-none" value={f.financial_id} onChange={(e) => {
                       const fins = [...formData.financials];
                       fins[i].financial_id = e.target.value;
-                      setFormData({...formData, financials: fins});
+                      setFormData({ ...formData, financials: fins });
                     }}>
                       <option value="">{t("Select Account")}</option>
                       {selection?.financial?.map(fin => <option key={fin._id} value={fin._id}>{fin.name}</option>)}
                     </select>
                     <div className="relative">
-                       <input type="number" className="w-32 border rounded-xl p-3 font-bold pr-12 text-right focus:ring-2 focus:ring-teal-500 outline-none" placeholder="0.00" value={f.payment_amount} onChange={(e) => {
+                      <input type="number" className="w-32 border rounded-xl p-3 font-bold pr-12 text-right focus:ring-2 focus:ring-teal-500 outline-none" placeholder="0.00" value={f.payment_amount} onChange={(e) => {
                         const fins = [...formData.financials];
                         fins[i].payment_amount = e.target.value;
-                        setFormData({...formData, financials: fins});
-                      }}/>
+                        setFormData({ ...formData, financials: fins });
+                      }} />
                       <span className="absolute right-3 top-3.5 text-[10px] text-gray-400 font-bold">{currencyCode}</span>
                     </div>
                     <button onClick={() => removeFinancialRow(i)} className="p-2 hover:bg-red-50 text-red-300 hover:text-red-500 rounded-lg transition-colors">
-                      <X size={18}/>
+                      <X size={18} />
                     </button>
                   </div>
                 ))}
@@ -341,25 +349,26 @@ const handleSave = async () => {
 
             {formData.payment_status !== 'full' && (
               <div className="p-5 bg-orange-50/50 border border-orange-100 rounded-2xl space-y-4">
-                <label className="text-sm font-black text-orange-700 flex items-center gap-2"><Calendar size={16}/> {t("Installments Schedule")}</label>
+                <label className="text-sm font-black text-orange-700 flex items-center gap-2"><Calendar size={16} /> {t("Installments Schedule")}</label>
                 <div className="flex gap-2">
                   <input type="date" id="q_date" className="flex-1 border border-orange-200 rounded-xl p-2.5 text-sm" />
                   <input type="number" id="q_amt" className="w-32 border border-orange-200 rounded-xl p-2.5 text-sm" placeholder="Amount" />
                   <button onClick={() => {
                     const d = document.getElementById('q_date').value;
                     const a = document.getElementById('q_amt').value;
-                    if(d && a) {
-                      setFormData({...formData, purchase_due_payment: [...formData.purchase_due_payment, {date: d, amount: a}]});
+                    if (d && a) {
+                      setFormData(prev => ({ ...prev, installments: [...prev.installments, { date: d, amount: a }] }));
+                      document.getElementById('q_date').value = "";
                       document.getElementById('q_amt').value = "";
                     }
                   }} className="bg-orange-500 text-white px-4 rounded-xl font-bold hover:bg-orange-600 transition-colors">+</button>
                 </div>
                 <div className="space-y-2">
-                  {formData.purchase_due_payment.map((item, i) => (
+                  {formData.installments.map((item, i) => (
                     <div key={i} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm text-xs border border-orange-100">
                       <span className="font-medium text-gray-500">{item.date}</span>
                       <span className="font-black text-orange-600">{item.amount} {currencyCode}</span>
-                      <button onClick={() => setFormData({...formData, purchase_due_payment: formData.purchase_due_payment.filter((_, idx) => idx !== i)})} className="text-red-300 hover:text-red-500">×</button>
+                      <button onClick={() => setFormData({ ...formData, installments: formData.installments.filter((_, idx) => idx !== i) })} className="text-red-300 hover:text-red-500">×</button>
                     </div>
                   ))}
                 </div>
@@ -373,13 +382,13 @@ const handleSave = async () => {
                 <span className="text-gray-400 text-sm">{t("Items Total")}</span>
                 <span className="font-mono text-lg">{totals.itemsTotalBeforeAll}</span>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-400 text-sm">{t("General Tax")}</span>
                   <Info size={14} className="text-gray-600" />
                 </div>
-                <select className="bg-gray-800 text-xs border-none rounded-lg p-2 outline-none" value={formData.tax_id} onChange={(e) => setFormData({...formData, tax_id: e.target.value})}>
+                <select className="bg-gray-800 text-xs border-none rounded-lg p-2 outline-none" value={formData.tax_id} onChange={(e) => setFormData({ ...formData, tax_id: e.target.value })}>
                   <option value="">{t("No General Tax")}</option>
                   {selection?.tax?.map(tx => <option key={tx._id} value={tx._id}>{tx.name} ({tx.amount}%)</option>)}
                 </select>
@@ -387,12 +396,12 @@ const handleSave = async () => {
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-400 text-sm">{t("Shipping Cost")}</span>
-                <input type="number" className="w-24 bg-gray-800 border-none rounded-lg p-2 text-right font-bold" value={formData.shipping_cost} onChange={(e) => setFormData({...formData, shipping_cost: e.target.value})} />
+                <input type="number" className="w-24 bg-gray-800 border-none rounded-lg p-2 text-right font-bold" value={formData.shipping_cost} onChange={(e) => setFormData({ ...formData, shipping_cost: e.target.value })} />
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-400 text-sm">{t("General Discount")}</span>
-                <input type="number" className="w-24 bg-gray-800 border-none rounded-lg p-2 text-right font-bold text-orange-400" value={formData.discount} onChange={(e) => setFormData({...formData, discount: e.target.value})} />
+                <input type="number" className="w-24 bg-gray-800 border-none rounded-lg p-2 text-right font-bold text-orange-400" value={formData.discount} onChange={(e) => setFormData({ ...formData, discount: e.target.value })} />
               </div>
             </div>
 
@@ -412,7 +421,7 @@ const handleSave = async () => {
         </div>
 
         <button onClick={handleSave} disabled={loading} className="w-full mt-12 bg-teal-600 hover:bg-teal-700 text-white py-5 rounded-2xl font-black text-xl transition-all shadow-2xl shadow-teal-100/50 flex items-center justify-center gap-3">
-          {loading ? t("Processing...") : <><Calculator size={24}/> {t("Confirm & Save Purchase")}</>}
+          {loading ? t("Processing...") : <><Calculator size={24} /> {t("Confirm & Save Purchase")}</>}
         </button>
       </div>
     </div>

@@ -178,6 +178,7 @@ const Category = () => {
   // Render product quantity with badge
   const renderProductQuantity = (item) => {
     const quantity = item.product_quantity || 0;
+
     return (
       <div className="flex items-center gap-2">
         <span
@@ -191,7 +192,8 @@ const Category = () => {
           {quantity}
         </span>
         <span className="text-xs text-gray-500">
-          {quantity === 1 ? t("product") : t("products")}
+          {/* تعديل بسيط للتأكد من استدعاء نص وليس Object */}
+          {quantity === 1 ? t("product_singular", "product") : t("products")}
         </span>
       </div>
     );

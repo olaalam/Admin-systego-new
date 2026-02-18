@@ -18,7 +18,7 @@ const TransferWarehouse = () => {
     const { data, loading, error } = useGet(`/api/admin/transfer/get/${id}`);
 
     const pendingTransfers = data?.pending || [];
-    const doneTransfers = data?.done || [];
+    const doneTransfers = data?.received || [];
 
     const columns = [
         {
@@ -88,8 +88,8 @@ const TransferWarehouse = () => {
                 <button
                     onClick={() => setActiveTab("pending")}
                     className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === "pending"
-                            ? "bg-primary text-white shadow-md shadow-primary/20"
-                            : "text-gray-500 hover:bg-gray-50"
+                        ? "bg-primary text-white shadow-md shadow-primary/20"
+                        : "text-gray-500 hover:bg-gray-50"
                         }`}
                 >
                     <Clock size={18} />
@@ -102,8 +102,8 @@ const TransferWarehouse = () => {
                 <button
                     onClick={() => setActiveTab("done")}
                     className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === "done"
-                            ? "bg-primary text-white shadow-md shadow-primary/20"
-                            : "text-gray-500 hover:bg-gray-50"
+                        ? "bg-primary text-white shadow-md shadow-primary/20"
+                        : "text-gray-500 hover:bg-gray-50"
                         }`}
                 >
                     <CheckCircle2 size={18} />

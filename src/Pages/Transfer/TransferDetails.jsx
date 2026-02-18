@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import useGet from '@/hooks/useGet';
 import Loader from '@/components/Loader';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Warehouse, Package, Calendar, Info, ShieldCheck, Tag, XCircle, CheckCircle2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { ArrowLeft, Warehouse, Package, Info, ShieldCheck, Tag, XCircle, CheckCircle2 } from 'lucide-react';
 import usePut from '@/hooks/usePut';
 import { toast } from 'react-toastify';
 
@@ -15,11 +14,17 @@ const TransferDetails = () => {
     const isRTL = i18n.language === 'ar';
     const [activeTab, setActiveTab] = useState('all');
     const [statusReason, setStatusReason] = useState('');
-    const [productDecisions, setProductDecisions] = useState({}); // { productId: 'approved' | 'rejected' }
+    const [productDecisions, setProductDecisions] = useState({});
+
+    // جلب مخزن المستخدم الحالي
+    const currentWarehouseId = localStorage.getItem('currentWarehouseId');
 
     const { data, loading, error, refetch } = useGet(`/api/admin/transfer/${id}`);
     const { putData, loading: updating } = usePut();
     const transfer = data?.transfer;
+
+    // تحديد هل المستخدم هو المرسل أم لا
+    const isSender = transfer?.fromWarehouseId?._id === currentWarehouseId;
 
     useEffect(() => {
         if (data?.transfer?.products) {
@@ -40,10 +45,7 @@ const TransferDetails = () => {
                     <Info className="mx-auto mb-4" size={48} />
                     <h2 className="text-xl font-bold mb-2">{t('Error Loading Transfer')}</h2>
                     <p className="mb-6">{error || t('Transfer not found')}</p>
-                    <button
-                        onClick={() => navigate('/transfer')}
-                        className="bg-red-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-red-700 transition-colors"
-                    >
+                    <button onClick={() => navigate('/transfer')} className="bg-red-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-red-700 transition-colors">
                         {t('Back to List')}
                     </button>
                 </div>
@@ -140,13 +142,10 @@ const TransferDetails = () => {
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             <div className="w-full">
-                {/* Header */}
+                {/* Header Section (Unchanged) */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => navigate('/transfer')}
-                            className="p-3 bg-white hover:bg-gray-100 rounded-xl border transition-all text-gray-600"
-                        >
+                        <button onClick={() => navigate('/transfer')} className="p-3 bg-white hover:bg-gray-100 rounded-xl border transition-all text-gray-600">
                             <ArrowLeft size={20} className={isRTL ? "rotate-180" : ""} />
                         </button>
                         <div>
@@ -156,24 +155,18 @@ const TransferDetails = () => {
                             </h1>
                             <p className="text-gray-500 font-medium">
                                 {new Date(transfer.date).toLocaleDateString(isRTL ? 'ar-EG' : 'en-US', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
+                                    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
                                 })}
                             </p>
                         </div>
                     </div>
-                    <div>
-                        {renderStatus(transfer.status)}
-                    </div>
+                    <div>{renderStatus(transfer.status)}</div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Info */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Warehouses Card */}
+                        {/* Warehouse Route Card (Unchanged) */}
                         <div className="bg-white rounded-3xl shadow-sm border p-8">
                             <div className="flex items-center justify-between relative">
                                 <div className="flex-1 text-center">
@@ -183,13 +176,11 @@ const TransferDetails = () => {
                                     <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">{t('Source')}</h3>
                                     <p className="text-xl font-black text-gray-800">{transfer.fromWarehouseId?.name}</p>
                                 </div>
-
                                 <div className="px-4 z-10">
                                     <div className="bg-gray-100 p-2 rounded-full border-4 border-white shadow-sm">
                                         <ArrowLeft size={24} className={`text-gray-400 ${isRTL ? "" : "rotate-180"}`} />
                                     </div>
                                 </div>
-
                                 <div className="flex-1 text-center">
                                     <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                         <Warehouse className="text-green-600" size={32} />
@@ -197,13 +188,11 @@ const TransferDetails = () => {
                                     <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">{t('Destination')}</h3>
                                     <p className="text-xl font-black text-gray-800">{transfer.toWarehouseId?.name}</p>
                                 </div>
-
-                                {/* Decorative Line */}
                                 <div className="absolute top-8 left-1/4 right-1/4 h-0.5 bg-dashed bg-gray-100 -z-0"></div>
                             </div>
                         </div>
 
-                        {/* Products Section with Tabs */}
+                        {/* Products List */}
                         <div className="bg-white rounded-3xl shadow-sm border overflow-hidden">
                             <div className="p-2 bg-gray-50/50 border-b">
                                 <div className="flex gap-2">
@@ -238,7 +227,9 @@ const TransferDetails = () => {
                                             <tr>
                                                 <th className="p-5 text-left font-bold">{t('Product Name')}</th>
                                                 <th className="p-5 text-center font-bold">{t('Quantity')}</th>
-                                                {activeTab === 'all' && transfer.status === 'pending' ? (
+
+                                                {/* التغيير الأول: لو أنا المرسل، أظهر الحالة "Status" بدلاً من القرارات "Decision" */}
+                                                {(activeTab === 'all' && transfer.status === 'pending' && !isSender) ? (
                                                     <th className="p-5 text-center font-bold">{t('Decision')}</th>
                                                 ) : (
                                                     <th className="p-5 text-center font-bold">{t('Status')}</th>
@@ -258,19 +249,13 @@ const TransferDetails = () => {
                                                         <div className="text-xs text-gray-400 mt-1">ID: {item.productId?._id}</div>
                                                     </td>
                                                     <td className="p-5 text-center">
-                                                        <span className={`inline-block px-4 py-1.5 rounded-xl font-black text-lg ${(activeTab === 'all' && transfer.status === 'pending')
-                                                            ? productDecisions[item.productId?._id] === 'rejected'
-                                                                ? 'bg-red-50 text-red-700'
-                                                                : 'bg-teal-50 text-teal-700'
-                                                            : activeTab === 'rejected'
-                                                                ? 'bg-red-50 text-red-700'
-                                                                : 'bg-teal-50 text-teal-700'
-                                                            }`}>
+                                                        <span className="inline-block px-4 py-1.5 rounded-xl font-black text-lg bg-teal-50 text-teal-700">
                                                             {item.quantity}
                                                         </span>
                                                     </td>
                                                     <td className="p-5 text-center">
-                                                        {activeTab === 'all' && transfer.status === 'pending' ? (
+                                                        {/* التغيير الثاني: إظهار الأزرار فقط لو أنا لست المرسل */}
+                                                        {activeTab === 'all' && transfer.status === 'pending' && !isSender ? (
                                                             <div className="flex items-center justify-center gap-2">
                                                                 <button
                                                                     onClick={() => toggleProductDecision(item.productId?._id, 'approved')}
@@ -294,11 +279,13 @@ const TransferDetails = () => {
                                                                 </button>
                                                             </div>
                                                         ) : (
+                                                            // العرض الافتراضي للحالة (سواء للمرسل أو للأرشيف)
                                                             <span className={`flex items-center justify-center gap-1 font-bold ${activeTab === 'rejected' ? 'text-red-600' :
                                                                 activeTab === 'approved' ? 'text-green-600' : 'text-purple-600'
                                                                 }`}>
                                                                 {activeTab === 'rejected' ? <XCircle size={16} /> :
                                                                     activeTab === 'approved' ? <ShieldCheck size={16} /> : <Package size={16} />}
+                                                                {/* للمرسل، نعرض حالة المنتج العامة */}
                                                                 {tabs.find(t => t.id === activeTab).label}
                                                             </span>
                                                         )}
@@ -319,7 +306,6 @@ const TransferDetails = () => {
                                 <Info size={20} className="text-orange-500" />
                                 {t('Additional Information')}
                             </h2>
-
                             <div className="space-y-4">
                                 <div className="p-4 bg-orange-50/30 rounded-2xl border border-orange-100">
                                     <h3 className="text-gray-500 text-xs font-bold uppercase mb-2 flex items-center gap-2">
@@ -330,7 +316,6 @@ const TransferDetails = () => {
                                         {transfer.reason || t('No reason provided')}
                                     </p>
                                 </div>
-
                                 <div className="p-4 bg-gray-50 rounded-2xl border">
                                     <div className="flex justify-between items-center mb-2">
                                         <span className="text-gray-500 text-xs font-bold uppercase tracking-wider">{t('Reference ID')}</span>
@@ -350,14 +335,14 @@ const TransferDetails = () => {
                             </div>
                         </div>
 
-                        {/* Actions Card */}
-                        {transfer.status === 'pending' && (
+                        {/* Actions Card: التغيير الجوهري هنا */}
+                        {/* يظهر فقط إذا كانت الحالة Pending وكمان أنا لست المرسل */}
+                        {transfer.status === 'pending' && !isSender && (
                             <div className="bg-white rounded-3xl shadow-sm border p-6">
                                 <h2 className="text-lg font-black text-gray-800 mb-4 flex items-center gap-2">
                                     <ShieldCheck size={20} className="text-teal-600" />
                                     {t('Process Transfer')}
                                 </h2>
-
 
                                 <div className="space-y-2 mb-4">
                                     <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2">

@@ -49,12 +49,19 @@ const Zone = () => {
       filterable: true,
       render: (value, row) => row.cityId?.ar_name || "N/A"
     },
+    // {
+    //   key: "cost",
+    //   header: t("Cost"),
+    //   filterable: true,
+    //   render: (value, row) => row.cost ?? 0
+    // },
     {
-      key: "cost",
+      key: "shipingCost",
       header: t("Shipping Cost"),
       filterable: true,
-      render: (value, row) => row.cost ?? 0
+      render: (value, row) => row.shipingCost ?? 0
     },
+
     {
       key: "countryId.name",
       header: t("CountryName"),
