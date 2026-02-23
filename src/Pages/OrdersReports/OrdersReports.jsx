@@ -263,62 +263,64 @@ const OrdersReports = () => {
 
             {/* Order Details Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
+                <DialogContent className="max-w-7xl p-0 overflow-hidden">
+                    <DialogHeader className="p-6 pb-0">
                         <DialogTitle className="text-2xl font-black flex items-center gap-2">
                             <ShoppingBag className="text-blue-600" />
                             {t("Order Details")}: {selectedOrder?.reference}
                         </DialogTitle>
                     </DialogHeader>
 
-                    {selectedOrder && (
-                        <div className="grid grid-cols-1 gap-8 py-4">
-                            {/* Primary Info */}
-                            <div className="space-y-6">
-                                <DetailSection title={t("General Info")}>
-                                    <DetailItem label={t("Reference")} value={selectedOrder.reference} isBold />
-                                    <DetailItem label={t("Date")} value={new Date(selectedOrder.date).toLocaleString()} />
-                                    <DetailItem label={t("Status")} value={selectedOrder.order_pending === 0 ? t("Completed") : t("Pending")} />
-                                    <DetailItem label={t("Note")} value={selectedOrder.note || "—"} /> DetailItem
-                                </DetailSection>
+                    <div className="p-6 max-h-[80vh] overflow-y-auto">
+                        {selectedOrder && (
+                            <div className="grid grid-cols-1 gap-8 py-4">
+                                {/* Primary Info */}
+                                <div className="space-y-6">
+                                    <DetailSection title={t("General Info")}>
+                                        <DetailItem label={t("Reference")} value={selectedOrder.reference} isBold />
+                                        <DetailItem label={t("Date")} value={new Date(selectedOrder.date).toLocaleString()} />
+                                        <DetailItem label={t("Status")} value={selectedOrder.order_pending === 0 ? t("Completed") : t("Pending")} />
+                                        <DetailItem label={t("Note")} value={selectedOrder.note || "—"} />
+                                    </DetailSection>
 
-                                <DetailSection title={t("Warehouse")}>
-                                    <DetailItem label={t("Warehouse")} value={selectedOrder.warehouse_id?.name} />
-                                </DetailSection>
+                                    <DetailSection title={t("Warehouse")}>
+                                        <DetailItem label={t("Warehouse")} value={selectedOrder.warehouse_id?.name} />
+                                    </DetailSection>
 
-                                <DetailSection title={t("Staff & Shift")}>
-                                    <DetailItem label={t("Cashier")} value={selectedOrder.cashier_id?.username} />
-                                    <DetailItem label={t("Shift Start")} value={selectedOrder.shift_id?.start_time ? new Date(selectedOrder.shift_id.start_time).toLocaleString() : "—"} />
-                                    <DetailItem label={t("Shift Status")} value={selectedOrder.shift_id?.status} />
-                                </DetailSection>
-                            </div>
+                                    <DetailSection title={t("Staff & Shift")}>
+                                        <DetailItem label={t("Cashier")} value={selectedOrder.cashier_id?.username} />
+                                        <DetailItem label={t("Shift Start")} value={selectedOrder.shift_id?.start_time ? new Date(selectedOrder.shift_id.start_time).toLocaleString() : "—"} />
+                                        <DetailItem label={t("Shift Status")} value={selectedOrder.shift_id?.status} />
+                                    </DetailSection>
+                                </div>
 
-                            {/* Financial Info */}
-                            <div className="space-y-6">
-                                <DetailSection title={t("Financial Summary")} highlight>
-                                    <DetailItem label={t("Total")} value={`${(selectedOrder.total || 0).toLocaleString()} EGP`} />
-                                    <DetailItem label={t("Tax Rate")} value={`${selectedOrder.tax_rate}%`} />
-                                    <DetailItem label={t("Tax Amount")} value={`${(selectedOrder.tax_amount || 0).toLocaleString()} EGP`} />
-                                    <DetailItem label={t("Discount")} value={`${(selectedOrder.discount || 0).toLocaleString()} EGP`} />
-                                    <DetailItem label={t("Shipping")} value={`${(selectedOrder.shipping || 0).toLocaleString()} EGP`} />
-                                    <div className="pt-4 mt-2 border-t border-gray-100">
-                                        <DetailItem label={t("Grand Total")} value={`${(selectedOrder.grand_total || 0).toLocaleString()} EGP`} isBold large />
-                                        <DetailItem label={t("Paid Amount")} value={`${(selectedOrder.paid_amount || 0).toLocaleString()} EGP`} color="text-blue-600" />
-                                        <DetailItem label={t("Remaining")} value={`${(selectedOrder.remaining_amount || 0).toLocaleString()} EGP`} color="text-rose-500" />
-                                    </div>
-                                </DetailSection>
-
-                                <DetailSection title={t("Payment Accounts")}>
-                                    {selectedOrder.account_id?.map((acc, idx) => (
-                                        <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl mb-2">
-                                            <span className="text-sm font-semibold">{acc.name}</span>
-                                            <span className="text-xs text-gray-500">{t("Balance")}: {acc.balance?.toLocaleString()}</span>
+                                {/* Financial Info */}
+                                <div className="space-y-6">
+                                    <DetailSection title={t("Financial Summary")} highlight>
+                                        <DetailItem label={t("Total")} value={`${(selectedOrder.total || 0).toLocaleString()} EGP`} />
+                                        <DetailItem label={t("Tax Rate")} value={`${selectedOrder.tax_rate}%`} />
+                                        <DetailItem label={t("Tax Amount")} value={`${(selectedOrder.tax_amount || 0).toLocaleString()} EGP`} />
+                                        <DetailItem label={t("Discount")} value={`${(selectedOrder.discount || 0).toLocaleString()} EGP`} />
+                                        <DetailItem label={t("Shipping")} value={`${(selectedOrder.shipping || 0).toLocaleString()} EGP`} />
+                                        <div className="pt-4 mt-2 border-t border-gray-100">
+                                            <DetailItem label={t("Grand Total")} value={`${(selectedOrder.grand_total || 0).toLocaleString()} EGP`} isBold large />
+                                            <DetailItem label={t("Paid Amount")} value={`${(selectedOrder.paid_amount || 0).toLocaleString()} EGP`} color="text-blue-600" />
+                                            <DetailItem label={t("Remaining")} value={`${(selectedOrder.remaining_amount || 0).toLocaleString()} EGP`} color="text-rose-500" />
                                         </div>
-                                    ))}
-                                </DetailSection>
+                                    </DetailSection>
+
+                                    <DetailSection title={t("Payment Accounts")}>
+                                        {selectedOrder.account_id?.map((acc, idx) => (
+                                            <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl mb-2">
+                                                <span className="text-sm font-semibold">{acc.name}</span>
+                                                <span className="text-xs text-gray-500">{t("Balance")}: {acc.balance?.toLocaleString()}</span>
+                                            </div>
+                                        ))}
+                                    </DetailSection>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>
