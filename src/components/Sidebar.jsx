@@ -104,6 +104,7 @@ const menuItems = [
     icon: BarChart3, // تم التغيير من FileText لتعبر عن الإحصائيات والرسوم البيانية
     children: [
       { name: "Cashier Shift", path: "/cashier-shift", module: AppModules.CASHIER_SHIFT_REPORT },
+      { name: "Orders Report", path: "/orders-reports", module: AppModules.ORDERS_REPORT },
     ],
   },
 ];

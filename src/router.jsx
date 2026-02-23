@@ -104,6 +104,7 @@ import CashierShift from "./Pages/CashierShift/CashierShift";
 import CashierShiftDetails from "./Pages/CashierShift/CashierShiftDetails";
 import PermissionAdd from "./Pages/Permission/PermissionAdd";
 import TransferWarehouse from "./Pages/WareHouse/TransferWarehouse";
+import OrdersReports from "./Pages/OrdersReports/OrdersReports";
 
 export default function AppRoutes() {
   return (
@@ -1015,6 +1016,18 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.CASHIER_SHIFT_REPORT} action={ModuleActions.VIEW}>
               <CashierShiftDetails />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+
+      <Route path="orders-reports">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.ORDERS_REPORT} action={ModuleActions.VIEW}>
+              <OrdersReports />
             </ProtectedRoute>
           }
         />
