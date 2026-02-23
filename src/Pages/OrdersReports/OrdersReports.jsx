@@ -52,9 +52,9 @@ const OrdersReports = () => {
         }
     };
 
-    // useEffect(() => {
-    //     fetchReport();
-    // }, []);
+    useEffect(() => {
+        fetchReport();
+    }, []);
 
     const handleViewDetails = (order) => {
         setSelectedOrder(order);

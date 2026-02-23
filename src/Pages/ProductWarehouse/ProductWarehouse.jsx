@@ -45,22 +45,22 @@ const ProductWarehouse = () => {
     },
     {
       // استخدام الكود بدلاً من SKU
-      key: "prices",
+      key: "code",
       header: t("ProductCode"),
       filterable: true,
-      render: (prices) => (
+      render: (value) => (
         <span className="font-mono text-sm text-gray-800 bg-blue-50 px-2 py-1 rounded">
-          {prices?.[0]?.code || "N/A"}
+          {value || "N/A"}
         </span>
       )
     },
     {
-      key: "prices",
+      key: "price",
       header: t("Price"),
       filterable: false,
-      render: (prices) => (
+      render: (price) => (
         <span className="text-primary font-bold">
-          {prices?.[0]?.price ? `${prices[0].price} EGP` : "N/A"}
+          {price ? `${price} EGP` : "N/A"}
         </span>
       )
     },
