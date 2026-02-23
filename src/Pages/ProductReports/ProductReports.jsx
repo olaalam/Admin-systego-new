@@ -195,7 +195,11 @@ const ProductReports = () => {
                         <select
                             className="bg-transparent text-sm font-medium focus:outline-none px-2 py-1"
                             value={filters.warehouse_id || ""}
-                            onChange={(e) => setFilters(prev => ({ ...prev, warehouse_id: e.target.value }))}
+                            onChange={(e) => setFilters(prev => ({
+                                ...prev,
+                                warehouse_id: e.target.value,
+                                cashier_id: null // Reset cashier when warehouse changes
+                            }))}
                         >
                             <option value="">{t("All Warehouses")}</option>
                             {selectionData?.warehouses?.map(w => (
@@ -209,15 +213,22 @@ const ProductReports = () => {
                             onChange={(e) => setFilters(prev => ({ ...prev, cashier_id: e.target.value }))}
                         >
                             <option value="">{t("All Cashiers")}</option>
-                            {selectionData?.cashier?.map(c => (
-                                <option key={c._id} value={c._id}>{isArabic ? c.ar_name || c.name : c.name}</option>
-                            ))}
+                            {selectionData?.cashier
+                                ?.filter(c => !filters.warehouse_id || c.warehouse_id === filters.warehouse_id)
+                                .map(c => (
+                                    <option key={c._id} value={c._id}>{isArabic ? c.ar_name || c.name : c.name}</option>
+                                ))
+                            }
                         </select>
 
                         <select
                             className="bg-transparent text-sm font-medium focus:outline-none px-2 py-1"
                             value={filters.category_id || ""}
-                            onChange={(e) => setFilters(prev => ({ ...prev, category_id: e.target.value }))}
+                            onChange={(e) => setFilters(prev => ({
+                                ...prev,
+                                category_id: e.target.value,
+                                product_id: null // Reset product when category changes
+                            }))}
                         >
                             <option value="">{t("All Categories")}</option>
                             {selectionData?.categories?.map(c => (
@@ -231,9 +242,12 @@ const ProductReports = () => {
                             onChange={(e) => setFilters(prev => ({ ...prev, product_id: e.target.value }))}
                         >
                             <option value="">{t("All Products")}</option>
-                            {selectionData?.products?.map(p => (
-                                <option key={p._id} value={p._id}>{isArabic ? p.ar_name || p.name : p.name}</option>
-                            ))}
+                            {selectionData?.products
+                                ?.filter(p => !filters.category_id || p.categoryId?.includes(filters.category_id))
+                                .map(p => (
+                                    <option key={p._id} value={p._id}>{isArabic ? p.ar_name || p.name : p.name}</option>
+                                ))
+                            }
                         </select>
 
                         <Button
