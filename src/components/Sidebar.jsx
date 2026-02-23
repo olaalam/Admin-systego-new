@@ -106,6 +106,7 @@ const menuItems = [
       { name: "Cashier Shift", path: "/cashier-shift", module: AppModules.CASHIER_SHIFT_REPORT },
       { name: "Orders Report", path: "/orders-reports", module: AppModules.ORDERS_REPORT },
       { name: "Product Report", path: "/product-reports", module: AppModules.PRODUCT_REPORT },
+      { name: "Financial Report", path: "/financial-reports", module: AppModules.FINANCIAL_REPORT },
     ],
   },
 ];

@@ -106,6 +106,7 @@ import PermissionAdd from "./Pages/Permission/PermissionAdd";
 import TransferWarehouse from "./Pages/WareHouse/TransferWarehouse";
 import OrdersReports from "./Pages/OrdersReports/OrdersReports";
 import ProductReports from "./Pages/ProductReports/ProductReports";
+import FinancialReports from "./Pages/FinancialReports/FinancialReports";
 
 export default function AppRoutes() {
   return (
@@ -1040,6 +1041,17 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.PRODUCT_REPORT} action={ModuleActions.VIEW}>
               <ProductReports />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      <Route path="financial-reports">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.FINANCIAL_REPORT} action={ModuleActions.VIEW}>
+              <FinancialReports />
             </ProtectedRoute>
           }
         />
