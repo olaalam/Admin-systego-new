@@ -3,6 +3,7 @@ import { ArrowLeft, LogOut, Bell } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import '../translation/i18n';
 import NotificationDropdown from "./NotificationDropdown";
+import { hasPermission } from "@/lib/checkPermission";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ export default function Navbar() {
       <h1 className="text-lg font-bold text-secondary">SysteGo</h1>
 
       <div className="flex items-center gap-4">
-        <NotificationDropdown />
+        {hasPermission("notification", "View") && <NotificationDropdown />}
 
         {/* Language Selector */}
         <select
