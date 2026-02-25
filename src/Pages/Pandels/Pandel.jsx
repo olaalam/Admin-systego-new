@@ -88,7 +88,8 @@ const Pandels = () => {
      View Products Handler
   ======================= */
   const handleViewProducts = (item) => {
-    setSelectedProducts(item.productsId || []);
+    // أرسل مصفوفة المنتجات كاملة (Objects) وليس الأسماء فقط
+    setSelectedProducts(item?.products || []);
     setShowProductsDialog(true);
   };
 

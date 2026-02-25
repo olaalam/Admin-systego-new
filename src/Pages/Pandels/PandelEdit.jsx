@@ -2,25 +2,22 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { X, Trash2 } from "lucide-react"; // إضافة الأيقونات
+import { X, Trash2, Plus, Minus } from "lucide-react";
 import AddPage from "@/components/AddPage";
 import Loader from "@/components/Loader";
 import useGet from "@/hooks/useGet";
 import usePut from "@/hooks/usePut";
-import SmartSearch from "@/components/SmartSearch"; // استيراد البحث الذكي
+import SmartSearch from "@/components/SmartSearch";
 import { useTranslation } from "react-i18next";
 
 const PandelEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { putData, loading: updating } = usePut(`/api/admin/pandel/${id}`);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
-  const { data: productsData, loading: productsLoading } =
-    useGet("/api/admin/product");
-  const { data: pandelData, loading: pandelLoading } = useGet(
-    `/api/admin/pandel/${id}`
-  );
+  const { data: productsData, loading: productsLoading } = useGet("/api/admin/product");
+  const { data: pandelData, loading: pandelLoading } = useGet(`/api/admin/pandel/${id}`);
   const [loading, setLoading] = useState(false);
 
   if (productsLoading || pandelLoading) return <Loader />;
@@ -32,6 +29,28 @@ const PandelEdit = () => {
     if (!isoString) return "";
     const d = new Date(isoString);
     return d.toISOString().split("T")[0];
+  };
+
+  // تحويل بيانات الـ pandel القادمة من الـ API إلى الشكل المطلوب
+  // لو الـ API بيرجع productsId (القديم) أو products (الجديد) — نتعامل مع الاتنين
+  const normalizeExistingProducts = () => {
+    // لو الـ API بيرجع products بالشكل الجديد
+    if (pandel.products && Array.isArray(pandel.products)) {
+      return pandel.products.map((sp) => ({
+        productId: sp.productId?._id || sp.productId || sp._id,
+        productPriceId: sp.productPriceId?._id || sp.productPriceId || null,
+        quantity: sp.quantity || 1,
+      }));
+    }
+    // fallback لو الـ API لسه بيرجع productsId القديم (array of IDs)
+    if (pandel.productsId && Array.isArray(pandel.productsId)) {
+      return pandel.productsId.map((pid) => ({
+        productId: typeof pid === "object" ? pid._id || pid.id : pid,
+        productPriceId: null,
+        quantity: 1,
+      }));
+    }
+    return [];
   };
 
   const fields = [
@@ -64,32 +83,85 @@ const PandelEdit = () => {
       step: "0.01",
     },
     {
-      key: "productsId",
+      key: "products",
       label: t("ProductsBundle"),
       type: "custom",
       required: true,
       render: (formData, setFormData) => {
-        const selectedIds = formData.productsId || [];
-        const selectedProductsList = products.filter((p) =>
-          selectedIds.includes(p._id || p.id)
-        );
+        const selectedProducts = formData.products || [];
+
+        const getProductData = (productId) =>
+          products.find((p) => (p._id || p.id) === productId);
 
         const searchTerm = (formData.searchProduct || "").toLowerCase().trim();
         const suggestions =
           searchTerm.length > 0
             ? products
-                .filter(
-                  (p) =>
-                    (p.name && p.name.toLowerCase().includes(searchTerm)) ||
-                    p.prices?.some(
-                      (pr) => pr.code && pr.code.toString().includes(searchTerm)
-                    )
-                )
-                .slice(0, 8)
+              .filter(
+                (p) =>
+                  (p.name && p.name.toLowerCase().includes(searchTerm)) ||
+                  p.prices?.some(
+                    (pr) =>
+                      pr.code && pr.code.toString().includes(searchTerm)
+                  )
+              )
+              .slice(0, 8)
             : [];
+
+        const handleAddProduct = (p) => {
+          const prodId = p._id || p.id;
+          const alreadyAdded = selectedProducts.some(
+            (sp) => sp.productId === prodId
+          );
+          if (alreadyAdded) {
+            toast.warning(t("Thisproductisalreadyinthebundle"));
+            return;
+          }
+          setFormData((prev) => ({
+            ...prev,
+            products: [
+              ...selectedProducts,
+              { productId: prodId, productPriceId: null, quantity: 1 },
+            ],
+            searchProduct: "",
+          }));
+          toast.success(`${p.name} added!`);
+        };
+
+        const handleRemoveProduct = (productId) => {
+          setFormData((prev) => ({
+            ...prev,
+            products: selectedProducts.filter(
+              (sp) => sp.productId !== productId
+            ),
+          }));
+        };
+
+        const handleVariationChange = (productId, priceId) => {
+          setFormData((prev) => ({
+            ...prev,
+            products: selectedProducts.map((sp) =>
+              sp.productId === productId
+                ? { ...sp, productPriceId: priceId || null }
+                : sp
+            ),
+          }));
+        };
+
+        const handleQuantityChange = (productId, delta) => {
+          setFormData((prev) => ({
+            ...prev,
+            products: selectedProducts.map((sp) =>
+              sp.productId === productId
+                ? { ...sp, quantity: Math.max(1, sp.quantity + delta) }
+                : sp
+            ),
+          }));
+        };
 
         return (
           <div className="space-y-4">
+            {/* حقل البحث */}
             <div className="relative z-20">
               <SmartSearch
                 value={formData.searchProduct || ""}
@@ -104,19 +176,7 @@ const PandelEdit = () => {
                     <div
                       key={p._id || p.id}
                       className="px-4 py-3 hover:bg-purple-50 cursor-pointer flex items-center gap-3 transition-colors border-b last:border-b-0"
-                      onClick={() => {
-                        const prodId = p._id || p.id;
-                        if (!selectedIds.includes(prodId)) {
-                          setFormData((prev) => ({
-                            ...prev,
-                            productsId: [...selectedIds, prodId],
-                            searchProduct: "",
-                          }));
-                          toast.success(`${p.name} added!`);
-                        } else {
-                          toast.warning("Already added!");
-                        }
-                      }}
+                      onClick={() => handleAddProduct(p)}
                     >
                       <div className="w-10 h-10 rounded border overflow-hidden bg-gray-50 flex-shrink-0">
                         <img
@@ -125,12 +185,17 @@ const PandelEdit = () => {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-gray-700">
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <span className="text-sm font-semibold text-gray-700 truncate">
                           {p.name}
                         </span>
                         <span className="text-xs text-gray-400 font-mono">
                           {t("Code")}: {p.prices?.[0]?.code || "N/A"}
+                          {p.prices && p.prices.length > 1 && (
+                            <span className="ml-2 text-purple-500 font-medium">
+                              {p.prices.length} {t("Variations")}
+                            </span>
+                          )}
                         </span>
                       </div>
                     </div>
@@ -139,51 +204,118 @@ const PandelEdit = () => {
               )}
             </div>
 
-            {selectedProductsList.length > 0 && (
+            {/* قائمة المنتجات المختارة */}
+            {selectedProducts.length > 0 && (
               <div className="mt-4 border rounded-lg bg-white overflow-hidden shadow-sm">
                 <div className="bg-gray-50 px-4 py-2 border-b text-xs font-bold text-gray-500 uppercase">
-                  {t("SelectedItems")}
+                  {t("SelectedItems")} ({selectedProducts.length})
                 </div>
-                <div className="divide-y divide-gray-100 max-h-[300px] overflow-y-auto">
-                  {selectedProductsList.map((product) => (
-                    <div
-                      key={product._id || product.id}
-                      className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-md border overflow-hidden bg-white flex-shrink-0">
-                          <img
-                            src={product.image || "/placeholder.png"}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-gray-800">
-                            {product.name}
-                          </h4>
-                          <p className="text-xs text-gray-400">
-                            {t("Code")}: {product.prices?.[0]?.code || "N/A"}
-                          </p>
+                <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+                  {selectedProducts.map((sp) => {
+                    const productData = getProductData(sp.productId);
+                    if (!productData) return null;
+
+                    const variations = productData.prices || [];
+                    const hasVariations = variations.length > 1;
+
+                    return (
+                      <div
+                        key={sp.productId}
+                        className="p-3 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 rounded-md border overflow-hidden bg-white flex-shrink-0 mt-1">
+                            <img
+                              src={productData.image || "/placeholder.png"}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-bold text-gray-800 truncate">
+                              {productData.name}
+                            </h4>
+
+                            {/* Variation Dropdown */}
+                            {hasVariations && (
+                              <div className="mt-2">
+                                <label className="text-xs text-gray-500 font-medium mb-1 block">
+                                  {t("SelectVariation")}
+                                </label>
+                                <select
+                                  value={sp.productPriceId || ""}
+                                  onChange={(e) =>
+                                    handleVariationChange(
+                                      sp.productId,
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full text-sm border border-gray-200 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+                                >
+                                  <option value="">
+                                    — {t("NoVariation")} —
+                                  </option>
+                                  {variations.map((v) => (
+                                    <option
+                                      key={v._id || v.id}
+                                      value={v._id || v.id}
+                                    >
+                                      {v.size || v.color || v.name || v.code} — {v.price} {t("EGP")}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
+
+                            {!hasVariations && variations.length === 1 && (
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {t("Code")}: {variations[0]?.code || "N/A"} — {variations[0]?.price} {t("EGP")}
+                              </p>
+                            )}
+
+                            {/* Quantity Control */}
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-xs text-gray-500 font-medium">
+                                {t("Quantity")}:
+                              </span>
+                              <div className="flex items-center gap-1 bg-gray-100 rounded-full px-1">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleQuantityChange(sp.productId, -1)
+                                  }
+                                  className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-white transition-colors text-gray-600 hover:text-gray-900"
+                                >
+                                  <Minus size={12} />
+                                </button>
+                                <span className="text-sm font-bold text-gray-800 w-6 text-center">
+                                  {sp.quantity}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleQuantityChange(sp.productId, +1)
+                                  }
+                                  className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-white transition-colors text-gray-600 hover:text-gray-900"
+                                >
+                                  <Plus size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveProduct(sp.productId)}
+                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all flex-shrink-0"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newIds = selectedIds.filter(
-                            (id) => id !== (product._id || product.id)
-                          );
-                          setFormData((prev) => ({
-                            ...prev,
-                            productsId: newIds,
-                          }));
-                        }}
-                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -233,11 +365,15 @@ const PandelEdit = () => {
 
       const payload = {
         name: formData.name,
-        productsId: formData.productsId,
-        images: imagesBase64,
         startdate: formData.startdate,
         enddate: formData.enddate,
         price: Number(formData.price),
+        images: imagesBase64,
+        products: (formData.products || []).map((sp) => ({
+          productId: sp.productId,
+          productPriceId: sp.productPriceId || null,
+          quantity: sp.quantity || 1,
+        })),
       };
 
       await putData(payload);
@@ -255,14 +391,14 @@ const PandelEdit = () => {
       <AddPage
         description={t("Fill in the details below to add a new record")}
         title={t("EditBundleTitle", { name: pandel.name || "" })}
-  submitButtonText={t("UpdateBundle")}
+        submitButtonText={t("UpdateBundle")}
         fields={fields}
         initialData={{
           name: pandel.name || "",
           startdate: formatDate(pandel.startdate),
           enddate: formatDate(pandel.enddate),
           price: pandel.price || "",
-          productsId: pandel.productsId || [],
+          products: normalizeExistingProducts(), // ← تحويل البيانات القديمة للشكل الجديد
           images: pandel.images || [],
           searchProduct: "",
         }}
@@ -274,8 +410,10 @@ const PandelEdit = () => {
   );
 };
 
-// مكون رفع الصور (المحسن والمطابق لصفحة الـ Add)
+// مكون رفع الصور
 const ImageUploadSection = ({ images, onImagesChange }) => {
+  const { t } = useTranslation();
+
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     const readers = files.map((file) => {
@@ -314,9 +452,11 @@ const ImageUploadSection = ({ images, onImagesChange }) => {
           </div>
           <p className="text-sm text-gray-600">
             <span className="font-semibold text-purple-600">
-              Click to upload
-            </span>
+              {t("ClickToUpload")}
+            </span>{" "}
+            {t("OrDragAndDrop")}
           </p>
+          <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
         </div>
         <input
           type="file"
@@ -332,9 +472,7 @@ const ImageUploadSection = ({ images, onImagesChange }) => {
           {images.map((img, index) => (
             <div key={index} className="relative group aspect-square">
               <img
-                src={
-                  img.startsWith("http") ? img : `data:image/jpeg;base64,${img}`
-                }
+                src={img.startsWith("http") ? img : `data:image/jpeg;base64,${img}`}
                 alt=""
                 className="w-full h-full object-cover rounded-lg border shadow-sm"
               />
