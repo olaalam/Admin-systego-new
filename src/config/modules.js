@@ -1,5 +1,5 @@
 export const AppModules = {
-    HOME: "Home",
+    Dashboard: "Dashboard",
     PRODUCT: "product",
     BRAND: "brand",
     CATEGORY: "category",

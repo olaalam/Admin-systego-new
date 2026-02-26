@@ -14,7 +14,7 @@ import {
     Percent,
     Receipt
 } from "lucide-react";
-import usePost from "@/hooks/usePost";
+import useGet from "@/hooks/useGet";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";
@@ -40,21 +40,23 @@ const OrdersReports = () => {
         endDate: today
     });
 
-    const { postData, loading, error } = usePost("/api/admin/orders/report");
-    const [reportData, setReportData] = useState(null);
+    const { data: reportData, loading, error, refetch } = useGet("/api/admin/orders/report", {
+        params: {
+            startDate: dates.startDate,
+            endDate: dates.endDate
+        }
+    });
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const fetchReport = async () => {
-        const res = await postData(dates);
-        if (res?.success) {
-            setReportData(res.data);
-        }
+    const fetchReport = () => {
+        refetch({
+            params: {
+                startDate: dates.startDate,
+                endDate: dates.endDate
+            }
+        });
     };
-
-    useEffect(() => {
-        fetchReport();
-    }, []);
 
     const handleViewDetails = (order) => {
         setSelectedOrder(order);

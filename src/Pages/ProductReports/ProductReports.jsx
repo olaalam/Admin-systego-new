@@ -44,29 +44,32 @@ const ProductReports = () => {
 
     // Fetch selection data
     const { data: selectionData } = useGet("/api/admin/product-report/selection");
-    const { postData, loading } = usePost("/api/admin/product-report");
-    const [reportData, setReportData] = useState(null);
+    const { data: reportData, loading, refetch } = useGet("/api/admin/product-report", {
+        params: {
+            startDate: filters.start_date,
+            endDate: filters.end_date,
+            category_id: filters.category_id || null,
+            product_id: filters.product_id || null,
+            warehouse_id: filters.warehouse_id || null,
+            cashier_id: filters.cashier_id || null
+        }
+    });
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const fetchReport = async () => {
-        // Prepare request body, convert nulls to undefined or handle as API expects
-        const body = {
-            ...filters,
+    const fetchReport = () => {
+        const params = {
+            start_date: filters.start_date,
+            end_date: filters.end_date,
             category_id: filters.category_id || null,
             product_id: filters.product_id || null,
             warehouse_id: filters.warehouse_id || null,
             cashier_id: filters.cashier_id || null
         };
-        const res = await postData(body);
-        if (res?.success) {
-            setReportData(res.data);
-        }
+        refetch({ params });
     };
 
-    useEffect(() => {
-        fetchReport();
-    }, []);
+
 
     const handleViewDetails = (product) => {
         setSelectedProduct(product);
