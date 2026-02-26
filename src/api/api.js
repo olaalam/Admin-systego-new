@@ -2,13 +2,15 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://bcknd.systego.net", 
+  // Vite استخدام
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+
+
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// ✅ Interceptor لو محتاجة تضيفي توكن أو تعملي لوجين
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
