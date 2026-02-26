@@ -18,7 +18,7 @@ import {
     Clock,
     MinusCircle
 } from "lucide-react";
-import usePost from "@/hooks/usePost";
+import useGet from "@/hooks/useGet";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";
@@ -45,21 +45,26 @@ const FinancialReports = () => {
         endDate: today
     });
 
-    const { postData, loading } = usePost("/api/admin/finicial-report");
-    const [reportData, setReportData] = useState(null);
+    const { data: reportData, loading, refetch } = useGet("/api/admin/finicial-report", {
+        params: {
+            startDate: filters.startDate,
+            endDate: filters.endDate
+        }
+    });
+
     const [selectedAccountExpenses, setSelectedAccountExpenses] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const fetchReport = async () => {
-        const res = await postData(filters);
-        if (res?.success) {
-            setReportData(res.data);
-        }
+    const fetchReport = () => {
+        refetch({
+            params: {
+                start_date: filters.startDate,
+                end_date: filters.endDate
+            }
+        });
     };
 
-    useEffect(() => {
-        fetchReport();
-    }, []);
+
 
     const handleViewExpenses = (accountExpenses) => {
         setSelectedAccountExpenses(accountExpenses);
@@ -164,7 +169,7 @@ const FinancialReports = () => {
                             disabled={loading}
                             className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-5 h-9 ml-auto"
                         >
-                            {loading ? <Loader className="w-4 h-4" /> : <Filter size={16} className="mr-2" />}
+                            <Filter size={16} className="mr-2" />
                             {t("Filter")}
                         </Button>
                     </div>
