@@ -297,39 +297,48 @@ const PurchasesPage = () => {
 
               {selectedPurchase.installments?.map((due, i) => {
                 const isThisOne = payingInstallmentId === due._id;
+                const isPaid = due.status === "paid"; // التحقق من حالة الدفع
 
                 return (
-                  <div key={i} className="flex flex-col p-3 bg-orange-50 border border-orange-100 rounded-xl mb-2 gap-3">
+                  <div key={i} className={`flex flex-col p-3 border rounded-xl mb-2 gap-3 transition-colors ${isPaid ? 'bg-green-50 border-green-100' : 'bg-orange-50 border-orange-100'}`}>
                     <div className="flex justify-between items-center">
                       <div className="flex flex-col">
                         <span className="text-xs font-bold text-gray-600">
                           {new Date(due.date).toLocaleDateString()}
                         </span>
-                        <span className="text-sm font-black text-orange-700">
+                        <span className={`text-sm font-black ${isPaid ? 'text-green-700' : 'text-orange-700'}`}>
                           {due.amount} EGP
                         </span>
                       </div>
 
-                      {!isThisOne ? (
-                        <button
-                          onClick={() => setPayingInstallmentId(due._id)}
-                          className="px-4 py-2 bg-orange-600 text-white text-[10px] font-bold rounded-lg hover:bg-orange-700 transition-all flex items-center gap-1"
-                        >
-                          <CreditCard size={12} />
-                          {t("Pay Now")}
-                        </button>
+                      {/* لو مدفوع نعرض الـ Badge، لو لأ نعرض أزرار الدفع */}
+                      {isPaid ? (
+                        <span className="px-3 py-1 bg-green-200 text-green-800 text-[10px] font-bold rounded-lg flex items-center gap-1">
+                          <CheckCircle2 size={12} />
+                          {t("Paid")}
+                        </span>
                       ) : (
-                        <button
-                          onClick={() => setPayingInstallmentId(null)}
-                          className="text-gray-400 hover:text-gray-600"
-                        >
-                          <X size={16} />
-                        </button>
+                        !isThisOne ? (
+                          <button
+                            onClick={() => setPayingInstallmentId(due._id)}
+                            className="px-4 py-2 bg-orange-600 text-white text-[10px] font-bold rounded-lg hover:bg-orange-700 transition-all flex items-center gap-1"
+                          >
+                            <CreditCard size={12} />
+                            {t("Pay Now")}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setPayingInstallmentId(null)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            <X size={16} />
+                          </button>
+                        )
                       )}
                     </div>
 
-                    {/* تظهر هذه القائمة فقط عند الضغط على زر الدفع لهذا القسط بالتحديد */}
-                    {isThisOne && (
+                    {/* تظهر هذه القائمة فقط عند الضغط على زر الدفع لهذا القسط بالتحديد وطبعاً لو مش مدفوع */}
+                    {!isPaid && isThisOne && (
                       <div className="flex gap-2 animate-in slide-in-from-top-2 duration-200">
                         <select
                           className="flex-1 border rounded-lg p-2 text-xs bg-white focus:ring-2 focus:ring-orange-500 outline-none"
