@@ -152,10 +152,12 @@ const ProductForm = ({
           sale_unit: initialData.sale_unit?._id || initialData.sale_unit || "",
           description: initialData.description || "",
           image: initialData.image || "",
+          code: initialData.code || prev.code || "",
           gallery_product: initialData.gallery_product || initialData.gallery || [],
           minimum_quantity_sale:
             initialData.minimum_quantity_sale || prev.minimum_quantity_sale,
           price: initialData.price ?? prev.price,
+          cost: initialData.cost ?? prev.cost,
           different_price: initialData.different_price ?? prev.different_price,
           prices: initialData.prices?.map((p) => {
             const optionIds = [];
@@ -330,13 +332,16 @@ const ProductForm = ({
     }
   }, [selectedOptionsMap, form.different_price, allVariations]);
 
-  const cleanBase64 = (dataUri) =>
-    typeof dataUri === "string" && dataUri.startsWith("data:")
-      ? dataUri.split(",")[1]
-      : dataUri;
 
+  const cleanBase64 = (dataUri) => {
+    if (typeof dataUri === "string" && dataUri.startsWith("data:")) {
+      return dataUri.split(",")[1];
+    }
+    return dataUri; // إذا كان رابط http سيعود كما هو ولن يتم مسحه
+  };
   const isFormValid = () => {
     if (!form.name || form.name.trim() === "") return false;
+    if (!form.code || form.code.trim() === "") return false;
     if (!form.categoryId || form.categoryId.length === 0) return false;
     if (!form.product_unit || !form.purchase_unit || !form.sale_unit) return false;
     if (!form.price || Number(form.price) <= 0) return false;
@@ -367,7 +372,9 @@ const ProductForm = ({
     }
 
     setIsSubmitting(true);
+
     try {
+      const isNewImage = (img) => typeof img === "string" && img.startsWith("data:");
       let finalForm = {
         name: form.name,
         ar_name: form.ar_name, // ✅ إضافة ar_name
@@ -379,14 +386,18 @@ const ProductForm = ({
         purchase_unit: form.purchase_unit,
         sale_unit: form.sale_unit,
         price: form.price,
+        cost: form.cost || 0,
         description: form.description,
-        image: cleanBase64(form.image),
-        gallery_product: form.gallery_product.map((img) => cleanBase64(img)),
+        image: isNewImage(form.image) ? cleanBase64(form.image) : undefined,
+        gallery_product: form.gallery_product
+          .filter(img => isNewImage(img)) // نرسل الصور الجديدة فقط للرفع
+          .map((img) => cleanBase64(img)),
         different_price: form.different_price,
         is_featured: form.is_featured,
         low_stock: form.low_stock || 0,
         code: form.code,
       };
+      if (finalForm.image === undefined) delete finalForm.image;
 
       finalForm.exp_ability = form.exp_ability;
       // if (form.exp_ability) finalForm.date_of_expiery = form.date_of_expiery;
