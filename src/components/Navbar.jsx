@@ -20,7 +20,7 @@ export default function Navbar() {
     // روح لصفحة الـ login
     navigate("/login");
   };
- const handleLanguage = (event) => {
+  const handleLanguage = (event) => {
     const newLang = event.target.value;
     i18n.changeLanguage(newLang);
     localStorage.setItem('language', newLang);
@@ -48,7 +48,7 @@ export default function Navbar() {
         <select
           onChange={handleLanguage}
           value={i18n.language}
-          className="flex gap-1 items-center justify-center bg-black text-white px-2 py-1 rounded outline-none"
+          className="flex gap-1 items-center justify-center bg-transparent  text-secondary font-semibold px-2 py-1 rounded outline-none"
         >
           <option value='ar'>AR</option>
           <option value='en'>EN</option>
