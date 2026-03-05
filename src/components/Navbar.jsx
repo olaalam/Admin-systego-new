@@ -38,7 +38,7 @@ export default function Navbar() {
   const getClientPayload = () => {
     const hostname = window.location.hostname;
     const subdomain = hostname.split('.')[0];
-    if (subdomain === 'systego' || subdomain === 'localhost') return {};
+    if (subdomain === 'localhost') return {};
     return { clientName: subdomain };
   };
 
