@@ -257,10 +257,10 @@ const Product = () => {
           <span className="text-xs text-gray-500 w-16">{t("Stock")}:</span>
           <span
             className={`text-sm font-semibold ${(item.quantity || 0) < 10
-                ? "text-red-600"
-                : (item.quantity || 0) < 50
-                  ? "text-orange-600"
-                  : "text-green-600"
+              ? "text-red-600"
+              : (item.quantity || 0) < 50
+                ? "text-orange-600"
+                : "text-green-600"
               }`}
           >
             {item.quantity || 0}
@@ -290,8 +290,8 @@ const Product = () => {
   const renderBadge = (value) => (
     <span
       className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${value
-          ? "bg-green-50 text-green-700 ring-1 ring-green-600/20"
-          : "bg-gray-50 text-gray-600 ring-1 ring-gray-300/50"
+        ? "bg-green-50 text-green-700 ring-1 ring-green-600/20"
+        : "bg-gray-50 text-gray-600 ring-1 ring-gray-300/50"
         }`}
     >
       <span
@@ -388,13 +388,13 @@ const Product = () => {
   ];
 
   if (loading) return <Loader />;
-  if (error)
-    return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-        <p className="text-red-600 font-medium">{t("Errorloadingproducts")}</p>
-        <p className="text-red-500 text-sm mt-1">{error}</p>
+  {
+    error && !error.includes("404") && (
+      <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">
+        {t("Errorloadingproducts")}: {error}
       </div>
-    );
+    )
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">

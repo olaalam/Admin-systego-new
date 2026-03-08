@@ -134,13 +134,13 @@ const CashierShift = () => {
         };
     }, [displayData]);
 
-    if (error) return (
-        <div className="p-6 text-center bg-red-50 rounded-2xl border border-red-100 m-6">
-            <XCircle className="mx-auto text-red-500 mb-3" size={48} />
-            <h3 className="text-red-900 font-bold mb-1">{t("Error loading shifts")}</h3>
-            <p className="text-red-600 text-sm">{error}</p>
-        </div>
-    );
+    {
+        error && !error.includes("404") && (
+            <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">
+                {t("Errorloadingcashiershifts")}: {error}
+            </div>
+        )
+    }
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">

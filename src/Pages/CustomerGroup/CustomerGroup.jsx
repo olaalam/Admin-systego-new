@@ -79,12 +79,13 @@ const CustomerGroup = () => {
 
     if (loading) return <Loader />;
 
-    if (error)
-        return (
-            <div className="p-6 text-red-600 text-center">
-                {error}
+    {
+        error && !error.includes("404") && (
+            <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">
+                {t("Errorloadingcustomergroups")}: {error}
             </div>
-        );
+        )
+    }
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">

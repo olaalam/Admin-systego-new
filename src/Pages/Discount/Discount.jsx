@@ -129,8 +129,8 @@ const Discount = () => {
       render: (value) => (
         <span
           className={`px-2 py-1 rounded text-xs font-medium ${value === "percentage"
-              ? "bg-blue-50 text-blue-700"
-              : "bg-purple-50 text-purple-700"
+            ? "bg-blue-50 text-blue-700"
+            : "bg-purple-50 text-purple-700"
             }`}
         >
           {value === "percentage" ? t("Percentage") : t("Fixed")}
@@ -154,13 +154,13 @@ const Discount = () => {
 
   if (loading) return <Loader />;
 
-  if (error)
-    return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-        <p className="text-red-600 font-medium">{t("Errorloadingdiscounts")}</p>
-        <p className="text-red-500 text-sm mt-1">{error}</p>
+  {
+    error && !error.includes("404") && (
+      <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">
+        {t("Errorloadingdiscounts")}: {error}
       </div>
-    );
+    )
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">

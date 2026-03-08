@@ -183,10 +183,10 @@ const Category = () => {
       <div className="flex items-center gap-2">
         <span
           className={`inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded-full ${quantity === 0
-              ? "bg-gray-100 text-gray-600"
-              : quantity < 5
-                ? "bg-orange-100 text-orange-700"
-                : "bg-green-100 text-green-700"
+            ? "bg-gray-100 text-gray-600"
+            : quantity < 5
+              ? "bg-orange-100 text-orange-700"
+              : "bg-green-100 text-green-700"
             }`}
         >
           {quantity}
@@ -227,13 +227,13 @@ const Category = () => {
   ];
 
   if (loading) return <Loader />;
-  if (error)
-    return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-        <p className="text-red-600 font-medium">{t("Errorloadingcategories")}</p>
-        <p className="text-red-500 text-sm mt-1">{error}</p>
+  {
+    error && !error.includes("404") && (
+      <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">
+        {t("Errorloadingcategories")}: {error}
       </div>
-    );
+    )
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">

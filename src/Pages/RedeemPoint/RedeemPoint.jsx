@@ -88,13 +88,13 @@ const RedeemPoint = () => {
 
   if (loading) return <Loader />;
 
-  if (error)
-    return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-        <p className="text-red-600 font-medium">{t("Errorloadingpoints")}</p>
-        <p className="text-red-500 text-sm mt-1">{error}</p>
+  {
+    error && !error.includes("404") && (
+      <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">
+        {t("Errorloadingpoints")}: {error}
       </div>
-    );
+    )
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
