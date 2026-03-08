@@ -9,6 +9,8 @@ import { AppModules } from "@/config/modules";
 
 const Supplier = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/supplier");
+  const { data: cityData } = useGet("/api/admin/city");
+  const { data: countryData } = useGet("/api/admin/country");
   const { deleteData, loading: deleting } = useDelete(
     "/api/admin/supplier/delete"
   );
@@ -16,6 +18,9 @@ const Supplier = () => {
   const isRTL = i18n.language === "ar";
   const [deleteTarget, setDeleteTarget] = useState(null);
   const suppliers = data?.suppliers || [];
+
+  const cityOptions = (cityData?.cities || []).map((c) => ({ label: c.name, value: c._id }));
+  const countryOptions = (countryData?.countries || []).map((c) => ({ label: c.name, value: c._id }));
 
   const handleDelete = async (item) => {
     try {
@@ -38,20 +43,20 @@ const Supplier = () => {
   };
 
   const columns = [
-    { key: "username", header: t("Username"), filterable: true },
-    { key: "company_name", header: t("CompanyName"), filterable: true },
-    { key: "email", header: t("Email"), filterable: true },
-    { key: "address", header: t("Address"), filterable: true },
+    { key: "username", header: t("Username"), filterable: false },
+    { key: "company_name", header: t("CompanyName"), filterable: false },
+    { key: "email", header: t("Email"), filterable: false },
+    { key: "address", header: t("Address"), filterable: false },
     {
       key: "cityId",
       header: t("City"),
-      filterable: true,
+      filterable: false,
       render: (_, row) => row.cityId?.name || <span className="text-gray-400">{t("NoCity")}</span>,
     },
     {
       key: "countryId",
       header: t("Country"),
-      filterable: true,
+      filterable: false,
       render: (_, row) => row.countryId?.name || <span className="text-gray-400">{t("NoCountry")}</span>,
     },
     {
@@ -87,6 +92,10 @@ const Supplier = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.SUPPLIER}
+        filters={[
+          { key: "cityId._id", label: t("City"), options: cityOptions },
+          { key: "countryId._id", label: t("Country"), options: countryOptions },
+        ]}
       />
 
       {deleteTarget && (

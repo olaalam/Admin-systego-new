@@ -9,10 +9,15 @@ import { AppModules } from "@/config/modules";
 
 const Zone = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/zone");
+  const { data: cityData } = useGet("/api/admin/city");
+  const { data: countryData } = useGet("/api/admin/country");
   const { deleteData, loading: deleting } = useDelete("/api/admin/zone/delete");
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const zones = data?.zones || [];
+
+  const cityOptions = (cityData?.cities || []).map((c) => ({ label: c.name, value: c._id }));
+  const countryOptions = (countryData?.countries || []).map((c) => ({ label: c.name, value: c._id }));
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const handleDelete = async (item) => {
@@ -28,44 +33,44 @@ const Zone = () => {
     {
       key: "name",
       header: t("ZoneName"),
-      filterable: true,
+      filterable: false,
       render: (value, row) => row.name || "N/A"
     },
     {
       key: "ar_name",
       header: t("ZoneName(Arabic)"),
-      filterable: true,
+      filterable: false,
       render: (value, row) => row.ar_name || "N/A"
     },
     {
       key: "cityId.name",
       header: t("CityName"),
-      filterable: true,
+      filterable: false,
       render: (value, row) => row.cityId?.name || "N/A"
     },
     {
       key: "cityId.ar_name",
       header: t("CityName(Arabic)"),
-      filterable: true,
+      filterable: false,
       render: (value, row) => row.cityId?.ar_name || "N/A"
     },
     // {
     //   key: "cost",
     //   header: t("Cost"),
-    //   filterable: true,
+    //   filterable: false,
     //   render: (value, row) => row.cost ?? 0
     // },
     {
       key: "shipingCost",
       header: t("Shipping Cost"),
-      filterable: true,
+      filterable: false,
       render: (value, row) => row.shipingCost ?? 0
     },
 
     {
       key: "countryId.name",
       header: t("CountryName"),
-      filterable: true,
+      filterable: false,
       render: (value, row) => row.countryId?.name || "N/A"
     },
   ];
@@ -96,6 +101,10 @@ const Zone = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.ZONE}
+        filters={[
+          { key: "cityId._id", label: t("City"), options: cityOptions },
+          { key: "countryId._id", label: t("Country"), options: countryOptions },
+        ]}
       />
 
       {deleteTarget && (

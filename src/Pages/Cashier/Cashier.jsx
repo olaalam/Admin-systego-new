@@ -12,6 +12,8 @@ import { AppModules } from "@/config/modules";
 
 const Cashier = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/cashier");
+  const { data: whData } = useGet("/api/admin/warehouse");
+  const { data: accountData } = useGet("/api/admin/bank_account");
   const { deleteData, loading: deleting } = useDelete("/api/admin/cashier/delete");
 
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -19,6 +21,9 @@ const Cashier = () => {
   const [selectedBankAccounts, setSelectedBankAccounts] = useState([]);
 
   const cashiers = data?.cashiers || [];
+
+  const warehouseOptions = (whData?.warehouses || []).map((w) => ({ label: w.name, value: w._id }));
+  const accountOptions = (accountData?.bankAccounts || []).map((a) => ({ label: a.name, value: a._id }));
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   // --- Functions ---
@@ -110,12 +115,12 @@ const Cashier = () => {
   // --- Table Columns Configuration ---
 
   const columns = [
-    { key: "name", header: t("Name"), filterable: true },
-    { key: "ar_name", header: t("ArabicName"), filterable: true },
+    { key: "name", header: t("Name"), filterable: false },
+    { key: "ar_name", header: t("ArabicName"), filterable: false },
     {
       key: "warehouse_id",
       header: t("Warehouse"),
-      filterable: true,
+      filterable: false,
       render: (_, row) => row.warehouse_id?.name || <span className="text-gray-400">No Warehouse</span>,
     },
     {
@@ -158,6 +163,12 @@ const Cashier = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.CASHIER}
+        filters={[
+          { key: "warehouse_id._id", label: t("Warehouse"), options: warehouseOptions },
+          { key: "status", label: t("Status"), options: [{ label: t("Active"), value: "true" }, { label: t("Inactive"), value: "false" }] },
+          { key: "cashier_active", label: t("CashierActive"), options: [{ label: t("Active"), value: "true" }, { label: t("Inactive"), value: "false" }] },
+          { key: "bankAccounts", label: t("BankAccounts"), options: accountOptions },
+        ]}
       />
 
       {/* Delete Confirmation Dialog */}

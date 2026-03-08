@@ -32,27 +32,27 @@ const Customer = () => {
     {
       key: "name",
       header: t("name"),
-      filterable: true,
+      filterable: false,
     },
     {
       key: "email",
       header: t("email"),
-      filterable: true,
+      filterable: false,
     },
     {
       key: "phone_number",
       header: t("phone"),
-      filterable: true,
+      filterable: false,
     },
     {
       key: "address",
       header: t("address"),
-      filterable: true,
+      filterable: false,
     },
     {
       key: "is_Due",
       header: t("has_due"),
-      filterable: true,
+      filterable: false,
       render: (value) =>
         value ? (
           <span className="text-red-600 font-semibold">{t("yes")}</span>
@@ -100,6 +100,16 @@ const Customer = () => {
         searchable
         filterable
         moduleName={AppModules.CUSTOMER}
+        filters={[
+          {
+            key: "is_Due",
+            label: t("has_due"),
+            options: [
+              { label: t("yes"), value: "true" },
+              { label: t("no"), value: "false" },
+            ],
+          },
+        ]}
       />
 
       {deleteTarget && (

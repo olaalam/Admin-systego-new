@@ -25,6 +25,15 @@ const Unit = () => {
   const units = data?.units || [];
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
+
+  // Build base unit filter options
+  const baseUnitOptions = [
+    ...new Map(
+      units
+        .filter((u) => u.base_unit)
+        .map((u) => [u.base_unit._id, { label: u.base_unit.name, value: u.base_unit._id }])
+    ).values(),
+  ];
   const handleDelete = async (item) => {
     try {
       await deleteData(`/api/admin/units/${item._id}`);
@@ -251,7 +260,7 @@ const Unit = () => {
     {
       key: "is_base_unit",
       header: t("Is Base Unit"),
-      filterable: true,
+      filterable: false,
       render: (value) => (
         <span
           className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${value
@@ -300,10 +309,15 @@ const Unit = () => {
         addButtonText={t("Add Unit")}
         addPath="add"
         editPath={(item) => `edit/${item._id}`}
+        filters={[
+          { key: "base_unit._id", label: t("Base Unit"), options: baseUnitOptions },
+        ]}
         itemsPerPage={10}
+
         searchable={true}
         filterable={true}
         moduleName={AppModules.UNITS}
+
       />
 
       {/* Delete Dialog */}

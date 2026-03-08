@@ -170,6 +170,7 @@ const Coupon = () => {
         searchable
         filterable
         moduleName={AppModules.COUPON}
+
       />
 
       {/* Delete Single */}

@@ -158,6 +158,16 @@ const Accounting = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.ACCOUNTING}
+        filters={[
+          {
+            key: "status",
+            label: t("Status"),
+            options: [
+              { label: t("On"), value: "true" },
+              { label: t("Off"), value: "false" },
+            ],
+          },
+        ]}
       />
 
       {deleteTarget && (

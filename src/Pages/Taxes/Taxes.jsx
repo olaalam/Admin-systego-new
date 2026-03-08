@@ -189,6 +189,7 @@ const Taxes = () => {
         searchable
         filterable
         moduleName={AppModules.TAXES}
+
       />
 
       {/* Delete Single */}

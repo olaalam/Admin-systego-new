@@ -179,6 +179,18 @@ const Transfer = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.TRANSFER}
+        filters={[
+          {
+            key: "status",
+            label: t("Status"),
+            options: [
+              { label: t("Pending"), value: "pending" },
+              { label: t("Received"), value: "received" },
+              { label: t("Rejected"), value: "rejected" },
+              { label: t("Done"), value: "done" },
+            ],
+          },
+        ]}
       />
     </div>
   );

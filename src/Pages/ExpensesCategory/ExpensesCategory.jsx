@@ -108,6 +108,16 @@ const ExpensesCategory = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.EXPENSE_CATEGORY}
+        filters={[
+          {
+            key: "status",
+            label: t("Status"),
+            options: [
+              { label: t("Active"), value: "true" },
+              { label: t("Inactive"), value: "false" },
+            ],
+          },
+        ]}
       />
 
       {/* Delete Dialog */}

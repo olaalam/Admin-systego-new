@@ -265,6 +265,7 @@ const PurchasesPage = () => {
           onAdd={() => alert("Add new payment method clicked!")}
           addPath="add"
           moduleName={AppModules.PURCHASE}
+
         />
       )}
       <PurchaseReturnsModal

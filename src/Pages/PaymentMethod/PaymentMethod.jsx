@@ -72,13 +72,13 @@ const PaymentMethod = () => {
   );
 
   const columns = [
-    { key: "name", header: t("Name"), filterable: true },
+    { key: "name", header: t("Name"), filterable: false },
     { key: "ar_name", header: t("ArabicName"), required: true },
-    { key: "discription", header: t("Description"), filterable: true },
+    { key: "discription", header: t("Description"), filterable: false },
     {
       key: "isActive",
       header: t("Status"),
-      filterable: true,
+      filterable: false,
       render: (value, item) => renderStatusSwitch(value, item),
     },
     {
@@ -113,6 +113,16 @@ const PaymentMethod = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.PAYMENT_METHOD}
+        filters={[
+          {
+            key: "isActive",
+            label: t("Status"),
+            options: [
+              { label: t("Active"), value: "true" },
+              { label: t("Inactive"), value: "false" },
+            ],
+          },
+        ]}
       />
       {deleteTarget && (
         <DeleteDialog

@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 
 const Admin = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/admin");
+  const { data: whData } = useGet("/api/admin/warehouse");
   const navigate = useNavigate();
   const { deleteData, loading: deleting } = useDelete(
     "/api/admin/admin/delete"
@@ -18,6 +19,9 @@ const Admin = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const admins = data?.users || [];
+
+  const warehouseOptions = (whData?.warehouses || []).map((w) => ({ label: w.name, value: w.name }));
+  const roleOptions = [...new Set(admins.map((admin) => admin.role_name))].filter(Boolean).map((r) => ({ label: r, value: r }));
 
   const handleDelete = async (item) => {
     try {
@@ -29,14 +33,14 @@ const Admin = () => {
   };
 
   const columns = [
-    { key: "username", header: t("Name"), filterable: true },
-    { key: "email", header: t("Email"), filterable: true },
-    { key: "role_name", header: t("Role"), filterable: true },
-    { key: "company_name", header: t("CompanyName"), filterable: true },
+    { key: "username", header: t("Name"), filterable: false },
+    { key: "email", header: t("Email"), filterable: false },
+    { key: "role_name", header: t("Role"), filterable: false },
+    { key: "company_name", header: t("CompanyName"), filterable: false },
     {
       key: "warehouse_name",
       header: t("Warehouse"),
-      filterable: true,
+      filterable: false,
     },
   ];
 
@@ -65,6 +69,10 @@ const Admin = () => {
         searchable
         filterable
         moduleName="Admin"
+        filters={[
+          { key: "role_name", label: t("Role"), options: roleOptions },
+          { key: "warehouse_name", label: t("Warehouse"), options: warehouseOptions },
+        ]}
       />
 
       {deleteTarget && (

@@ -9,11 +9,16 @@ import { AppModules } from "@/config/modules";
 
 const City = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/city");
+  const { data: countryData } = useGet("/api/admin/country");
   const { deleteData, loading: deleting } = useDelete("/api/admin/city/delete");
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const [deleteTarget, setDeleteTarget] = useState(null);
   const cities = data?.cities || [];
+  const countryOptions = (countryData?.countries || []).map((c) => ({
+    label: c.name,
+    value: c._id,
+  }));
 
   const handleDelete = async (item) => {
     try {
@@ -25,17 +30,17 @@ const City = () => {
   };
 
   const columns = [
-    { key: "name", header: t("CityName"), filterable: true },
+    { key: "name", header: t("CityName"), filterable: false },
     {
       key: "ar_name",
       header: t("CityNameArabic"),
-      filterable: true,
+      filterable: false,
     },
-    { key: "shipingCost", header: t("ShippingCost"), filterable: true },
+    { key: "shipingCost", header: t("ShippingCost"), filterable: false },
     {
       key: "country.name",
       header: t("Country"),
-      filterable: true,
+      filterable: false,
       render: (value, row) => row.country?.name || "N/A",
     },
   ];
@@ -65,6 +70,9 @@ const City = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.CITY}
+        filters={[
+          { key: "country._id", label: t("Country"), options: countryOptions },
+        ]}
       />
 
       {deleteTarget && (

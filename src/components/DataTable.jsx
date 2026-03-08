@@ -30,6 +30,7 @@ export default function DataTable({
   itemsPerPage = 10,
   searchable = true,
   filterable = true,
+  filters = [], // [{ key, label, options: [{ label, value }] }]
   addButtonText = "Add New",
   className = "",
   showActions = true,
@@ -43,12 +44,19 @@ export default function DataTable({
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilters, setSelectedFilters] = useState({});
+  const [selectedCustomFilters, setSelectedCustomFilters] = useState({});
   const [itemsPerPageState, setItemsPerPageState] = useState(itemsPerPage);
   const [selectedRows, setSelectedRows] = useState(new Set());
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const safeData = Array.isArray(data) ? data : [];
+
+  // Helper to resolve dot-notation key paths (e.g. "categoryId._id")
+  const getNestedValue = (obj, keyPath) => {
+    if (!obj || !keyPath) return undefined;
+    return keyPath.split(".").reduce((acc, k) => (acc != null ? acc[k] : undefined), obj);
+  };
 
   // Permission Checks
   const canAdd = !moduleName || hasPermission(moduleName, "add");
@@ -88,8 +96,27 @@ export default function DataTable({
       }
     });
 
+    // Apply external custom filters
+    Object.entries(selectedCustomFilters).forEach(([key, value]) => {
+      if (value !== "" && value !== null && value !== undefined) {
+        filtered = filtered.filter((item) => {
+          const fieldValue = getNestedValue(item, key);
+          // Support array fields (e.g. categoryId is an array)
+          if (Array.isArray(fieldValue)) {
+            return fieldValue.some(
+              (v) => String(v?._id || v) === String(value) || String(v?.name || v) === String(value)
+            );
+          }
+          if (typeof fieldValue === "object" && fieldValue !== null) {
+            return String(fieldValue._id || fieldValue.name) === String(value);
+          }
+          return String(fieldValue) === String(value);
+        });
+      }
+    });
+
     return filtered;
-  }, [safeData, searchTerm, selectedFilters, onSearchApi]);
+  }, [safeData, searchTerm, selectedFilters, selectedCustomFilters, onSearchApi]);
 
   const startIndex = (currentPage - 1) * itemsPerPageState;
   const endIndex = startIndex + itemsPerPageState;
@@ -152,6 +179,7 @@ export default function DataTable({
 
   const resetFilters = () => {
     setSelectedFilters({});
+    setSelectedCustomFilters({});
     setSearchTerm("");
     setCurrentPage(1);
     clearAllSelection();
@@ -304,7 +332,30 @@ export default function DataTable({
             <option value={100}>100 {t("dataTable.perPage")}</option>
           </select>
 
-          {(searchTerm || Object.values(selectedFilters).some((v) => v)) && (
+          {/* External custom filters (passed via filters prop) */}
+          {filterable && filters.map((filterConfig) => (
+            <select
+              key={filterConfig.key}
+              value={selectedCustomFilters[filterConfig.key] || ""}
+              onChange={(e) => {
+                setSelectedCustomFilters((prev) => ({
+                  ...prev,
+                  [filterConfig.key]: e.target.value,
+                }));
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+            >
+              <option value="">{t("dataTable.all")} {filterConfig.label}</option>
+              {filterConfig.options.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          ))}
+
+          {(searchTerm || Object.values(selectedFilters).some((v) => v) || Object.values(selectedCustomFilters).some((v) => v)) && (
             <button
               onClick={resetFilters}
               className="px-4 py-2 text-sm text-red-600 hover:text-red-800 font-medium"

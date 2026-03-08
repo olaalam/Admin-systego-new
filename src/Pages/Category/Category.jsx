@@ -23,6 +23,15 @@ const Category = () => {
   const categories = data?.categories || [];
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
+
+  // Build parent category filter options (only categories that appear as parentId of at least one item)
+  const parentOptions = [
+    ...new Map(
+      categories
+        .filter((c) => c.parentId)
+        .map((c) => [c.parentId._id, { label: c.parentId.name, value: c.parentId._id }])
+    ).values(),
+  ];
   const handleDelete = async (item) => {
     try {
       await deleteData(`/api/admin/category/${item._id}`);
@@ -256,6 +265,7 @@ const Category = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.CATEGORY}
+
       />
 
       {/* Delete Dialog */}

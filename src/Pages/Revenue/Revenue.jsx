@@ -8,6 +8,7 @@ import { AppModules } from "@/config/modules";
 
 const Revenues = () => {
   const { data, loading, error } = useGet("/api/admin/revenue");
+  const { data: accountData } = useGet("/api/admin/bank_account");
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const navigate = useNavigate();
@@ -15,48 +16,53 @@ const Revenues = () => {
   // ✅ البيانات جاية داخل revenues
   const revenues = data?.revenues || [];
 
+  const financialAccountOptions = (accountData?.bankAccounts || []).map((a) => ({
+    label: a.name,
+    value: a._id,
+  }));
+
 
 
   const columns = [
     {
       key: "name",
       header: t("RevenueName"),
-      filterable: true,
+      filterable: false,
     },
     {
       key: "amount",
       header: t("Amount"),
-      filterable: true,
+      filterable: false,
       render: (value) => `${value} ${t("EGP")}`,
     },
     {
       key: "Category_id.name",
       header: t("Category"),
-      filterable: true,
+      filterable: false,
       render: (_, item) => item?.Category_id?.name || "-",
     },
     {
       key: "Category_id.ar_name",
       header: t("ArabicCategory"),
-      filterable: true,
+      filterable: false,
       render: (_, item) => item?.Category_id?.ar_name || "-",
     },
     {
       key: "financial_accountId.name",
       header: t("FinancialAccount"),
-      filterable: true,
+      filterable: false,
       render: (_, item) => item?.financial_accountId?.name || "-",
     },
     {
       key: "admin_id.username",
       header: t("CreatedBy"),
-      filterable: true,
+      filterable: false,
       render: (_, item) => item?.admin_id?.username || "-",
     },
     {
       key: "note",
       header: t("Note"),
-      filterable: true,
+      filterable: false,
     },
 
   ];
@@ -85,6 +91,9 @@ const Revenues = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.REVENUE}
+        filters={[
+          { key: "financial_accountId._id", label: t("FinancialAccount"), options: financialAccountOptions },
+        ]}
       />
 
     </div>

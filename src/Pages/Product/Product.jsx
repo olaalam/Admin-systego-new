@@ -14,11 +14,16 @@ import { AppModules } from "@/config/modules";
 
 const Product = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/product");
+  const { data: catData } = useGet("/api/admin/category");
+  const { data: brandData } = useGet("/api/admin/brand");
   const { deleteData, loading: deleting } = useDelete("/api/admin/product/delete");
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   // ✅ FIX: غيّر من [] لـ null
   const [searchedProduct, setSearchedProduct] = useState(null);
+
+  const categoryOptions = (catData?.categories || []).map((c) => ({ label: c.name, value: c._id }));
+  const brandOptions = (brandData?.brands || []).map((b) => ({ label: b.name, value: b._id }));
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [bulkDeleteIds, setBulkDeleteIds] = useState(null);
@@ -418,6 +423,12 @@ const Product = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.PRODUCT}
+        filters={[
+          { key: "categoryId", label: t("Category"), options: categoryOptions },
+          { key: "brandId", label: t("Brand"), options: brandOptions },
+          { key: "product_has_imei", label: t("IMEI"), options: [{ label: t("Yes"), value: "true" }, { label: t("No"), value: "false" }] },
+          { key: "different_price", label: t("VarPrice"), options: [{ label: t("Yes"), value: "true" }, { label: t("No"), value: "false" }] },
+        ]}
       />
 
       {deleteTarget && (
