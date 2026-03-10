@@ -79,7 +79,7 @@ const PurchasesPage = () => {
     return [
       { key: "reference", header: t("Reference") },
       { key: "supplier_id", header: t("Supplier"), render: (sup) => sup?.company_name || sup?.username || "---" },
-      { key: "warehouse_id", header: t("Warehouse"), render: (wh) => wh?.name || "---", filterable: true },
+      { key: "warehouse_id", header: t("Warehouse"), render: (wh) => wh?.name || "---", filterable: false },
       { key: "grand_total", header: t("Total"), render: (val) => <span className="font-bold">{val} EGP</span> },
 
       // --- عمود الـ Invoices (المدفوعات الفعلية) ---

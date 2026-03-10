@@ -98,7 +98,7 @@ const Accounting = () => {
   };
 
   const columns = [
-    { key: "name", header: t("Name"), filterable: true },
+    { key: "name", header: t("Name"), filterable: false },
     {
       key: "image",
       header: t("Image"),

@@ -66,13 +66,13 @@ const ExpensesCategory = () => {
     {
       key: "name",
       header: t("CategoryDetails"),
-      filterable: true,
+      filterable: false,
 
     },
     {
       key: "ar_name",
       header: t("ArabicName"),
-      filterable: true,
+      filterable: false,
 
     },
 

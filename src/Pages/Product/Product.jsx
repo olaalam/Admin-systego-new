@@ -375,7 +375,7 @@ const Product = () => {
     {
       key: "name",
       header: t("ProductDetails"),
-      filterable: true,
+      filterable: false,
       render: (_, item) => renderProductInfo(item),
     },
     {

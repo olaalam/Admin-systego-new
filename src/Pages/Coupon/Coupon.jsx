@@ -81,7 +81,7 @@ const Coupon = () => {
     {
       key: "coupon_code",
       header: t("CouponCode"),
-      filterable: true,
+      filterable: false,
       render: (value) => (
         <span className="font-medium text-gray-900 text-sm">{value}</span>
       ),

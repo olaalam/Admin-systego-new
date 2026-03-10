@@ -212,13 +212,13 @@ const Category = () => {
     {
       key: "name",
       header: t("CategoryDetails"),
-      filterable: true,
+      filterable: false,
 
     },
     {
       key: "ar_name",
       header: t("CategoryArabic"),
-      filterable: true,
+      filterable: false,
 
     },
     {

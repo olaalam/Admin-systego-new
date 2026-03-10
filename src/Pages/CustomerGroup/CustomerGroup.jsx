@@ -60,7 +60,7 @@ const CustomerGroup = () => {
         {
             key: "name",
             header: t("GroupName"),
-            filterable: true,
+            filterable: false,
         },
         {
             key: "status",

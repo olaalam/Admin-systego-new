@@ -118,7 +118,7 @@ const Taxes = () => {
     {
       key: "name",
       header: t("TaxName"),
-      filterable: true,
+      filterable: false,
       render: (value) => (
         <span className="font-medium text-gray-900 text-sm">{value}</span>
       ),
@@ -127,7 +127,7 @@ const Taxes = () => {
     {
       key: "ar_name",
       header: t("TaxNameAr"),
-      filterable: true,
+      filterable: false,
       render: (value) => (
         <span className="font-medium text-gray-900 text-sm">{value}</span>
       ),

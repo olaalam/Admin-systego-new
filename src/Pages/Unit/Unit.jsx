@@ -242,7 +242,7 @@ const Unit = () => {
     {
       key: "name",
       header: t("Unit Details"),
-      filterable: true,
+      filterable: false,
       render: (_, item) => renderUnitInfo(item),
     },
     {

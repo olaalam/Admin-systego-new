@@ -116,7 +116,7 @@ const Discount = () => {
     {
       key: "name",
       header: t("DiscountName"),
-      filterable: true,
+      filterable: false,
       render: (value) => (
         <span className="font-medium text-gray-900 text-sm">{value}</span>
       ),

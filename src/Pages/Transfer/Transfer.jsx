@@ -93,20 +93,20 @@ const Transfer = () => {
     {
       key: "reference",
       header: t("Reference"),
-      filterable: true,
+      filterable: false,
       searchable: true,
     },
     {
       key: "fromWarehouseId",
       header: t("FromWarehouse"),
       render: (_, item) => item.fromWarehouseId?.name || "-",
-      filterable: true,
+      filterable: false,
     },
     {
       key: "toWarehouseId",
       header: t("ToWarehouse"),
       render: (_, item) => item.toWarehouseId?.name || "-",
-      filterable: true,
+      filterable: false,
     },
     {
       key: "date",
