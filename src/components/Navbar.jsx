@@ -148,7 +148,7 @@ export default function Navbar() {
           </select>
 
           {/* زر تسجيل الخروج */}
-          <button onClick={handleLogout} className="flex items-center gap-2 text-secondary hover:text-purple-600 cursor-pointer">
+          <button onClick={handleLogout} className="flex items-center gap-2 text-secondary hover:text-gray-900 cursor-pointer">
             <LogOut className="w-5 h-5" />
             <span className="text-sm font-medium">{t("navbar.logout")}</span>
           </button>

@@ -3,12 +3,12 @@ import { Search, Trash2, Plus, Scan, X, Upload } from 'lucide-react';
 import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 import { toast } from 'react-toastify';
 
-const ProductSelector = ({ 
-  products = [], 
-  selectedProducts = [], 
+const ProductSelector = ({
+  products = [],
+  selectedProducts = [],
   onProductsChange,
   label = "Select Products",
-  showQuantity = false 
+  showQuantity = false
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCamera, setShowCamera] = useState(false);
@@ -17,7 +17,7 @@ const ProductSelector = ({
   const filteredProducts = products.filter(product => {
     const search = searchTerm.toLowerCase();
     return (
-      product.name?.toLowerCase().includes(search) || 
+      product.name?.toLowerCase().includes(search) ||
       product.ar_name?.toLowerCase().includes(search)
     );
   });
@@ -63,12 +63,12 @@ const ProductSelector = ({
   // Add product by search/click
   const addProduct = (product) => {
     const exists = selectedProducts.find(p => p._id === product._id || p.productId === product._id);
-    
+
     if (!exists) {
-      const newProduct = showQuantity 
+      const newProduct = showQuantity
         ? { productId: product._id, quantity: 1, name: product.name, image: product.image }
         : product._id;
-      
+
       onProductsChange([...selectedProducts, newProduct]);
     }
     setSearchTerm('');
@@ -77,7 +77,7 @@ const ProductSelector = ({
   // Add product by barcode
   const handleBarcodeScanned = (scannedCode) => {
     if (!scannedCode) return;
-    
+
     for (const product of products) {
       const priceMatch = product.prices?.find(p => p.code === scannedCode);
       if (priceMatch) {
@@ -92,7 +92,7 @@ const ProductSelector = ({
   // Update quantity (if enabled)
   const updateQuantity = (productId, val) => {
     const quantity = parseInt(val) || 1;
-    onProductsChange(selectedProducts.map(p => 
+    onProductsChange(selectedProducts.map(p =>
       (p.productId === productId) ? { ...p, quantity } : p
     ));
   };
@@ -114,11 +114,11 @@ const ProductSelector = ({
   return (
     <div className="space-y-4">
       <label className="block text-sm font-bold text-gray-700">{label}</label>
-      
+
       {/* Search & Scan Section */}
       <div className="flex gap-3">
         <div className="relative flex-1">
-          <div className="flex items-center border-2 border-gray-200 rounded-lg focus-within:border-purple-500 transition-all overflow-hidden">
+          <div className="flex items-center border-2 border-gray-200 rounded-lg focus-within:border-gray-500 transition-all overflow-hidden">
             <div className="p-3 bg-gray-50 border-r">
               <Search className="w-5 h-5 text-gray-400" />
             </div>
@@ -135,11 +135,11 @@ const ProductSelector = ({
           {searchTerm && filteredProducts.length > 0 && (
             <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-72 overflow-y-auto">
               {filteredProducts.map(product => (
-                <div key={product._id} className="p-3 hover:bg-purple-50 border-b last:border-0 transition-colors">
+                <div key={product._id} className="p-3 hover:bg-gray-50 border-b last:border-0 transition-colors">
                   <div className="flex items-center gap-3">
                     {product.image && (
-                      <img 
-                        src={product.image} 
+                      <img
+                        src={product.image}
                         alt={product.name}
                         className="w-10 h-10 object-cover rounded border"
                       />
@@ -150,9 +150,9 @@ const ProductSelector = ({
                         {product.categoryId?.[0]?.name} • {product.price} EGP
                       </div>
                     </div>
-                    <button 
+                    <button
                       onClick={() => addProduct(product)}
-                      className="text-xs bg-secondary hover:bg-purple-700 text-white px-3 py-1.5 rounded-md flex items-center gap-1 transition-all"
+                      className="text-xs bg-secondary hover:bg-gray-700 text-white px-3 py-1.5 rounded-md flex items-center gap-1 transition-all"
                     >
                       <Plus className="w-3 h-3" /> Add
                     </button>
@@ -166,7 +166,7 @@ const ProductSelector = ({
         <button
           type="button"
           onClick={() => setShowCamera(true)}
-          className="bg-secondary hover:bg-purple-700 text-white px-6 rounded-lg font-bold flex items-center gap-2 shadow-md transition-all active:scale-95"
+          className="bg-secondary hover:bg-gray-700 text-white px-6 rounded-lg font-bold flex items-center gap-2 shadow-md transition-all active:scale-95"
         >
           <Scan className="w-5 h-5" /> Scan
         </button>
@@ -176,9 +176,9 @@ const ProductSelector = ({
       {showCamera && (
         <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl p-6 w-full max-w-lg relative shadow-2xl">
-            <button 
+            <button
               type="button"
-              onClick={() => setShowCamera(false)} 
+              onClick={() => setShowCamera(false)}
               className="absolute -top-12 right-0 text-white flex items-center gap-2 font-bold bg-red-500/20 px-4 py-2 rounded-full hover:bg-red-500 transition-all"
             >
               <X className="w-5 h-5" /> Close
@@ -211,14 +211,14 @@ const ProductSelector = ({
             {selectedProducts.map((item, idx) => {
               const product = getProductDetails(item);
               if (!product) return null;
-              
+
               const productId = showQuantity ? item.productId : item;
 
               return (
                 <div key={productId || idx} className="p-3 hover:bg-gray-50 flex items-center gap-3">
                   {product.image && (
-                    <img 
-                      src={product.image} 
+                    <img
+                      src={product.image}
                       alt={product.name}
                       className="w-12 h-12 object-cover rounded border-2 border-gray-200"
                     />
@@ -231,7 +231,7 @@ const ProductSelector = ({
                       {product.categoryId?.[0]?.name} • {product.price} EGP
                     </div>
                   </div>
-                  
+
                   {showQuantity && (
                     <input
                       type="number"
@@ -241,7 +241,7 @@ const ProductSelector = ({
                       className="w-16 border border-gray-200 rounded px-2 py-1 text-sm text-center font-bold"
                     />
                   )}
-                  
+
                   <button
                     type="button"
                     onClick={() => removeProduct(productId)}

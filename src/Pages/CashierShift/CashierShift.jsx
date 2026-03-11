@@ -94,7 +94,7 @@ const CashierShift = () => {
             header: t("Net Cash"),
             render: (val) => (
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-900 rounded-xl w-fit">
-                    <Wallet size={14} className="text-teal-400" />
+                    <Wallet size={14} className="text-red-400" />
                     <span className="font-black text-white text-xs">{val?.toLocaleString()} <span className="text-[9px] text-gray-400 uppercase">EGP</span></span>
                 </div>
             )

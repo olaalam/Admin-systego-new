@@ -209,7 +209,7 @@ const PurchaseAdd = () => {
           {suggestions.length > 0 && (
             <div className="absolute w-full bg-white border shadow-2xl rounded-xl mt-1 overflow-hidden z-50">
               {suggestions.map(p => (
-                <div key={p._id} onClick={() => handleSelectProduct(p)} className="p-4 hover:bg-teal-50 cursor-pointer flex justify-between items-center border-b last:border-0 transition-colors">
+                <div key={p._id} onClick={() => handleSelectProduct(p)} className="p-4 hover:bg-red-50 cursor-pointer flex justify-between items-center border-b last:border-0 transition-colors">
                   <div className="flex flex-col">
                     <span className="font-medium text-gray-700">{p.name}</span>
                     {p.exp_ability && <span className="text-[10px] text-orange-500 font-bold tracking-tighter uppercase">Requires Expiry</span>}
@@ -232,7 +232,7 @@ const PurchaseAdd = () => {
                 <th className="p-4 w-24 text-center">{t("Cost")}</th>
                 <th className="p-4 w-24 text-orange-600">{t("Disc/Item")}</th>
                 <th className="p-4 w-24 text-blue-600">{t("Tax/Item")}</th>
-                <th className="p-4 text-teal-700 bg-teal-50 font-bold">{t("Net Cost")}</th>
+                <th className="p-4 text-red-700 bg-red-50 font-bold">{t("Net Cost")}</th>
                 <th className="p-4 text-right">{t("Subtotal")}</th>
                 <th className="p-4 w-10"></th>
               </tr>
@@ -279,7 +279,7 @@ const PurchaseAdd = () => {
                       setFormData({ ...formData, purchase_items: items });
                     }} />
                   </td>
-                  <td className="p-4 text-center font-black text-teal-700 bg-teal-50/30">
+                  <td className="p-4 text-center font-black text-red-700 bg-red-50/30">
                     {item.netUnitCost.toFixed(2)}
                   </td>
                   <td className="p-4 text-right font-bold text-gray-700">{item.subtotal.toFixed(2)}</td>
@@ -309,14 +309,14 @@ const PurchaseAdd = () => {
               <div className="p-6 border-2 border-dashed border-gray-100 rounded-[2rem] space-y-4 bg-white shadow-sm">
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-sm font-black text-gray-700 flex items-center gap-2"><Wallet size={16} className="text-red-600" /> {t("Split Payment Methods")}</label>
-                  <button onClick={addFinancialRow} className="bg-teal-50 text-red-600 p-1.5 rounded-full hover:bg-teal-100 transition-colors">
+                  <button onClick={addFinancialRow} className="bg-red-50 text-red-600 p-1.5 rounded-full hover:bg-red-100 transition-colors">
                     <Plus size={18} />
                   </button>
                 </div>
 
                 {formData.financials.map((f, i) => (
                   <div key={i} className="flex gap-2 items-center animate-in slide-in-from-top-1">
-                    <select className="flex-1 border rounded-xl p-3 text-sm bg-gray-50 focus:ring-2 focus:ring-teal-500 outline-none" value={f.financial_id} onChange={(e) => {
+                    <select className="flex-1 border rounded-xl p-3 text-sm bg-gray-50 focus:ring-2 focus:ring-red-500 outline-none" value={f.financial_id} onChange={(e) => {
                       const fins = [...formData.financials];
                       fins[i].financial_id = e.target.value;
                       setFormData({ ...formData, financials: fins });
@@ -325,7 +325,7 @@ const PurchaseAdd = () => {
                       {selection?.financial?.map(fin => <option key={fin._id} value={fin._id}>{fin.name}</option>)}
                     </select>
                     <div className="relative">
-                      <input type="number" className="w-32 border rounded-xl p-3 font-bold pr-12 text-right focus:ring-2 focus:ring-teal-500 outline-none" placeholder="0.00" value={f.payment_amount} onChange={(e) => {
+                      <input type="number" className="w-32 border rounded-xl p-3 font-bold pr-12 text-right focus:ring-2 focus:ring-red-500 outline-none" placeholder="0.00" value={f.payment_amount} onChange={(e) => {
                         const fins = [...formData.financials];
                         fins[i].payment_amount = e.target.value;
                         setFormData({ ...formData, financials: fins });
@@ -339,9 +339,9 @@ const PurchaseAdd = () => {
                 ))}
 
                 {totals.remainingToPay > 0 && (
-                  <div className="bg-teal-50/50 p-2 rounded-lg flex justify-between items-center px-4">
+                  <div className="bg-red-50/50 p-2 rounded-lg flex justify-between items-center px-4">
                     <span className="text-[10px] text-red-600 font-bold uppercase tracking-wider">{t("Remaining to allocate")}</span>
-                    <span className="text-sm font-black text-teal-700">{totals.remainingToPay} {currencyCode}</span>
+                    <span className="text-sm font-black text-red-700">{totals.remainingToPay} {currencyCode}</span>
                   </div>
                 )}
               </div>
@@ -411,16 +411,16 @@ const PurchaseAdd = () => {
                 <span className="text-gray-400 font-bold">{t("Grand Total")}</span>
               </div>
               <div className="text-right">
-                <span className="text-5xl font-black text-teal-400 font-mono tracking-tighter">
+                <span className="text-5xl font-black text-red-400 font-mono tracking-tighter">
                   {totals.grandTotal}
                 </span>
-                <span className="text-teal-700 ml-2 font-bold">{currencyCode}</span>
+                <span className="text-red-700 ml-2 font-bold">{currencyCode}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <button onClick={handleSave} disabled={loading} className="w-full mt-12 bg-red-600 hover:bg-teal-700 text-white py-5 rounded-2xl font-black text-xl transition-all shadow-2xl shadow-teal-100/50 flex items-center justify-center gap-3">
+        <button onClick={handleSave} disabled={loading} className="w-full mt-12 bg-red-600 hover:bg-red-700 text-white py-5 rounded-2xl font-black text-xl transition-all shadow-2xl shadow-red-100/50 flex items-center justify-center gap-3">
           {loading ? t("Processing...") : <><Calculator size={24} /> {t("Confirm & Save Purchase")}</>}
         </button>
       </div>

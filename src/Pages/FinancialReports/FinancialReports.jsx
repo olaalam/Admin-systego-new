@@ -232,8 +232,8 @@ const FinancialReports = () => {
                         title={t("Total Discount")}
                         value={summary.total_discount}
                         icon={<Tag size={24} />}
-                        color="text-purple-600"
-                        bgColor="bg-purple-50"
+                        color="text-gray-600"
+                        bgColor="bg-gray-50"
                         suffix="EGP"
                     />
                     <SummaryCard

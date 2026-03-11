@@ -250,7 +250,7 @@ export default function DataTable({
                 if (addPath) navigate(addPath);
                 else onAdd();
               }}
-              className="bg-primary hover:bg-teal-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+              className="bg-primary hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
             >
               <Plus size={20} />
               {addButtonText}
@@ -304,7 +304,7 @@ export default function DataTable({
                       handleFilterChange(column.key, e.target.value)
                     }
                     disabled={options.length === 0}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
                   >
                     <option value="">
                       {t("dataTable.all")} {column.header}
@@ -324,7 +324,7 @@ export default function DataTable({
               setItemsPerPageState(Number(e.target.value));
               setCurrentPage(1);
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
           >
             <option value={10}>10 {t("dataTable.perPage")}</option>
             <option value={20}>20 {t("dataTable.perPage")}</option>
@@ -344,7 +344,7 @@ export default function DataTable({
                 }));
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
             >
               <option value="">{t("dataTable.all")} {filterConfig.label}</option>
               {filterConfig.options.map((opt) => (
@@ -405,7 +405,7 @@ export default function DataTable({
                     type="checkbox"
                     checked={allSelectedInCurrentPage}
                     onChange={toggleSelectAllCurrentPage}
-                    className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-teal-500"
+                    className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
                   />
                 </th>
 
@@ -437,7 +437,7 @@ export default function DataTable({
                     <tr
                       key={itemId || index}
                       onClick={() => onRowClick && onRowClick(item)}
-                      className={`hover:bg-gray-50 transition-colors ${isSelected ? "bg-teal-50" : ""
+                      className={`hover:bg-gray-50 transition-colors ${isSelected ? "bg-red-50" : ""
                         } ${onRowClick ? "cursor-pointer" : ""}`}
                     >
                       <td className="px-4 py-4">
@@ -445,7 +445,7 @@ export default function DataTable({
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleRow(itemId)}
-                          className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-teal-500"
+                          className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
                         />
                       </td>
 
@@ -488,7 +488,7 @@ export default function DataTable({
                                     onEdit(item);
                                   }
                                 }}
-                                className="text-red-600 hover:text-teal-800 p-2 hover:bg-teal-50 rounded transition-colors"
+                                className="text-gray-600 hover:text-gray-800 p-2 hover:bg-gray-50 rounded transition-colors"
                                 title="Edit"
                               >
                                 <Edit size={16} />
@@ -527,7 +527,7 @@ export default function DataTable({
                             if (addPath) navigate(addPath);
                             else onAdd();
                           }}
-                          className="mt-2 text-red-600 hover:text-teal-700 font-medium text-sm hover:underline"
+                          className="mt-2 text-red-600 hover:text-red-700 font-medium text-sm hover:underline"
                         >
                           {t("dataTable.addFirstItem")}
                         </button>

@@ -246,7 +246,7 @@ const PrintBarcode = () => {
                   {filteredProducts.map((product) => (
                     <div
                       key={product._id}
-                      className="p-3 hover:bg-purple-50 border-b last:border-0 transition-colors"
+                      className="p-3 hover:bg-gray-50 border-b last:border-0 transition-colors"
                     >
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-gray-800">
@@ -264,11 +264,11 @@ const PrintBarcode = () => {
                             <button
                               key={pv._id}
                               onClick={() => addProduct(product, pv)}
-                              className="text-xs bg-white border border-purple-200 hover:border-purple-500 px-2 py-1 rounded-md flex items-center gap-1 transition-all"
+                              className="text-xs bg-white border border-gray-200 hover:border-gray-500 px-2 py-1 rounded-md flex items-center gap-1 transition-all"
                             >
-                              <Plus className="w-3 h-3 text-purple-600" />
+                              <Plus className="w-3 h-3 text-gray-600" />
                               <span className="font-mono">{pv.code}</span> -{" "}
-                              <span className="text-purple-700 font-bold">
+                              <span className="text-gray-700 font-bold">
                                 ${pv.price}
                               </span>
                             </button>
@@ -323,7 +323,7 @@ const PrintBarcode = () => {
                       <td className="px-6 py-4 font-medium text-gray-900">
                         {product.productName}
                       </td>
-                      <td className="px-6 py-4 font-mono text-purple-600">
+                      <td className="px-6 py-4 font-mono text-gray-600">
                         {product.code}
                       </td>
                       <td className="px-6 py-4">
@@ -337,7 +337,7 @@ const PrintBarcode = () => {
                               e.target.value
                             )
                           }
-                          className="w-20 border-2 border-gray-100 rounded-lg px-3 py-1.5 focus:border-purple-400 outline-none transition-all font-bold"
+                          className="w-20 border-2 border-gray-100 rounded-lg px-3 py-1.5 focus:border-gray-400 outline-none transition-all font-bold"
                         />
                       </td>
                       <td className="px-6 py-4 text-center">
@@ -356,13 +356,13 @@ const PrintBarcode = () => {
           )}
 
           {/* Settings Section */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 bg-purple-50/50 p-6 rounded-2xl border border-purple-100">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
             {["productName", "price", "businessName", "brand"].map((item) => (
               <div key={item} className="space-y-2">
                 <label className="flex items-center gap-2 cursor-pointer group">
                   <input
                     type="checkbox"
-                    className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 cursor-pointer"
+                    className="w-4 h-4 rounded text-gray-600 focus:ring-gray-500 cursor-pointer"
                     checked={
                       labelConfig[
                       `show${item.charAt(0).toUpperCase() + item.slice(1)}`
@@ -376,7 +376,7 @@ const PrintBarcode = () => {
                       })
                     }
                   />
-                  <span className="text-xs font-bold text-gray-700 capitalize group-hover:text-purple-600 transition-colors">
+                  <span className="text-xs font-bold text-gray-700 capitalize group-hover:text-gray-600 transition-colors">
                     {t(item.replace(/([A-Z])/g, " $1"))}
                   </span>
                 </label>
@@ -390,7 +390,7 @@ const PrintBarcode = () => {
                         [`${item}Size`]: e.target.value,
                       })
                     }
-                    className="w-full border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none focus:border-purple-400 shadow-sm"
+                    className="w-full border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none focus:border-gray-400 shadow-sm"
                   />
                   <span className="text-[10px] text-gray-400">px</span>
                 </div>
@@ -401,13 +401,13 @@ const PrintBarcode = () => {
           {/* Paper Selection and Preview */}
           <div className="mb-8">
             <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-purple-500" />{" "}
+              <FileText className="w-4 h-4 text-gray-500" />{" "}
               {t("PaperFormatSelection")}
             </h3>
             <select
               value={selectedPaperSize}
               onChange={(e) => setSelectedPaperSize(e.target.value)}
-              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 bg-white hover:border-purple-300 transition-all outline-none font-medium mb-6 shadow-sm"
+              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 bg-white hover:border-gray-300 transition-all outline-none font-medium mb-6 shadow-sm"
             >
               <option value="">Select Paper Size (e.g. 50mm x 30mm)</option>
               {labelSizes.map((size) => (
@@ -444,7 +444,7 @@ const PrintBarcode = () => {
               selectedProducts.length === 0 ||
               !selectedPaperSize
             }
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-4 rounded-xl font-black text-lg shadow-xl hover:shadow-purple-200 transition-all disabled:from-gray-300 disabled:to-gray-400 disabled:shadow-none flex items-center justify-center gap-3"
+            className="w-full bg-gradient-to-r from-gray-600 to-indigo-600 hover:from-gray-700 hover:to-indigo-700 text-white py-4 rounded-xl font-black text-lg shadow-xl hover:shadow-gray-200 transition-all disabled:from-gray-300 disabled:to-gray-400 disabled:shadow-none flex items-center justify-center gap-3"
           >
             {isSubmitting ? (
               <LoaderIcon className="animate-spin" />

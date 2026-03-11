@@ -165,7 +165,7 @@ export default function TransferAdd() {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="w-full bg-white rounded-2xl shadow-sm p-8 border">
         <div className="flex items-center gap-3 mb-8">
-          <div className="bg-teal-100 p-3 rounded-xl">
+          <div className="bg-red-100 p-3 rounded-xl">
             <ArrowLeft className="text-red-600" size={28} />
           </div>
           <h1 className="text-3xl font-black text-gray-800">{t('Create Warehouse Transfer')}</h1>
@@ -236,21 +236,21 @@ export default function TransferAdd() {
         </div>
         {/* Available Products - Combobox Selection */}
         {formData.fromWarehouseId && (
-          <div className="mb-8 p-6 bg-purple-50/30 rounded-2xl border border-purple-100/50 outline outline-1 outline-purple-100/30">
+          <div className="mb-8 p-6 bg-gray-50/30 rounded-2xl border border-gray-100/50 outline outline-1 outline-gray-100/30">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <label className="text-sm font-bold flex items-center gap-2">
-                <Package size={20} className="text-purple-600" />
-                <span className="text-lg text-purple-900">{t('Select Products to Transfer')}</span>
+                <Package size={20} className="text-gray-600" />
+                <span className="text-lg text-gray-900">{t('Select Products to Transfer')}</span>
               </label>
             </div>
 
             {loadingProducts ? (
-              <div className="flex flex-col items-center justify-center py-10 text-purple-400 bg-white/50 rounded-xl border border-purple-50">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mb-2"></div>
+              <div className="flex flex-col items-center justify-center py-10 text-gray-400 bg-white/50 rounded-xl border border-gray-50">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 mb-2"></div>
                 {t('Loading products...')}
               </div>
             ) : !productsData?.products || productsData.products.length === 0 ? (
-              <div className="text-center py-10 text-purple-400 bg-white/50 rounded-xl border-2 border-dashed border-purple-100">
+              <div className="text-center py-10 text-gray-400 bg-white/50 rounded-xl border-2 border-dashed border-gray-100">
                 {t('No products available in this warehouse')}
               </div>
             ) : (
@@ -265,7 +265,7 @@ export default function TransferAdd() {
                   onChange={handleProductSelectionChange}
                   placeholder={t('Search and select products...')}
                 />
-                <p className="mt-2 text-xs text-purple-500 flex items-center gap-1">
+                <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
                   <Search size={12} />
                   {t('Quick search by product name')}
                 </p>
@@ -296,7 +296,7 @@ export default function TransferAdd() {
                     <tr key={index} className="hover:bg-gray-50/50">
                       <td className="p-4 font-bold text-gray-700">{product.name}</td>
                       <td className="p-4 text-center">
-                        <span className="inline-block bg-teal-50 text-teal-700 px-3 py-1 rounded-lg font-bold">
+                        <span className="inline-block bg-red-50 text-red-700 px-3 py-1 rounded-lg font-bold">
                           {product.availableQuantity}
                         </span>
                       </td>
@@ -330,7 +330,7 @@ export default function TransferAdd() {
         <button
           onClick={handleSubmit}
           disabled={loading || formData.products.length === 0}
-          className="w-full mt-8 bg-red-600 hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-black text-xl transition-all shadow-2xl shadow-teal-100/50 flex items-center justify-center gap-3"
+          className="w-full mt-8 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-black text-xl transition-all shadow-2xl shadow-red-100/50 flex items-center justify-center gap-3"
         >
           {loading ? (
             t('Processing...')

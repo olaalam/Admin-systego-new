@@ -126,7 +126,7 @@ const TransferDetails = () => {
     };
 
     const tabs = [
-        { id: 'all', label: t('Requested'), icon: <Package size={18} />, count: transfer.products?.length || 0, color: 'purple' },
+        { id: 'all', label: t('Requested'), icon: <Package size={18} />, count: transfer.products?.length || 0, color: 'gray' },
         { id: 'approved', label: t('Approved'), icon: <CheckCircle2 size={18} />, count: transfer.approved_products?.length || 0, color: 'green' },
         { id: 'rejected', label: t('Rejected'), icon: <XCircle size={18} />, count: transfer.rejected_products?.length || 0, color: 'red' },
     ];
@@ -249,7 +249,7 @@ const TransferDetails = () => {
                                                         <div className="text-xs text-gray-400 mt-1">ID: {item.productId?._id}</div>
                                                     </td>
                                                     <td className="p-5 text-center">
-                                                        <span className="inline-block px-4 py-1.5 rounded-xl font-black text-lg bg-teal-50 text-teal-700">
+                                                        <span className="inline-block px-4 py-1.5 rounded-xl font-black text-lg bg-red-50 text-red-700">
                                                             {item.quantity}
                                                         </span>
                                                     </td>
@@ -281,7 +281,7 @@ const TransferDetails = () => {
                                                         ) : (
                                                             // العرض الافتراضي للحالة (سواء للمرسل أو للأرشيف)
                                                             <span className={`flex items-center justify-center gap-1 font-bold ${activeTab === 'rejected' ? 'text-red-600' :
-                                                                activeTab === 'approved' ? 'text-green-600' : 'text-purple-600'
+                                                                activeTab === 'approved' ? 'text-green-600' : 'text-gray-600'
                                                                 }`}>
                                                                 {activeTab === 'rejected' ? <XCircle size={16} /> :
                                                                     activeTab === 'approved' ? <ShieldCheck size={16} /> : <Package size={16} />}
@@ -353,7 +353,7 @@ const TransferDetails = () => {
                                         value={statusReason}
                                         onChange={(e) => setStatusReason(e.target.value)}
                                         placeholder={t('Add a note to this action...')}
-                                        className="w-full border rounded-2xl p-3 text-sm focus:ring-2 focus:ring-teal-500 outline-none resize-none h-24 bg-gray-50"
+                                        className="w-full border rounded-2xl p-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none h-24 bg-gray-50"
                                     />
                                 </div>
 
@@ -361,7 +361,7 @@ const TransferDetails = () => {
                                     <button
                                         onClick={() => handleStatusUpdate('received')}
                                         disabled={updating}
-                                        className="flex items-center justify-center gap-2 bg-red-600 hover:bg-teal-700 text-white py-3 rounded-2xl font-black shadow-lg shadow-teal-100 transition-all disabled:opacity-50"
+                                        className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-3 rounded-2xl font-black shadow-lg shadow-red-100 transition-all disabled:opacity-50"
                                     >
                                         <CheckCircle2 size={18} />
                                         {t('Receive')}

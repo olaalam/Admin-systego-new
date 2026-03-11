@@ -28,11 +28,11 @@ const ProductsViewDialog = ({ products, onCancel, title = "Products" }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-red-600 to-teal-700 px-6 py-4">
+        <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-white">{title}</h3>
-              <p className="text-teal-100 text-sm mt-1">
+              <p className="text-red-100 text-sm mt-1">
                 {hasProducts ? `${productsList.length} Products` : t("Noproducts")}
               </p>
             </div>
@@ -57,7 +57,7 @@ const ProductsViewDialog = ({ products, onCancel, title = "Products" }) => {
                 const displayPrice = item.productPriceId?.price || item.price || 0;
 
                 return (
-                  <div key={productId} className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-teal-300 transition-all">
+                  <div key={productId} className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-red-300 transition-all">
                     <div className="flex items-start gap-3">
                       {/* Product Image */}
                       <div className="relative flex-shrink-0">

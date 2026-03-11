@@ -140,7 +140,7 @@ const Taxes = () => {
         <span
           className={`px-2 py-1 rounded text-xs font-medium ${value === "percentage"
             ? "bg-blue-50 text-blue-700"
-            : "bg-purple-50 text-purple-700"
+            : "bg-gray-50 text-gray-700"
             }`}
         >
           {value === "percentage" ? t("Percentage") : t("Fixed")}

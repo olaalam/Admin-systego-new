@@ -15,31 +15,31 @@ export default function ReturnDetailsModal({ id, isOpen, onClose }) {
         <DialogHeader className="p-6 bg-slate-900 text-white">
           <DialogTitle className="flex justify-between items-center">
             <span className="text-xl font-bold">{t("Return Summary")}</span>
-           
+
           </DialogTitle>
-          
+
         </DialogHeader>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <Loader2 className="animate-spin text-purple-600" size={40} />
+            <Loader2 className="animate-spin text-gray-600" size={40} />
           </div>
         ) : (
           <div className="p-6 space-y-8 bg-white">
             {/* بطاقات المعلومات السريعة */}
             <div className="grid grid-cols-1 md:grid-cols-2  gap-4">
-              <InfoCard icon={<Calendar size={18}/>} label={t("Date")} value={new Date(data?.date).toLocaleDateString()} color="blue" />
-              <InfoCard icon={<Building2 size={18}/>} label={t("Supplier")} value={data?.supplier_id?.company_name} color="purple" />
-              <InfoCard icon={<Package size={18}/>} label={t("Warehouse")} value={data?.warehouse_id?.name} color="orange" />
-              <InfoCard icon={<User size={18}/>} label={t("Created By")} value={data?.user_id?.email} color="slate" />
-              <InfoCard icon={<CreditCard size={18}/>} label={t("Refund Method")} value={data?.refund_method} color="green" />
-              <InfoCard icon={<ClipboardList size={18}/>} label={t("Purchase Ref")} value={data?.purchase_reference} color="pink" />
+              <InfoCard icon={<Calendar size={18} />} label={t("Date")} value={new Date(data?.date).toLocaleDateString()} color="blue" />
+              <InfoCard icon={<Building2 size={18} />} label={t("Supplier")} value={data?.supplier_id?.company_name} color="gray" />
+              <InfoCard icon={<Package size={18} />} label={t("Warehouse")} value={data?.warehouse_id?.name} color="orange" />
+              <InfoCard icon={<User size={18} />} label={t("Created By")} value={data?.user_id?.email} color="slate" />
+              <InfoCard icon={<CreditCard size={18} />} label={t("Refund Method")} value={data?.refund_method} color="green" />
+              <InfoCard icon={<ClipboardList size={18} />} label={t("Purchase Ref")} value={data?.purchase_reference} color="pink" />
             </div>
 
             {/* عرض المنتجات بشكل بطاقات (Cards) */}
             <div className="space-y-4">
-               <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-               <Package className="text-purple-600" /> {t("Returned Items")}
+              <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
+                <Package className="text-gray-600" /> {t("Returned Items")}
               </h3>
               <div className="grid gap-3">
                 {data?.items?.map((item, idx) => (
@@ -53,7 +53,7 @@ export default function ReturnDetailsModal({ id, isOpen, onClose }) {
                     </div>
                     <div className="text-right">
                       <div className="text-sm">
-                        <span className="text-slate-400">{t("Qty")}:</span> <span className="font-bold text-purple-600">{item.returned_quantity}</span>
+                        <span className="text-slate-400">{t("Qty")}:</span> <span className="font-bold text-gray-600">{item.returned_quantity}</span>
                       </div>
                       <div className="text-sm font-bold text-slate-900">{item.subtotal} $</div>
                     </div>
@@ -83,7 +83,7 @@ export default function ReturnDetailsModal({ id, isOpen, onClose }) {
 function InfoCard({ icon, label, value, color }) {
   const colors = {
     blue: "bg-blue-50 text-blue-600",
-    purple: "bg-purple-50 text-purple-600",
+    gray: "bg-gray-50 text-gray-600",
     orange: "bg-orange-50 text-orange-600",
     slate: "bg-slate-50 text-slate-600",
     green: "bg-green-50 text-green-600",

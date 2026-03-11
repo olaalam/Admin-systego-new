@@ -55,7 +55,7 @@ const ProductWarehouseAdd = () => {
                     {suggestions.map((p) => (
                       <div
                         key={p._id || p.id}
-                        className="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center justify-between transition-colors border-b last:border-b-0"
+                        className="px-4 py-3 hover:bg-red-50 cursor-pointer flex items-center justify-between transition-colors border-b last:border-b-0"
                         onClick={() => {
                           setFormData(prev => ({
                             ...prev,
@@ -89,9 +89,9 @@ const ProductWarehouseAdd = () => {
               </div>
             ) : (
               /* عرض الكارت عند اختيار منتج */
-              <div className="flex items-center justify-between p-4 bg-white border-2 border-teal-100 rounded-xl shadow-sm animate-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between p-4 bg-white border-2 border-red-100 rounded-xl shadow-sm animate-in zoom-in-95 duration-200">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl border-2 border-teal-50 overflow-hidden bg-gray-50 shadow-inner">
+                  <div className="w-16 h-16 rounded-xl border-2 border-red-50 overflow-hidden bg-gray-50 shadow-inner">
                     <img
                       src={selectedProduct?.image || "/placeholder.png"}
                       alt=""
@@ -101,7 +101,7 @@ const ProductWarehouseAdd = () => {
                   <div>
                     <h4 className="text-md font-black text-gray-800">{selectedProduct?.name}</h4>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="px-2 py-0.5 bg-teal-100 text-teal-700 text-[10px] font-bold rounded-full uppercase">
+                      <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded-full uppercase">
                         {t("Selected")}
                       </span>
                       <span className="text-xs text-gray-400 font-mono">

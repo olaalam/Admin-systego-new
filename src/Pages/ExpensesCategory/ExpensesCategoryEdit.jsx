@@ -24,21 +24,21 @@ export default function ExpenseCategoryEdit() {
     () => [
       {
         key: "name",
-    label: t("NameEnglish"),
+        label: t("NameEnglish"),
         type: "text",
         required: true,
-    placeholder: t("NameEnglishPlaceholder"),
+        placeholder: t("NameEnglishPlaceholder"),
       },
       {
         key: "ar_name",
-    label: t("NameArabic"),
+        label: t("NameArabic"),
         type: "text",
         required: true,
-    placeholder: t("NameArabicPlaceholder"),
+        placeholder: t("NameArabicPlaceholder"),
       },
       {
         key: "status",
-    label: t("ActiveStatus"),
+        label: t("ActiveStatus"),
         type: "switch",
         required: false,
       },
@@ -118,7 +118,7 @@ export default function ExpenseCategoryEdit() {
         <p className="text-red-600 text-lg">{t('Expensecategorynotfound')}</p>
         <button
           onClick={() => navigate("/expense")}
-          className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-teal-700"
+          className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-red-700"
         >
           {t("BacktoExpenseCategories")}
         </button>
@@ -129,11 +129,11 @@ export default function ExpenseCategoryEdit() {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <AddPage
-       title={t("EditExpenseCategoryTitle", {
-    name: categoryData.name || categoryData.ar_name || "..."
-  })}
-  description={t("EditExpenseCategoryDescription")}
-  submitButtonText={t("UpdateExpenseCategory")}
+        title={t("EditExpenseCategoryTitle", {
+          name: categoryData.name || categoryData.ar_name || "..."
+        })}
+        description={t("EditExpenseCategoryDescription")}
+        submitButtonText={t("UpdateExpenseCategory")}
         fields={fields}
         initialData={categoryData}
         onSubmit={handleSubmit}

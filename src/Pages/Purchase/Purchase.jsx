@@ -103,13 +103,13 @@ const PurchasesPage = () => {
         filterable: true,
         render: (status, item) => (
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${status === 'full' ? 'bg-green-100 text-green-700' : 'bg-teal-100 text-teal-700'
+            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${status === 'full' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
               }`}>
               {t(status || 'N/A')}
             </span>
             <button
               onClick={(e) => { e.stopPropagation(); setSelectedPurchase(item); }}
-              className="text-red-600 p-1 bg-white border border-teal-100 rounded-full shadow-sm hover:bg-teal-50"
+              className="text-red-600 p-1 bg-white border border-red-100 rounded-full shadow-sm hover:bg-red-50"
             >
               <CalendarDays size={14} />
             </button>
@@ -123,7 +123,7 @@ const PurchasesPage = () => {
           <button
             variant="ghost"
             size="sm"
-            className="flex items-center gap-1 text-purple-600 hover:bg-purple-50 rounded-full border border-purple-100 h-8"
+            className="flex items-center gap-1 text-gray-600 hover:bg-gray-50 rounded-full border border-gray-100 h-8"
             onClick={(e) => {
               e.stopPropagation(); // منع فتح مودال التفاصيل الأساسي
               setReturnModalData({ isOpen: true, purchaseId: item._id });
@@ -190,13 +190,13 @@ const PurchasesPage = () => {
           </div>
 
           {/* مدفوع جزئياً */}
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-teal-100 border-l-4">
+          <div className="bg-white p-4 rounded-2xl shadow-sm border border-red-100 border-l-4">
             <div className="flex justify-between items-start mb-2">
-              <div className="p-2 bg-teal-50 text-red-600 rounded-lg"><Wallet size={20} /></div>
+              <div className="p-2 bg-red-50 text-red-600 rounded-lg"><Wallet size={20} /></div>
               <span className="text-xs font-bold text-red-600">PARTIAL</span>
             </div>
-            <h3 className="text-xl font-black text-teal-700">{statsData.partial_amount} EGP</h3>
-            <p className="text-xs text-teal-500">{statsData.partial_count} {t("Invoices")}</p>
+            <h3 className="text-xl font-black text-red-700">{statsData.partial_amount} EGP</h3>
+            <p className="text-xs text-red-500">{statsData.partial_count} {t("Invoices")}</p>
           </div>
 
           {/* مدفوع بالكامل */}

@@ -175,7 +175,7 @@ const PandelEdit = () => {
                   {suggestions.map((p) => (
                     <div
                       key={p._id || p.id}
-                      className="px-4 py-3 hover:bg-purple-50 cursor-pointer flex items-center gap-3 transition-colors border-b last:border-b-0"
+                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center gap-3 transition-colors border-b last:border-b-0"
                       onClick={() => handleAddProduct(p)}
                     >
                       <div className="w-10 h-10 rounded border overflow-hidden bg-gray-50 flex-shrink-0">
@@ -192,7 +192,7 @@ const PandelEdit = () => {
                         <span className="text-xs text-gray-400 font-mono">
                           {t("Code")}: {p.prices?.[0]?.code || "N/A"}
                           {p.prices && p.prices.length > 1 && (
-                            <span className="ml-2 text-purple-500 font-medium">
+                            <span className="ml-2 text-gray-500 font-medium">
                               {p.prices.length} {t("Variations")}
                             </span>
                           )}
@@ -251,7 +251,7 @@ const PandelEdit = () => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full text-sm border border-gray-200 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+                                  className="w-full text-sm border border-gray-200 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
                                 >
                                   <option value="">
                                     — {t("NoVariation")} —
@@ -435,9 +435,9 @@ const ImageUploadSection = ({ images, onImagesChange }) => {
     <div className="space-y-4">
       <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-gray-50 transition-all">
         <div className="flex flex-col items-center justify-center pt-5 pb-6">
-          <div className="p-2 bg-purple-50 rounded-full mb-2">
+          <div className="p-2 bg-gray-50 rounded-full mb-2">
             <svg
-              className="w-6 h-6 text-purple-500"
+              className="w-6 h-6 text-gray-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -451,7 +451,7 @@ const ImageUploadSection = ({ images, onImagesChange }) => {
             </svg>
           </div>
           <p className="text-sm text-gray-600">
-            <span className="font-semibold text-purple-600">
+            <span className="font-semibold text-gray-600">
               {t("ClickToUpload")}
             </span>{" "}
             {t("OrDragAndDrop")}

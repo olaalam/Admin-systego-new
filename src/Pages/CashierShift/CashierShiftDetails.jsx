@@ -57,7 +57,7 @@ const CashierShiftDetails = () => {
         {
             key: "reference",
             header: t("Reference"),
-            render: (val) => <span className="font-mono text-xs font-bold text-red-600 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-100">{val}</span>
+            render: (val) => <span className="font-mono text-xs font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-lg border border-red-100">{val}</span>
         },
         {
             key: "customer_id",
@@ -215,10 +215,10 @@ const CashierShiftDetails = () => {
 
                     <div className="bg-gray-900 p-6 rounded-[2rem] shadow-xl shadow-gray-900/20 hover:scale-[1.02] transition-transform cursor-default group border border-gray-800">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-teal-500/20 text-teal-400 rounded-2xl group-hover:bg-teal-400 group-hover:text-black transition-colors">
+                            <div className="p-3 bg-red-500/20 text-red-400 rounded-2xl group-hover:bg-red-400 group-hover:text-black transition-colors">
                                 <Wallet size={24} />
                             </div>
-                            <span className="text-[10px] font-black text-teal-400 bg-teal-400/10 px-3 py-1 rounded-full uppercase tracking-tighter">{t("Cash Balance")}</span>
+                            <span className="text-[10px] font-black text-red-400 bg-red-400/10 px-3 py-1 rounded-full uppercase tracking-tighter">{t("Cash Balance")}</span>
                         </div>
                         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t("Net Cash In Drawer")}</p>
                         <h3 className="text-3xl font-black text-white">{formatCurrency(summary?.netCashInDrawer)} <span className="text-sm font-medium text-gray-500">EGP</span></h3>
@@ -302,7 +302,7 @@ const CashierShiftDetails = () => {
                                         <div className="relative z-10">
                                             <div className="flex items-center gap-3 mb-8">
                                                 <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
-                                                    <Wallet size={24} className="text-teal-400" />
+                                                    <Wallet size={24} className="text-red-400" />
                                                 </div>
                                                 <h4 className="text-lg font-black uppercase tracking-wider text-white">{t("Quick Audit")}</h4>
                                             </div>
@@ -319,7 +319,7 @@ const CashierShiftDetails = () => {
                                                 <div className="h-px bg-white/5 my-2"></div>
                                                 <div className="flex justify-between items-center py-2">
                                                     <div>
-                                                        <p className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-1">{t("Final Balance")}</p>
+                                                        <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">{t("Final Balance")}</p>
                                                         <span className="text-gray-200 font-bold">{t("Cash In Drawer")}</span>
                                                     </div>
                                                     <div className="text-right">

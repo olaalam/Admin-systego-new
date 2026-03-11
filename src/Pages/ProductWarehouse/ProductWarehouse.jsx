@@ -90,7 +90,7 @@ const ProductWarehouse = () => {
 
       {/* قسم تفاصيل المخزن بشكل أكثر احترافية */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-teal-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
         <h2 className="text-2xl font-black text-gray-800 mb-4 flex items-center gap-2">
           <div className="w-2 h-8 bg-primary rounded-full"></div>
           {warehouse.name}

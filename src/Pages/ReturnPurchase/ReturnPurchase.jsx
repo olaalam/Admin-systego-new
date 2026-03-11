@@ -109,7 +109,7 @@ export default function PurchaseReturnList() {
               />
             </div>
             <DialogFooter>
-              <Button type="submit" className="bg-purple-600 w-full text-white" disabled={postLoading}>
+              <Button type="submit" className="bg-gray-600 w-full text-white" disabled={postLoading}>
                 {postLoading ? t("Checking...") : t("Submit")}
               </Button>
             </DialogFooter>

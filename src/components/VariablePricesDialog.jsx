@@ -17,14 +17,14 @@ const VariablePricesDialog = ({ product, onCancel }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-red-600 to-teal-700 px-6 py-4">
+        <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-white">
                 Variable Prices
               </h3>
               {product.variations?.name && (
-                <p className="text-teal-100 text-sm mt-1">
+                <p className="text-red-100 text-sm mt-1">
                   {product.variations.name}
                 </p>
               )}
@@ -63,7 +63,7 @@ const VariablePricesDialog = ({ product, onCancel }) => {
                 return (
                   <div
                     key={priceItem._id || idx}
-                    className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-teal-300 hover:bg-teal-50/50 transition-all"
+                    className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-red-300 hover:bg-red-50/50 transition-all"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
@@ -114,7 +114,7 @@ const VariablePricesDialog = ({ product, onCancel }) => {
                             key={imgIdx}
                             src={img}
                             alt={`${variationName} - ${imgIdx + 1}`}
-                            className="h-14 w-14 object-cover rounded-md border border-gray-200 hover:border-teal-400 transition-colors"
+                            className="h-14 w-14 object-cover rounded-md border border-gray-200 hover:border-red-400 transition-colors"
                           />
                         ))}
                       </div>
@@ -139,7 +139,7 @@ const VariablePricesDialog = ({ product, onCancel }) => {
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
           <button
             onClick={onCancel}
-            className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
+            className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
           >
             Close
           </button>

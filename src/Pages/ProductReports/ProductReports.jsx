@@ -270,8 +270,8 @@ const ProductReports = () => {
                         title={t("Total Products")}
                         value={summary.total_products}
                         icon={<Package size={24} />}
-                        color="text-purple-600"
-                        bgColor="bg-purple-50"
+                        color="text-gray-600"
+                        bgColor="bg-gray-50"
                         isNumber={true}
                     />
                     <SummaryCard

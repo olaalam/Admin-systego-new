@@ -10,16 +10,16 @@ const AddPage = ({
   title = "Add Item",
   description = "Fill in the details below to add a new record.",
   fields = [],
-  onSubmit = () => {},
-  onCancel = () => {},
+  onSubmit = () => { },
+  onCancel = () => { },
   initialData = {},
   loading = false,
   className = "",
   submitButtonText = "Save"
 }) => {
   const [formData, setFormData] = useState({});
-const { t ,i18n } = useTranslation();
-const isArabic = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isArabic = i18n.language === "ar";
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
       const filteredData = fields.reduce((acc, field) => {
@@ -32,8 +32,8 @@ const isArabic = i18n.language === "ar";
             initialData[field.key] !== undefined
               ? initialData[field.key]
               : field.type === "checkbox" || field.type === "switch"
-              ? false
-              : "";
+                ? false
+                : "";
         }
         return acc;
       }, {});
@@ -149,7 +149,7 @@ const isArabic = i18n.language === "ar";
     <div className={`bg-white rounded-xl shadow-md ${className}`}>
       {/* Header */}
       <div className="flex items-center gap-3 p-6 border-b border-gray-200">
-        <div className="p-2 rounded-lg bg-purple-100 text-purple-700">
+        <div className="p-2 rounded-lg bg-red-100 text-red-700">
           <UserPlus size={22} />
         </div>
         <div>
@@ -162,8 +162,8 @@ const isArabic = i18n.language === "ar";
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {fields.map((field) => (
-            <div 
-              key={field.key} 
+            <div
+              key={field.key}
               className={`space-y-2 ${field.type === 'custom' ? 'md:col-span-2' : ''}`}
             >
               <label className="block text-sm font-medium text-gray-700">
@@ -190,7 +190,7 @@ const isArabic = i18n.language === "ar";
                           </label>
                           {sub.type === "switch" ? (
                             <Switch
-                            dir={isArabic ? "rtl" : "ltr"}
+                              dir={isArabic ? "rtl" : "ltr"}
                               checked={item[sub.key] ?? false}
                               onCheckedChange={(val) =>
                                 handleArrayChange(field.key, idx, sub.key, val)
@@ -228,7 +228,7 @@ const isArabic = i18n.language === "ar";
                   <button
                     type="button"
                     onClick={() => addArrayItem(field.key, field.subFields)}
-                    className="mt-2 px-3 py-1 bg-purple-500 text-white rounded"
+                    className="mt-2 px-3 py-1 bg-red-500 text-white rounded"
                   >
                     + {t("add")} {field.label}
                   </button>
@@ -245,7 +245,7 @@ const isArabic = i18n.language === "ar";
                 <select
                   value={formData[field.key] || ""}
                   onChange={(e) => handleChange(field.key, e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 >
                   <option value="">{field.placeholder || `${t("Select")} ${field.label}`}</option>
                   {field.options?.map((opt) => (
@@ -260,7 +260,7 @@ const isArabic = i18n.language === "ar";
                     type="file"
                     accept="image/*"
                     onChange={(e) => handleImageChange(field.key, e.target.files[0])}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
                   />
                   {formData[field.key] && typeof formData[field.key] === "string" && (
                     <div className="relative w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
@@ -275,7 +275,7 @@ const isArabic = i18n.language === "ar";
               ) : field.type === "switch" ? (
                 <div className="flex items-center space-x-3">
                   <Switch
-                            dir={isArabic ? "rtl" : "ltr"}
+                    dir={isArabic ? "rtl" : "ltr"}
                     checked={!!formData[field.key]}
                     onCheckedChange={(checked) => handleChange(field.key, checked)}
                   />
@@ -289,35 +289,35 @@ const isArabic = i18n.language === "ar";
                     type="checkbox"
                     checked={!!formData[field.key]}
                     onChange={(e) => handleChange(field.key, e.target.checked)}
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
                   />
                 </div>
-) : field.type === "date" ? (
-  <input
-    type="date"
-    value={formData[field.key] ?? ""}
-    onChange={(e) => {
-      const value = e.target.value;
-      handleChange(field.key, value);
+              ) : field.type === "date" ? (
+                <input
+                  type="date"
+                  value={formData[field.key] ?? ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    handleChange(field.key, value);
 
-      // Validation ديناميكي للـ start / end date
-      if (field.key === "enddate" && formData.startdate) {
-        if (new Date(value) < new Date(formData.startdate)) {
-          toast.error("End Date cannot be earlier than Start Date");
-          handleChange(field.key, ""); // يمسح القيمة غير الصحيحة
-        }
-      }
-      if (field.key === "startdate" && formData.enddate) {
-        if (new Date(value) > new Date(formData.enddate)) {
-          toast.error("Start Date cannot be later than End Date");
-          handleChange(field.key, ""); // يمسح القيمة غير الصحيحة
-        }
-      }
-    }}
-    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-    min={field.min}
-    max={field.max}
-  />
+                    // Validation ديناميكي للـ start / end date
+                    if (field.key === "enddate" && formData.startdate) {
+                      if (new Date(value) < new Date(formData.startdate)) {
+                        toast.error("End Date cannot be earlier than Start Date");
+                        handleChange(field.key, ""); // يمسح القيمة غير الصحيحة
+                      }
+                    }
+                    if (field.key === "startdate" && formData.enddate) {
+                      if (new Date(value) > new Date(formData.enddate)) {
+                        toast.error("Start Date cannot be later than End Date");
+                        handleChange(field.key, ""); // يمسح القيمة غير الصحيحة
+                      }
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  min={field.min}
+                  max={field.max}
+                />
 
               ) : (
                 <input
@@ -325,7 +325,7 @@ const isArabic = i18n.language === "ar";
                   value={formData[field.key] ?? ""}
                   onChange={(e) => handleChange(field.key, e.target.value)}
                   placeholder={field.placeholder || `${t("Enter")} ${field.label}`}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                   min={field.min}
                   max={field.max}
                   step={field.step}
@@ -349,9 +349,9 @@ const isArabic = i18n.language === "ar";
             type="button"
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium disabled:bg-gray-400"
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium disabled:bg-gray-400"
           >
-            {loading ?  t("Saving...") : t(submitButtonText)}
+            {loading ? t("Saving...") : t(submitButtonText)}
           </button>
         </div>
       </div>

@@ -192,7 +192,7 @@ const Cashier = () => {
             <div className="bg-red-600 px-6 py-4 flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-bold text-white">{t("BankAccounts")}</h3>
-                <p className="text-teal-100 text-xs">
+                <p className="text-red-100 text-xs">
                   {t("total_linked_accounts", {
                     count: selectedBankAccounts.length
                   })}
@@ -229,7 +229,7 @@ const Cashier = () => {
             <div className="p-4 bg-gray-50 border-t">
               <button
                 onClick={() => setShowBankAccountsModal(false)}
-                className="w-full py-2.5 bg-red-600 text-white rounded-lg hover:bg-teal-700 font-semibold transition-colors"
+                className="w-full py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold transition-colors"
               >
                 {t("Close")}
               </button>

@@ -171,7 +171,7 @@ const PurchaseEdit = () => {
                   <th className="p-5 text-center font-black uppercase tracking-tighter w-24">{t("Qty")}</th>
                   <th className="p-5 text-center font-black uppercase tracking-tighter w-28">{t("Cost")}</th>
                   <th className="p-5 text-center font-black uppercase tracking-tighter w-28 text-orange-500">{t("Disc/Item")}</th>
-                  <th className="p-5 text-center font-black uppercase tracking-tighter w-28 text-teal-500">{t("Tax/Item")}</th>
+                  <th className="p-5 text-center font-black uppercase tracking-tighter w-28 text-red-500">{t("Tax/Item")}</th>
                   <th className="p-5 text-center font-black uppercase tracking-tighter w-44">{t("Expiry Date")}</th>
                   <th className="p-5 text-right font-black uppercase tracking-tighter w-32">{t("Subtotal")}</th>
                   <th className="p-5 w-16"></th>
@@ -203,7 +203,7 @@ const PurchaseEdit = () => {
                       }} />
                     </td>
                     <td className="p-5">
-                      <input type="number" className="w-full border-teal-100 bg-teal-50/30 rounded-lg p-2 text-center font-bold text-red-600" value={item.tax} onChange={(e) => {
+                      <input type="number" className="w-full border-red-100 bg-red-50/30 rounded-lg p-2 text-center font-bold text-red-600" value={item.tax} onChange={(e) => {
                         const items = [...formData.purchase_items];
                         items[idx].tax = e.target.value;
                         setFormData({ ...formData, purchase_items: items });

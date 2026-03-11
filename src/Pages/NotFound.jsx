@@ -32,8 +32,8 @@ const NotFoundPage = () => {
           {/* 404 Number */}
           <div
             className={`transition-all duration-1200 delay-200 ${isVisible
-                ? "translate-y-0 opacity-100"
-                : "translate-y-4 opacity-0"
+              ? "translate-y-0 opacity-100"
+              : "translate-y-4 opacity-0"
               }`}
           >
             <h1 className="text-6xl font-light text-gray-800 mb-6">404</h1>
@@ -42,8 +42,8 @@ const NotFoundPage = () => {
           {/* Message */}
           <div
             className={`transition-all duration-1000 delay-400 ${isVisible
-                ? "translate-y-0 opacity-100"
-                : "translate-y-4 opacity-0"
+              ? "translate-y-0 opacity-100"
+              : "translate-y-4 opacity-0"
               }`}
           >
             <h2 className="text-2xl font-light text-gray-600 mb-4">
@@ -57,14 +57,14 @@ const NotFoundPage = () => {
           {/* Buttons */}
           <div
             className={`transition-all duration-1000 delay-600 ${isVisible
-                ? "translate-y-0 opacity-100"
-                : "translate-y-4 opacity-0"
+              ? "translate-y-0 opacity-100"
+              : "translate-y-4 opacity-0"
               }`}
           >
             <div className="space-y-3">
               <button
                 onClick={() => navigate("/")}
-                className="w-full bg-secondary text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-600 transition-colors duration-200"
+                className="w-full bg-secondary text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-600 transition-colors duration-200"
               >
                 <div className="flex items-center justify-center space-x-2">
                   <Home className="w-4 h-4" />

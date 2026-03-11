@@ -219,7 +219,7 @@ const OrdersReports = () => {
                         value={summary.totalTax}
                         icon={<Receipt size={24} />}
                         color="text-red-600"
-                        bgColor="bg-teal-50"
+                        bgColor="bg-red-50"
                         suffix="EGP"
                     />
                     <SummaryCard
@@ -234,8 +234,8 @@ const OrdersReports = () => {
                         title={t("Total Orders")}
                         value={reportData?.totalOrders}
                         icon={<ShoppingBag size={24} />}
-                        color="text-purple-600"
-                        bgColor="bg-purple-50"
+                        color="text-gray-600"
+                        bgColor="bg-gray-50"
                         isNumber={true}
                     />
                 </div>
