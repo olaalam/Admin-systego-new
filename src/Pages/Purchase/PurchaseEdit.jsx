@@ -203,7 +203,7 @@ const PurchaseEdit = () => {
                       }} />
                     </td>
                     <td className="p-5">
-                      <input type="number" className="w-full border-teal-100 bg-teal-50/30 rounded-lg p-2 text-center font-bold text-teal-600" value={item.tax} onChange={(e) => {
+                      <input type="number" className="w-full border-teal-100 bg-teal-50/30 rounded-lg p-2 text-center font-bold text-red-600" value={item.tax} onChange={(e) => {
                         const items = [...formData.purchase_items];
                         items[idx].tax = e.target.value;
                         setFormData({ ...formData, purchase_items: items });

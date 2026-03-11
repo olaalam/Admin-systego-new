@@ -242,7 +242,7 @@ const Product = () => {
             </div>
           </div>
           <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-base font-bold text-teal-600">
+            <span className="text-base font-bold text-red-600">
               {typeof item.price === "object" ? item.price.price : item.price || 0} {t("EGP")}
             </span>
             <span className="text-xs text-gray-500">/ {item.unit || "unit"}</span>

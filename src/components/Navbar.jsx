@@ -6,7 +6,7 @@ import '../translation/i18n';
 import NotificationDropdown from "./NotificationDropdown";
 import { hasPermission } from "@/lib/checkPermission";
 import usePost from "@/hooks/usePost";
-
+import logo from "@/assets/logo.jpg";
 export default function Navbar() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
@@ -17,8 +17,6 @@ export default function Navbar() {
   // حالة لعرض الـ Loader الكبير وقت التحديث
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // شرط لإظهار الزرار فقط أثناء التطوير على localhost
-  const isLocalhost = window.location.hostname === "localhost" || window.location.origin.includes("localhost:5173");
 
   const handleBack = () => navigate(-1);
 
@@ -34,21 +32,26 @@ export default function Navbar() {
     localStorage.setItem('language', newLang);
     document.body.dir = newLang === 'ar' ? 'rtl' : 'ltr';
   };
+  // 1. ضعي هذه المتغيرات هنا (خارج أي دالة) لكي يراها الـ return
+  const hostname = window.location.hostname;
+  const parts = hostname.split('.');
+
+  // شرط اللوكال هوست والـ Subdomain
+  const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
+  const isSubdomain = parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'systego';
+
+  // المتغير الذي سنستخدمه في الأسفل لإظهار الزرار
+  const showUpdateBtn = isLocal || isSubdomain;
 
   /**
    * دالة لجلب اسم العميل من الرابط
-   * مثال: olaa.systego.net -> clientName: "olaa"
-   * مثال: systego.net -> {} (فاضي)
    */
   const getClientPayload = () => {
-    const hostname = window.location.hostname;
-    const parts = hostname.split('.');
-
-    // لو الرابط فيه Subdomain (أكثر من جزأين وغير "www" أو "systego")
-    if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'systego') {
+    // نستخدم نفس المنطق اللي حددناه فوق
+    if (isSubdomain) {
       return { clientName: parts[0] };
     }
-    return {}; // لا نرسل clientName في حالة الدومين الأساسي أو localhost
+    return {};
   };
 
   const handleUpdateVersion = async () => {
@@ -108,13 +111,19 @@ export default function Navbar() {
           <span className="text-sm font-medium text-secondary">{t("navbar.back")}</span>
         </button>
 
-        {/* عنوان الموقع */}
-        <h1 className="text-lg font-bold text-secondary">SysteGo</h1>
-
+        {/* لوجو الموقع */}
+        <div className="flex items-center">
+          <img
+            src={logo}
+            alt="SysteGo Logo"
+            className="h-20 w-auto object-contain" // تقدري تتحكمي في الـ h (الارتفاع) زي ما تحبي
+          />
+        </div>
         <div className="flex items-center gap-4">
 
-          {/* زر التحديث - يظهر فقط في البيئة المحلية (localhost) ومع الصلاحية */}
-          {isLocalhost && hasPermission("version", "Update") && (
+
+          {/* زر التحديث - يظهر في الـ localhost والـ subdomains فقط */}
+          {showUpdateBtn && (
             <button
               onClick={handleUpdateVersion}
               disabled={isUpdating || apiLoading}

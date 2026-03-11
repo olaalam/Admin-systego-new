@@ -57,7 +57,7 @@ const CashierShiftDetails = () => {
         {
             key: "reference",
             header: t("Reference"),
-            render: (val) => <span className="font-mono text-xs font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-100">{val}</span>
+            render: (val) => <span className="font-mono text-xs font-bold text-red-600 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-100">{val}</span>
         },
         {
             key: "customer_id",

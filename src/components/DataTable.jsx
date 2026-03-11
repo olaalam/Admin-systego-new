@@ -405,7 +405,7 @@ export default function DataTable({
                     type="checkbox"
                     checked={allSelectedInCurrentPage}
                     onChange={toggleSelectAllCurrentPage}
-                    className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                    className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-teal-500"
                   />
                 </th>
 
@@ -445,7 +445,7 @@ export default function DataTable({
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleRow(itemId)}
-                          className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                          className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-teal-500"
                         />
                       </td>
 
@@ -488,7 +488,7 @@ export default function DataTable({
                                     onEdit(item);
                                   }
                                 }}
-                                className="text-teal-600 hover:text-teal-800 p-2 hover:bg-teal-50 rounded transition-colors"
+                                className="text-red-600 hover:text-teal-800 p-2 hover:bg-teal-50 rounded transition-colors"
                                 title="Edit"
                               >
                                 <Edit size={16} />
@@ -527,7 +527,7 @@ export default function DataTable({
                             if (addPath) navigate(addPath);
                             else onAdd();
                           }}
-                          className="mt-2 text-teal-600 hover:text-teal-700 font-medium text-sm hover:underline"
+                          className="mt-2 text-red-600 hover:text-teal-700 font-medium text-sm hover:underline"
                         >
                           {t("dataTable.addFirstItem")}
                         </button>

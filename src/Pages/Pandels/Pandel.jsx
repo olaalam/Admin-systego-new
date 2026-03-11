@@ -132,7 +132,7 @@ const Pandels = () => {
       header: t("Products"),
       render: (_, item) => (
         <button
-          className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
+          className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
           onClick={() => handleViewProducts(item)}
         >
           {/* أيقونة */}

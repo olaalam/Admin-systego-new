@@ -23,7 +23,7 @@ const DefaultSwitch = ({ isDefault, onChange, loading }) => {
     <button
       type="button"
       className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${isDefault
-        ? "bg-primary text-white hover:bg-teal-600"
+        ? "bg-primary text-white hover:bg-red-600"
         : "bg-gray-200 text-gray-700 hover:bg-gray-300"
         } ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
       onClick={handleClick}

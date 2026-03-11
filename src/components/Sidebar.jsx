@@ -3,7 +3,7 @@ import { Menu, ChevronDown, ChevronUp, MapPin, Search, X } from "lucide-react";
 
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.jpg";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
 

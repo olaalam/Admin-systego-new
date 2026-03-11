@@ -103,7 +103,7 @@ const Cashier = () => {
               setSelectedBankAccounts(accounts);
               setShowBankAccountsModal(true);
             }}
-            className="text-xs text-teal-600 font-bold hover:underline text-left mt-1"
+            className="text-xs text-red-600 font-bold hover:underline text-left mt-1"
           >
             +{accounts.length - 2} {t("moreaccounts")}
           </button>
@@ -189,7 +189,7 @@ const Cashier = () => {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[85vh] flex flex-col overflow-hidden">
             {/* Modal Header */}
-            <div className="bg-teal-600 px-6 py-4 flex justify-between items-center">
+            <div className="bg-red-600 px-6 py-4 flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-bold text-white">{t("BankAccounts")}</h3>
                 <p className="text-teal-100 text-xs">
@@ -219,7 +219,7 @@ const Cashier = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-teal-600 font-bold text-lg">${account.balance?.toFixed(2)}</p>
+                    <p className="text-red-600 font-bold text-lg">${account.balance?.toFixed(2)}</p>
                   </div>
                 </div>
               ))}
@@ -229,7 +229,7 @@ const Cashier = () => {
             <div className="p-4 bg-gray-50 border-t">
               <button
                 onClick={() => setShowBankAccountsModal(false)}
-                className="w-full py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-semibold transition-colors"
+                className="w-full py-2.5 bg-red-600 text-white rounded-lg hover:bg-teal-700 font-semibold transition-colors"
               >
                 {t("Close")}
               </button>

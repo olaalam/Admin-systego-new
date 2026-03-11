@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Home, ArrowLeft, MapPin } from "lucide-react";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.jpg";
 import { useTranslation } from "react-i18next";
 
 import { useNavigate } from "react-router-dom";
 const NotFoundPage = () => {
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate(); // 👈 Initialize the hook
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 300);
@@ -21,9 +21,8 @@ const { t, i18n } = useTranslation();
         <div className="max-w-md w-full text-center space-y-8">
           {/* Logo */}
           <div
-            className={`transition-opacity duration-1000 ${
-              isVisible ? "opacity-100" : "opacity-0"
-            }`}
+            className={`transition-opacity duration-1000 ${isVisible ? "opacity-100" : "opacity-0"
+              }`}
           >
             <div className="inline-flex items-center space-x-3 mb-12">
               <img src={logo} alt="logo" />
@@ -32,38 +31,35 @@ const { t, i18n } = useTranslation();
 
           {/* 404 Number */}
           <div
-            className={`transition-all duration-1200 delay-200 ${
-              isVisible
+            className={`transition-all duration-1200 delay-200 ${isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-4 opacity-0"
-            }`}
+              }`}
           >
             <h1 className="text-6xl font-light text-gray-800 mb-6">404</h1>
           </div>
 
           {/* Message */}
           <div
-            className={`transition-all duration-1000 delay-400 ${
-              isVisible
+            className={`transition-all duration-1000 delay-400 ${isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-4 opacity-0"
-            }`}
+              }`}
           >
             <h2 className="text-2xl font-light text-gray-600 mb-4">
-  {t("page_not_found")}
+              {t("page_not_found")}
             </h2>
             <p className="text-gray-500 leading-relaxed mb-8">
-  {t("page_not_found_description")}
+              {t("page_not_found_description")}
             </p>
           </div>
 
           {/* Buttons */}
           <div
-            className={`transition-all duration-1000 delay-600 ${
-              isVisible
+            className={`transition-all duration-1000 delay-600 ${isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-4 opacity-0"
-            }`}
+              }`}
           >
             <div className="space-y-3">
               <button
@@ -72,7 +68,7 @@ const { t, i18n } = useTranslation();
               >
                 <div className="flex items-center justify-center space-x-2">
                   <Home className="w-4 h-4" />
-<span>{t("go_home")}</span>
+                  <span>{t("go_home")}</span>
                 </div>
               </button>
 
@@ -82,7 +78,7 @@ const { t, i18n } = useTranslation();
               >
                 <div className="flex items-center justify-center space-x-2">
                   <ArrowLeft className="w-4 h-4" />
-<span>{t("go_back")}</span>
+                  <span>{t("go_back")}</span>
                 </div>
               </button>
             </div>

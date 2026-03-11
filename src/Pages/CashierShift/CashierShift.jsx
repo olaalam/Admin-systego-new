@@ -51,7 +51,7 @@ const CashierShift = () => {
                     </div>
                     <div>
                         <p className="font-semibold text-gray-800">{val?.username || t("Unknown")}</p>
-                        <p className="text-[10px] text-teal-600 font-bold uppercase">{val?.email}</p>
+                        <p className="text-[10px] text-red-600 font-bold uppercase">{val?.email}</p>
                     </div>
                 </div>
             )

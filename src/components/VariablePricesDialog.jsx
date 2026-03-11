@@ -17,7 +17,7 @@ const VariablePricesDialog = ({ product, onCancel }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-4">
+        <div className="bg-gradient-to-r from-red-600 to-teal-700 px-6 py-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-white">
@@ -100,7 +100,7 @@ const VariablePricesDialog = ({ product, onCancel }) => {
                       </div>
 
                       <div className="text-right">
-                        <p className="text-lg font-bold text-teal-600">
+                        <p className="text-lg font-bold text-red-600">
                           {priceItem.price} EGP
                         </p>
                       </div>
@@ -139,7 +139,7 @@ const VariablePricesDialog = ({ product, onCancel }) => {
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
           <button
             onClick={onCancel}
-            className="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
+            className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
           >
             Close
           </button>

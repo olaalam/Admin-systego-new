@@ -166,7 +166,7 @@ export default function TransferAdd() {
       <div className="w-full bg-white rounded-2xl shadow-sm p-8 border">
         <div className="flex items-center gap-3 mb-8">
           <div className="bg-teal-100 p-3 rounded-xl">
-            <ArrowLeft className="text-teal-600" size={28} />
+            <ArrowLeft className="text-red-600" size={28} />
           </div>
           <h1 className="text-3xl font-black text-gray-800">{t('Create Warehouse Transfer')}</h1>
         </div>
@@ -330,7 +330,7 @@ export default function TransferAdd() {
         <button
           onClick={handleSubmit}
           disabled={loading || formData.products.length === 0}
-          className="w-full mt-8 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-black text-xl transition-all shadow-2xl shadow-teal-100/50 flex items-center justify-center gap-3"
+          className="w-full mt-8 bg-red-600 hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-black text-xl transition-all shadow-2xl shadow-teal-100/50 flex items-center justify-center gap-3"
         >
           {loading ? (
             t('Processing...')

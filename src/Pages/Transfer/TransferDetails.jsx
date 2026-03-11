@@ -151,7 +151,7 @@ const TransferDetails = () => {
                         <div>
                             <h1 className="text-3xl font-black text-gray-800 flex items-center gap-3">
                                 {t('Transfer Details')}
-                                <span className="text-teal-600">#{transfer.reference}</span>
+                                <span className="text-red-600">#{transfer.reference}</span>
                             </h1>
                             <p className="text-gray-500 font-medium">
                                 {new Date(transfer.date).toLocaleDateString(isRTL ? 'ar-EG' : 'en-US', {
@@ -260,7 +260,7 @@ const TransferDetails = () => {
                                                                 <button
                                                                     onClick={() => toggleProductDecision(item.productId?._id, 'approved')}
                                                                     className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-bold transition-all ${productDecisions[item.productId?._id] === 'approved'
-                                                                        ? 'bg-teal-600 text-white shadow-md'
+                                                                        ? 'bg-red-600 text-white shadow-md'
                                                                         : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                                                                         }`}
                                                                 >
@@ -340,7 +340,7 @@ const TransferDetails = () => {
                         {transfer.status === 'pending' && !isSender && (
                             <div className="bg-white rounded-3xl shadow-sm border p-6">
                                 <h2 className="text-lg font-black text-gray-800 mb-4 flex items-center gap-2">
-                                    <ShieldCheck size={20} className="text-teal-600" />
+                                    <ShieldCheck size={20} className="text-red-600" />
                                     {t('Process Transfer')}
                                 </h2>
 
@@ -361,7 +361,7 @@ const TransferDetails = () => {
                                     <button
                                         onClick={() => handleStatusUpdate('received')}
                                         disabled={updating}
-                                        className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-2xl font-black shadow-lg shadow-teal-100 transition-all disabled:opacity-50"
+                                        className="flex items-center justify-center gap-2 bg-red-600 hover:bg-teal-700 text-white py-3 rounded-2xl font-black shadow-lg shadow-teal-100 transition-all disabled:opacity-50"
                                     >
                                         <CheckCircle2 size={18} />
                                         {t('Receive')}

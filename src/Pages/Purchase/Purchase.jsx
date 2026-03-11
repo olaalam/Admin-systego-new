@@ -109,7 +109,7 @@ const PurchasesPage = () => {
             </span>
             <button
               onClick={(e) => { e.stopPropagation(); setSelectedPurchase(item); }}
-              className="text-teal-600 p-1 bg-white border border-teal-100 rounded-full shadow-sm hover:bg-teal-50"
+              className="text-red-600 p-1 bg-white border border-teal-100 rounded-full shadow-sm hover:bg-teal-50"
             >
               <CalendarDays size={14} />
             </button>
@@ -192,8 +192,8 @@ const PurchasesPage = () => {
           {/* مدفوع جزئياً */}
           <div className="bg-white p-4 rounded-2xl shadow-sm border border-teal-100 border-l-4">
             <div className="flex justify-between items-start mb-2">
-              <div className="p-2 bg-teal-50 text-teal-600 rounded-lg"><Wallet size={20} /></div>
-              <span className="text-xs font-bold text-teal-600">PARTIAL</span>
+              <div className="p-2 bg-teal-50 text-red-600 rounded-lg"><Wallet size={20} /></div>
+              <span className="text-xs font-bold text-red-600">PARTIAL</span>
             </div>
             <h3 className="text-xl font-black text-teal-700">{statsData.partial_amount} EGP</h3>
             <p className="text-xs text-teal-500">{statsData.partial_count} {t("Invoices")}</p>
@@ -223,7 +223,7 @@ const PurchasesPage = () => {
 
       {/* إحصائيات المنتجات (Low Stock, Expiring, etc.) */}
       {statsData && statsData.type === 'products' && (
-        <div className="bg-teal-600 p-4 rounded-2xl shadow-lg mb-6 text-white flex items-center gap-4">
+        <div className="bg-red-600 p-4 rounded-2xl shadow-lg mb-6 text-white flex items-center gap-4">
           <div className="*:w-6 *:h-6">
             {currentFilter?.icon || <AlertTriangle size={24} />}
           </div>
@@ -278,7 +278,7 @@ const PurchasesPage = () => {
       {selectedPurchase && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="bg-teal-600 p-4 text-white flex justify-between items-center font-bold">
+            <div className="bg-red-600 p-4 text-white flex justify-between items-center font-bold">
               <div className="flex items-center gap-2 text-sm"><Receipt size={18} /> {t("Financial Summary")}</div>
               <button onClick={() => setSelectedPurchase(null)}><X size={20} /></button>
             </div>

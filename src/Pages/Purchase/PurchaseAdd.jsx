@@ -214,7 +214,7 @@ const PurchaseAdd = () => {
                     <span className="font-medium text-gray-700">{p.name}</span>
                     {p.exp_ability && <span className="text-[10px] text-orange-500 font-bold tracking-tighter uppercase">Requires Expiry</span>}
                   </div>
-                  <span className="font-bold text-teal-600">{p.price} {currencyCode}</span>
+                  <span className="font-bold text-red-600">{p.price} {currencyCode}</span>
                 </div>
               ))}
             </div>
@@ -299,7 +299,7 @@ const PurchaseAdd = () => {
             <div className="flex gap-2 p-1.5 bg-gray-100 rounded-2xl">
               {['full', 'partial', 'later'].map(m => (
                 <button key={m} onClick={() => setFormData({ ...formData, payment_status: m })}
-                  className={`flex-1 py-3 rounded-xl font-black transition-all ${formData.payment_status === m ? "bg-white text-teal-600 shadow-md" : "text-gray-400"}`}>
+                  className={`flex-1 py-3 rounded-xl font-black transition-all ${formData.payment_status === m ? "bg-white text-red-600 shadow-md" : "text-gray-400"}`}>
                   {t(m.toUpperCase())}
                 </button>
               ))}
@@ -308,8 +308,8 @@ const PurchaseAdd = () => {
             {formData.payment_status !== 'later' && (
               <div className="p-6 border-2 border-dashed border-gray-100 rounded-[2rem] space-y-4 bg-white shadow-sm">
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-black text-gray-700 flex items-center gap-2"><Wallet size={16} className="text-teal-600" /> {t("Split Payment Methods")}</label>
-                  <button onClick={addFinancialRow} className="bg-teal-50 text-teal-600 p-1.5 rounded-full hover:bg-teal-100 transition-colors">
+                  <label className="text-sm font-black text-gray-700 flex items-center gap-2"><Wallet size={16} className="text-red-600" /> {t("Split Payment Methods")}</label>
+                  <button onClick={addFinancialRow} className="bg-teal-50 text-red-600 p-1.5 rounded-full hover:bg-teal-100 transition-colors">
                     <Plus size={18} />
                   </button>
                 </div>
@@ -340,7 +340,7 @@ const PurchaseAdd = () => {
 
                 {totals.remainingToPay > 0 && (
                   <div className="bg-teal-50/50 p-2 rounded-lg flex justify-between items-center px-4">
-                    <span className="text-[10px] text-teal-600 font-bold uppercase tracking-wider">{t("Remaining to allocate")}</span>
+                    <span className="text-[10px] text-red-600 font-bold uppercase tracking-wider">{t("Remaining to allocate")}</span>
                     <span className="text-sm font-black text-teal-700">{totals.remainingToPay} {currencyCode}</span>
                   </div>
                 )}
@@ -420,7 +420,7 @@ const PurchaseAdd = () => {
           </div>
         </div>
 
-        <button onClick={handleSave} disabled={loading} className="w-full mt-12 bg-teal-600 hover:bg-teal-700 text-white py-5 rounded-2xl font-black text-xl transition-all shadow-2xl shadow-teal-100/50 flex items-center justify-center gap-3">
+        <button onClick={handleSave} disabled={loading} className="w-full mt-12 bg-red-600 hover:bg-teal-700 text-white py-5 rounded-2xl font-black text-xl transition-all shadow-2xl shadow-teal-100/50 flex items-center justify-center gap-3">
           {loading ? t("Processing...") : <><Calculator size={24} /> {t("Confirm & Save Purchase")}</>}
         </button>
       </div>

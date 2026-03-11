@@ -218,7 +218,7 @@ const OrdersReports = () => {
                         title={t("Total Tax")}
                         value={summary.totalTax}
                         icon={<Receipt size={24} />}
-                        color="text-teal-600"
+                        color="text-red-600"
                         bgColor="bg-teal-50"
                         suffix="EGP"
                     />
