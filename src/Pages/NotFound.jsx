@@ -17,15 +17,15 @@ const NotFoundPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Main Content */}
-      <div className="flex items-center justify-center min-h-screen px-6">
-        <div className="max-w-md w-full text-center space-y-8">
+      <div className="flex items-center justify-center min-h-screen ">
+        <div className="max-w-md w-full text-center ">
           {/* Logo */}
           <div
             className={`transition-opacity duration-1000 ${isVisible ? "opacity-100" : "opacity-0"
               }`}
           >
-            <div className="inline-flex items-center space-x-3 mb-12">
-              <img src={logo} alt="logo" />
+            <div className="inline-flex items-center space-x-3 ">
+              <img src={logo} alt="logo" className="w-40 h-40" />
             </div>
           </div>
 

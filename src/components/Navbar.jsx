@@ -101,6 +101,12 @@ export default function Navbar() {
       setIsUpdating(false);
     }
   };
+  const handleGoToPOS = () => {
+    // بيجيب الـ origin الحالي ويضيف عليه المسار
+    const posUrl = `${window.location.origin}/point-of-sale`;
+    // '_blank' بتخلي المتصفح يفتح الرابط في تاب جديدة
+    window.open(posUrl, '_blank');
+  };
 
   return (
     <>
@@ -121,7 +127,12 @@ export default function Navbar() {
         </div>
         <div className="flex items-center gap-4">
 
-
+          <button
+            onClick={handleGoToPOS}
+            className="flex items-center gap-2 bg-secondary text-white px-4 py-1.5 rounded-lg hover:bg-opacity-90 transition-all text-sm font-bold"
+          >
+            POS
+          </button>
           {/* زر التحديث - يظهر في الـ localhost والـ subdomains فقط */}
           {showUpdateBtn && (
             <button
