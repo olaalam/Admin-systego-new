@@ -91,7 +91,7 @@ const modules = [
   },
   {
     name: "Reports",
-    items: ["Cashier Shifts", "Orders Report", "Product Report", "Financial Report"],
+    items: ["Cashier Shifts", "Orders Report", "Product Report", "Financial Report", "Product Movement Report"],
     icon: BarChart3,
     path: "/orders-reports",
     color: "bg-slate-700",
@@ -116,7 +116,7 @@ export default function ModulesGrid() {
 
   const filteredModules = modules.filter((module) => {
     if (!searchQuery) return true;
-    
+
     // Check module name
     const moduleName = t(module.name).toLowerCase();
     if (moduleName.includes(searchQuery)) return true;
@@ -144,47 +144,47 @@ export default function ModulesGrid() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {filteredModules.length > 0 ? (
             filteredModules.map((module, idx) => (
-            <div
-              key={idx}
-              onClick={() => navigate(module.path)}
-              className="group relative bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200/60 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col active:scale-[0.97]"
-            >
-              {/* Animated Background Gradient */}
-              <div className={`absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-700 ${module.color}`} />
+              <div
+                key={idx}
+                onClick={() => navigate(module.path)}
+                className="group relative bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200/60 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col active:scale-[0.97]"
+              >
+                {/* Animated Background Gradient */}
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-700 ${module.color}`} />
 
-              <div className="relative z-10 flex flex-col h-full">
-                <div className={`w-16 h-16 rounded-3xl ${module.color} flex items-center justify-center mb-8 shadow-xl ${module.shadow} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500`}>
-                  <module.icon className="text-white w-8 h-8" />
-                </div>
-
-                <h3 className="text-2xl font-black text-slate-800 mb-4 group-hover:text-red-600 transition-colors tracking-tight">
-                  {t(module.name)}
-                </h3>
-
-                <div className="">
-                  <div className="flex flex-wrap gap-2">
-                    {module.items.map((item, i) => (
-                      <span
-                        key={i}
-                        className="text-[10px] font-bold px-2.5 py-1 bg-slate-50 text-slate-400 rounded-lg group-hover:bg-slate-100 group-hover:text-slate-600 transition-colors uppercase tracking-wider"
-                      >
-                        {t(item)}
-                      </span>
-                    ))}
+                <div className="relative z-10 flex flex-col h-full">
+                  <div className={`w-16 h-16 rounded-3xl ${module.color} flex items-center justify-center mb-8 shadow-xl ${module.shadow} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500`}>
+                    <module.icon className="text-white w-8 h-8" />
                   </div>
-                </div>
 
-                <div className="mt-8 flex items-center justify-between">
-                  <div className="flex items-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 group-hover:text-red-500 transition-colors">
-                    <span>{t("Explore")}</span>
-                    <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  <h3 className="text-2xl font-black text-slate-800 mb-4 group-hover:text-red-600 transition-colors tracking-tight">
+                    {t(module.name)}
+                  </h3>
+
+                  <div className="">
+                    <div className="flex flex-wrap gap-2">
+                      {module.items.map((item, i) => (
+                        <span
+                          key={i}
+                          className="text-[10px] font-bold px-2.5 py-1 bg-slate-50 text-slate-400 rounded-lg group-hover:bg-slate-100 group-hover:text-slate-600 transition-colors uppercase tracking-wider"
+                        >
+                          {t(item)}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-4 group-hover:translate-x-0">
-                    <ChevronRight className="w-4 h-4 text-red-500" />
+
+                  <div className="mt-8 flex items-center justify-between">
+                    <div className="flex items-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 group-hover:text-red-500 transition-colors">
+                      <span>{t("Explore")}</span>
+                      <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-4 group-hover:translate-x-0">
+                      <ChevronRight className="w-4 h-4 text-red-500" />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
             ))
           ) : (
             <div className="col-span-full py-20 text-center">

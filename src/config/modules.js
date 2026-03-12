@@ -36,9 +36,10 @@ export const AppModules = {
     MANUFACTURING_LIST: "manufacturing",
     WAREHOUSE: "warehouse",
     PRODUCT_WAREHOUSE: "product_warehouse",
-    ORDERS_REPORT: "orders_report",
+    ORDERS_REPORT: "sale_report",
     PRODUCT_REPORT: "product_report",
-    FINANCIAL_REPORT: "finicial_report",
+    FINANCIAL_REPORT: "financial_report",
+    PRODUCT_MOVEMENT: "product_movement",
 };
 
 export const ModuleActions = {

@@ -110,6 +110,7 @@ const menuItems = [
       { name: "Orders Report", path: "/orders-reports", module: AppModules.ORDERS_REPORT },
       { name: "Product Report", path: "/product-reports", module: AppModules.PRODUCT_REPORT },
       { name: "Financial Report", path: "/financial-reports", module: AppModules.FINANCIAL_REPORT },
+      { name: "Product Movement Report", path: "/product-movement-report", module: AppModules.PRODUCT_MOVEMENT },
     ],
   },
   {
@@ -165,7 +166,7 @@ export default function Sidebar() {
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userPermissions = user.permissions || [];
-  const isSuperAdmin = user.role === "superadmin";
+  const isSuperAdmin = user.role === "superadmin" || user.role_name?.toLowerCase() === "super admin";
 
   // Permission check
   const canViewModule = (moduleName) => {
@@ -178,8 +179,16 @@ export default function Sidebar() {
 
   // Find which module group the current path belongs to
   const activeModuleGroup = menuItems.find(item =>
-    item.children?.some(child => location.pathname.startsWith(child.path)) ||
+    item.children?.some(child => {
+      // Use exact match for shallow paths to avoid prefix overlap (e.g., /product vs /product-movement)
+      if (child.path === location.pathname) return true;
+      // For children with sub-paths (like /product/add), check if the base matches
+      const pathParts = location.pathname.split('/');
+      const childParts = child.path.split('/');
+      return childParts[1] === pathParts[1] && childParts.length <= pathParts.length;
+    }) ||
     (item.path && location.pathname === item.path && item.path !== "/analytics")
+
   );
 
   // Items to show: only the active module's children
@@ -259,15 +268,16 @@ export default function Sidebar() {
       <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-0.5">
         {filteredChildren.length > 0 ? (
           filteredChildren.map((child, i) => {
-            const isActive = location.pathname.startsWith(child.path);
+            const isActive = location.pathname === child.path || (child.path !== "/" && location.pathname.startsWith(child.path + "/"));
+
             return (
               <Link
                 key={i}
                 to={child.path}
                 onClick={() => { setMobileOpen(false); setSearchQuery(""); }}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium ${isActive
-                    ? `${accentClass} font-bold shadow-sm`
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                  ? `${accentClass} font-bold shadow-sm`
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
                   } ${desktopCollapsed && !isMobile ? "justify-center px-2" : ""}`}
                 title={desktopCollapsed && !isMobile ? t(child.name) : ""}
               >

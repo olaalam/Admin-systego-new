@@ -1,6 +1,6 @@
 export const hasPermission = (moduleName, actionName) => {
     const user = JSON.parse(localStorage.getItem("user")); // Get user from storage
-    if (user?.role === "superadmin") return true;
+    if (user?.role === "superadmin" || user?.role_name?.toLowerCase() === "super admin") return true;
 
     const userPermissions = user?.permissions || [];
 

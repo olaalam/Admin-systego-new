@@ -108,6 +108,9 @@ import TransferWarehouse from "./Pages/WareHouse/TransferWarehouse";
 import OrdersReports from "./Pages/OrdersReports/OrdersReports";
 import ProductReports from "./Pages/ProductReports/ProductReports";
 import FinancialReports from "./Pages/FinancialReports/FinancialReports";
+import Unauthorized from "@/Pages/Unauthorized";
+import ProductMovementReport from "./Pages/ProductMovementReport";
+
 
 export default function AppRoutes() {
   return (
@@ -1054,6 +1057,16 @@ export default function AppRoutes() {
           }
         />
       </Route>
+      <Route path="product-movement-report">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.PRODUCT_MOVEMENT} action={ModuleActions.VIEW}>
+              <ProductMovementReport />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
 
       <Route path="financial-reports">
         <Route
@@ -1067,8 +1080,11 @@ export default function AppRoutes() {
       </Route>
 
 
+      <Route path="/unauthorized" element={<Unauthorized />} />
+
       {/* ❌ 404 - Not Found Route */}
       <Route path="*" element={<NotFoundPage />} />
+
     </Routes>
   );
 }
