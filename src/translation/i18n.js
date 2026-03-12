@@ -574,8 +574,8 @@ i18n.use(initReactI18next).init({
         "NoIcon": "No Icon",
         "InitialBalance": "Initial Balance",
         "ShowinPOS": "Show in POS",
-        "BankAccountManagement": "Bank Account Management",
-        "AddBankAccount": "Add Bank Account",
+        "FinancialAccountManagement": "Financial Account Management",
+        "AddFinancialAccount": "Add Financial Account",
         "DeleteBankAccount": "Delete Bank Account",
         "delete_bank_account_confirm": "Are you sure you want to delete bank account \"{{account}}\"?"
         , "Template": "Template"
@@ -2250,8 +2250,8 @@ i18n.use(initReactI18next).init({
         "NoIcon": "لا يوجد صورة",
         "InitialBalance": "الرصيد الابتدائي",
         "ShowinPOS": "اظهار في POS",
-        "BankAccountManagement": "ادارة حسابات البنك",
-        "AddBankAccount": "اضافة حساب بنكي",
+        "FinancialAccountManagement": "ادارة الحسابات المالية",
+        "AddFinancialAccount": "اضافة حساب مالي",
         "adjustmentReasonEdit": {
           "title": "تعديل سبب التعديل",
           "description": "تحديث سبب التعديل",

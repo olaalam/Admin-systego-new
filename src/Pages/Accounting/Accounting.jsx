@@ -147,11 +147,11 @@ const Accounting = () => {
       <DataTable
         data={PaymentMethod}
         columns={columns}
-        title={t("BankAccountManagement")}
+        title={t("FinancialAccountManagement")}
         onAdd={() => alert("Add new bank account clicked!")}
         onEdit={(item) => alert(`Edit bank account: ${item.account_no}`)}
         onDelete={(item) => setDeleteTarget(item)}
-        addButtonText={t("AddBankAccount")}
+        addButtonText={t("AddFinancialAccount")}
         addPath="add"
         editPath={(item) => `edit/${item._id}`}
         itemsPerPage={10}
