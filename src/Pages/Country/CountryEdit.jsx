@@ -32,7 +32,6 @@ export default function CountryEdit() {
           name: country.name || "",
           ar_name: country.ar_name || "",
           countryId: country.country?._id || "",
-          status: country.status || "",
         });
       } catch (err) {
         toast.error(t("Failedtofetchcountrydata"));
@@ -49,7 +48,6 @@ export default function CountryEdit() {
   const fields = useMemo(() => [
     { key: "name", label: t("Name"), required: true },
     { key: "ar_name", label: t("Name(AR)"), required: true },
-    { key: "status", label: t("IsActive"), type: "switch", initialValue: true },
 
   ], [countries]);
 

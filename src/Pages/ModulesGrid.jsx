@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   LayoutDashboard,
   Layers,
@@ -109,7 +109,21 @@ const modules = [
 
 export default function ModulesGrid() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
+
+  const searchQuery = searchParams.get("q")?.toLowerCase() || "";
+
+  const filteredModules = modules.filter((module) => {
+    if (!searchQuery) return true;
+    
+    // Check module name
+    const moduleName = t(module.name).toLowerCase();
+    if (moduleName.includes(searchQuery)) return true;
+
+    // Check sub-items
+    return module.items.some(item => t(item).toLowerCase().includes(searchQuery));
+  });
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-6 md:p-12">
@@ -128,7 +142,8 @@ export default function ModulesGrid() {
         </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {modules.map((module, idx) => (
+          {filteredModules.length > 0 ? (
+            filteredModules.map((module, idx) => (
             <div
               key={idx}
               onClick={() => navigate(module.path)}
@@ -170,7 +185,14 @@ export default function ModulesGrid() {
                 </div>
               </div>
             </div>
-          ))}
+            ))
+          ) : (
+            <div className="col-span-full py-20 text-center">
+              <p className="text-slate-400 font-medium italic">
+                {t("Noresultsfound")}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

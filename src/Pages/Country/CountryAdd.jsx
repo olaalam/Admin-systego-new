@@ -19,7 +19,6 @@ const CountryAdd = () => {
     { key: "name", label: t("CountryName"), required: true },
     { key: "ar_name", label: t("CountryName(AR)"), required: true },
     // إضافة حقل اختياري لحالة التفعيل
-    { key: "status", label: t("IsActive"), type: "switch", initialValue: true },
   ];
 
   // الإرسال

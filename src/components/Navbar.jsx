@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, LogOut, RefreshCw } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { ArrowLeft, LogOut, RefreshCw, Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import '../translation/i18n';
 import NotificationDropdown from "./NotificationDropdown";
@@ -10,8 +10,13 @@ import logo from "@/assets/logo.jpg";
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isControlPanel = location.pathname === "/";
   const { t, i18n } = useTranslation();
+
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState(searchParams.get("q") || "");
+  const inputRef = useRef(null);
 
   // استخدام الـ Hook الخاص بالـ Post لعمل الـ API Calls
   const { postData, loading: apiLoading } = usePost();
@@ -21,6 +26,34 @@ export default function Navbar() {
 
 
   const handleBack = () => navigate(-1);
+
+  // Open/close search
+  const openSearch = () => {
+    setSearchOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setSearchValue("");
+    setSearchParams({});
+  };
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearchValue(val);
+    if (val.trim()) {
+      setSearchParams({ q: val });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  // Reset when leaving Control Panel
+  useEffect(() => {
+    if (!isControlPanel) {
+      setSearchOpen(false);
+      setSearchValue("");
+    }
+  }, [isControlPanel]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -113,23 +146,47 @@ export default function Navbar() {
   return (
     <>
       <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center relative z-10">
-        {/* زر العودة - يختفي في صفحة Control Panel */}
-        {!isControlPanel ? (
-          <button onClick={handleBack} className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
-            <ArrowLeft className="w-5 h-5 text-secondary" />
-            <span className="text-sm font-medium text-secondary">{t("navbar.back")}</span>
-          </button>
-        ) : (
-          <div className="w-24" /> 
-        )}
 
-        {/* لوجو الموقع */}
+        {/* Left side */}
+        <div className="flex items-center gap-3">
+          {isControlPanel ? (
+            /* Search area - only on Control Panel */
+            searchOpen ? (
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-64 transition-all">
+                <Search className="w-6 h-6 text-slate-400 flex-shrink-0" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={searchValue}
+                  onChange={handleSearchChange}
+                  placeholder={t("Searchmenu") + "..."}
+                  className="flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                />
+                <button onClick={closeSearch}>
+                  <X className="w-6 h-6 text-slate-400 hover:text-slate-700 transition-colors" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={openSearch}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-all text-sm font-medium border border-slate-200"
+              >
+                <Search className="w-6 h-6" />
+                <span className="hidden sm:inline">{t("Searchmenu")}</span>
+              </button>
+            )
+          ) : (
+            /* Back button - on all other pages */
+            <button onClick={handleBack} className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
+              <ArrowLeft className="w-5 h-5 text-secondary" />
+              <span className="text-sm font-medium text-secondary">{t("navbar.back")}</span>
+            </button>
+          )}
+        </div>
+
+        {/* Center: Logo */}
         <div className="flex items-center">
-          <img
-            src={logo}
-            alt="SysteGo Logo"
-            className="h-12 w-auto object-contain"
-          />
+          <img src={logo} alt="SysteGo Logo" className="h-12 w-auto object-contain" />
         </div>
         <div className="flex items-center gap-4">
 
