@@ -4,6 +4,7 @@ import Dashboard from "@/Pages/Dashboard";
 import LoginPage from "@/components/Login";
 import NotFoundPage from "@/Pages/NotFound";
 import ProtectedRoute from "@/components/ProtectedRoute"; // ✅
+import ModulesGrid from "@/Pages/ModulesGrid";
 import { AppModules, ModuleActions } from "@/config/modules";
 import Brand from "./Pages/Brand/Brand";
 import BrandAdd from "./Pages/Brand/BrandAdd";
@@ -117,6 +118,14 @@ export default function AppRoutes() {
       {/* ✅ Main Pages محمية */}
       <Route
         path="/"
+        element={
+          <ProtectedRoute module={AppModules.HOME} action={ModuleActions.VIEW}>
+            <ModulesGrid />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analytics"
         element={
           <ProtectedRoute module={AppModules.HOME} action={ModuleActions.VIEW}>
             <Dashboard />

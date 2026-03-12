@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 export default function CountryEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const { putData, loading: updating } = usePut(`/api/admin/country/${id}`);
 
@@ -30,7 +30,9 @@ const { t, i18n } = useTranslation();
 
         setcountryData({
           name: country.name || "",
+          ar_name: country.ar_name || "",
           countryId: country.country?._id || "",
+          status: country.status || "",
         });
       } catch (err) {
         toast.error(t("Failedtofetchcountrydata"));
@@ -46,6 +48,8 @@ const { t, i18n } = useTranslation();
   // إعداد الفورم
   const fields = useMemo(() => [
     { key: "name", label: t("Name"), required: true },
+    { key: "ar_name", label: t("Name(AR)"), required: true },
+    { key: "status", label: t("IsActive"), type: "switch", initialValue: true },
 
   ], [countries]);
 
@@ -80,8 +84,8 @@ const { t, i18n } = useTranslation();
     <div className="p-6 bg-gray-100 min-h-screen">
       {countryData && (
         <AddPage
-       title={t("edit_country_title", { name: countryData?.name || "..." })}
-description={t("edit_country_description")}
+          title={t("edit_country_title", { name: countryData?.name || "..." })}
+          description={t("edit_country_description")}
           fields={fields}
           initialData={countryData}
           onSubmit={handleSubmit}

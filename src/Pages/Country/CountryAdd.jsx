@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import AddPage from "@/components/AddPage";
 import { toast } from "react-toastify";
 // ⭐️ استيراد الـ Hook المخصص
-import usePost from "@/hooks/usePost"; 
+import usePost from "@/hooks/usePost";
 import { useTranslation } from "react-i18next";
 
 const CountryAdd = () => {
@@ -12,13 +12,14 @@ const CountryAdd = () => {
 
   // ⭐️ استخدام usePost: تحديد المسار وجلب postData وحالة التحميل loading
   const { postData, loading } = usePost("/api/admin/country");
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   // إعداد الـ fields (تم تبسيطها)
   const fields = [
     { key: "name", label: t("CountryName"), required: true },
+    { key: "ar_name", label: t("CountryName(AR)"), required: true },
     // إضافة حقل اختياري لحالة التفعيل
-    { key: "status", label: t("IsActive"), type: "switch", initialValue: true }, 
+    { key: "status", label: t("IsActive"), type: "switch", initialValue: true },
   ];
 
   // الإرسال
@@ -27,7 +28,7 @@ const { t, i18n } = useTranslation();
       console.log("📤 Submitting data:", data);
 
       // ⭐️ استخدام postData بدلاً من api.post
-      await postData(data); 
+      await postData(data);
 
       toast.success(t("Country added successfully"));
       navigate("/country");
@@ -53,8 +54,8 @@ const { t, i18n } = useTranslation();
   return (
     <div className="p-6">
       <AddPage
-       title={t("add_country_title")}
-description={t("add_country_description")}
+        title={t("add_country_title")}
+        description={t("add_country_description")}
 
         fields={fields}
         onSubmit={handleSubmit}

@@ -26,6 +26,8 @@ const Country = () => {
 
   const columns = [
     { key: "name", header: t("countryName"), filterable: true },
+    { key: "ar_name", header: t("countryName(AR)"), filterable: true },
+
 
   ];
 

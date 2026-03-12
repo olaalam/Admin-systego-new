@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, LogOut, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import '../translation/i18n';
@@ -9,6 +9,8 @@ import usePost from "@/hooks/usePost";
 import logo from "@/assets/logo.jpg";
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isControlPanel = location.pathname === "/";
   const { t, i18n } = useTranslation();
 
   // استخدام الـ Hook الخاص بالـ Post لعمل الـ API Calls
@@ -111,18 +113,22 @@ export default function Navbar() {
   return (
     <>
       <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center relative z-10">
-        {/* زر العودة */}
-        <button onClick={handleBack} className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
-          <ArrowLeft className="w-5 h-5 text-secondary" />
-          <span className="text-sm font-medium text-secondary">{t("navbar.back")}</span>
-        </button>
+        {/* زر العودة - يختفي في صفحة Control Panel */}
+        {!isControlPanel ? (
+          <button onClick={handleBack} className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
+            <ArrowLeft className="w-5 h-5 text-secondary" />
+            <span className="text-sm font-medium text-secondary">{t("navbar.back")}</span>
+          </button>
+        ) : (
+          <div className="w-24" /> 
+        )}
 
         {/* لوجو الموقع */}
         <div className="flex items-center">
           <img
             src={logo}
             alt="SysteGo Logo"
-            className="h-20 w-auto object-contain" // تقدري تتحكمي في الـ h (الارتفاع) زي ما تحبي
+            className="h-12 w-auto object-contain"
           />
         </div>
         <div className="flex items-center gap-4">

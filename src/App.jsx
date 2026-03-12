@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 const MainLayout = () => {
   const location = useLocation();
   const isLoginPage = location.pathname === "/login";
+  const isControlPanel = location.pathname === "/";
   const { i18n } = useTranslation();
 
   // State to control the loading status
@@ -37,7 +38,27 @@ const MainLayout = () => {
     );
   }
 
-  // غير كده نعرض اللايوت كامل
+  // لو صفحة Control Panel، نعرضها من غير سايدبار
+  if (isControlPanel) {
+    return (
+      <div className="flex flex-col h-screen overflow-hidden">
+        <Navbar />
+        <main className="flex-1 overflow-y-auto bg-[#f8fafc]">
+          {isLoading ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <Loader />
+            </div>
+          ) : (
+            <div dir={i18n.language === "ar" ? "rtl" : "ltr"}>
+              <AppRoutes />
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
+  // غير كده نعرض اللايوت كامل مع السايدبار
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
