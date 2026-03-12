@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import useGet from '@/hooks/useGet'; // مسار الـ hook الخاص بكِ
+import React, { useState, useMemo } from 'react';
+import useGet from '@/hooks/useGet';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -11,34 +11,65 @@ import { useTranslation } from "react-i18next";
 
 export default function ProductMovementReport() {
     const { t } = useTranslation();
+
     // 1. إدارة حالات الفلاتر
     const [selectedProduct, setSelectedProduct] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
 
-    // State للاحتفاظ برابط التقرير. القيمة المبدئية null حتى لا يطلب داتا قبل الضغط
+    // State للاحتفاظ برابط التقرير
     const [reportUrl, setReportUrl] = useState(null);
 
-    // 2. استخدام الـ Hook لجلب قائمة المنتجات (تعمل تلقائياً عند فتح الصفحة)
+    // 2. استخدام الـ Hook لجلب قائمة المنتجات
     const { data: selectionData, loading: loadingProducts } = useGet("/api/admin/product-movement/selection");
     const productsList = selectionData?.products || [];
 
-    // 3. استخدام الـ Hook لجلب بيانات التقرير (ستعمل فقط عندما يتغير الـ reportUrl)
+    // 3. استخدام الـ Hook لجلب بيانات التقرير
     const { data: reportData, loading: loadingReport } = useGet(reportUrl);
 
     // دالة زر البحث
     const handleGenerateReport = () => {
         if (!selectedProduct || !startDate || !endDate) {
-            // الـ Toast يتم التعامل معها في الـ hook في حالة الأخطاء، لكن هذا تحقق مبدئي بالواجهة
             alert(t("Please select product and dates"));
             return;
         }
 
-        // بناء الرابط بالـ Query Parameters وتحديث الـ State
-        // بمجرد التحديث، الـ useGet سيلتقط التغيير وينفذ الـ API
         const queryUrl = `/api/admin/product-movement?product_id=${selectedProduct}&start_date=${startDate}&end_date=${endDate}`;
         setReportUrl(queryUrl);
     };
+
+    // 4. تجهيز الداتا للجدول (تفكيك المبيعات والمشتريات لكل يوم لتُعرض في أسطر منفصلة)
+    const displayMovements = useMemo(() => {
+        if (!reportData?.movements) return [];
+
+        const flatList = [];
+        reportData.movements.forEach((day) => {
+            // إضافة سطر المشتريات إذا كانت الكمية أكبر من 0
+            if (day.purchases && day.purchases.quantity > 0) {
+                flatList.push({
+                    id: `${day.date}-purchase`,
+                    date: day.date,
+                    type: 'purchase',
+                    qty: day.purchases.quantity,
+                    price: day.purchases.unit_cost, // لاحظي أن الرد يستخدم unit_cost هنا
+                    total: day.purchases.total
+                });
+            }
+            // إضافة سطر المبيعات إذا كانت الكمية أكبر من 0
+            if (day.sales && day.sales.quantity > 0) {
+                flatList.push({
+                    id: `${day.date}-sale`,
+                    date: day.date,
+                    type: 'sale',
+                    qty: day.sales.quantity,
+                    price: day.sales.price, // الرد يستخدم price هنا
+                    total: day.sales.total
+                });
+            }
+        });
+
+        return flatList;
+    }, [reportData]);
 
     return (
         <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
@@ -101,8 +132,12 @@ export default function ProductMovementReport() {
                             <img src={reportData.product?.image} alt={reportData.product?.name} className="w-16 h-16 rounded-lg object-cover border" />
                             <div>
                                 <h1 className="text-xl font-bold text-slate-800">{reportData.product?.name}</h1>
-                                <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                                    <Package className="w-4 h-4" /> {t("Current Stock")}: {reportData.product?.quantity || 0} {t("pieces")}
+                                <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                                    <span className="flex items-center gap-1">
+                                        <Package className="w-4 h-4" /> {t("Current Stock")}: {reportData.product?.quantity || 0} {t("pieces")}
+                                    </span>
+                                    <span className="text-slate-300">|</span>
+                                    <span>{t("Code")}: {reportData.product?.code}</span>
                                 </p>
                             </div>
                         </div>
@@ -164,19 +199,19 @@ export default function ProductMovementReport() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {reportData.movements && reportData.movements.length > 0 ? (
-                                        reportData.movements.map((move, index) => (
-                                            <TableRow key={index} className="hover:bg-slate-50 transition-colors">
+                                    {displayMovements.length > 0 ? (
+                                        displayMovements.map((move) => (
+                                            <TableRow key={move.id} className="hover:bg-slate-50 transition-colors">
                                                 <TableCell className="font-medium px-4">{move.date}</TableCell>
                                                 <TableCell className="px-4">
                                                     <Badge
                                                         variant="outline"
-                                                        className={`font-medium px-3 py-1 ${move.type === 'purchase' || move.type === 'شراء'
-                                                                ? 'border-green-300 bg-green-50 text-green-700'
-                                                                : 'border-red-300 bg-red-50 text-red-700'
+                                                        className={`font-medium px-3 py-1 ${move.type === 'purchase'
+                                                            ? 'border-green-300 bg-green-50 text-green-700'
+                                                            : 'border-red-300 bg-red-50 text-red-700'
                                                             }`}
                                                     >
-                                                        {move.type === 'purchase' || move.type === 'شراء' ? t('Purchase') : t('Sale')}
+                                                        {move.type === 'purchase' ? t('Purchase') : t('Sale')}
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-center font-bold px-4">{move.qty}</TableCell>
@@ -184,7 +219,7 @@ export default function ProductMovementReport() {
                                                     {move.price?.toLocaleString()} {t("EGP")}
                                                 </TableCell>
                                                 <TableCell className="text-left font-black text-slate-800 px-4">
-                                                    {((move.qty || 0) * (move.price || 0)).toLocaleString()} {t("EGP")}
+                                                    {move.total?.toLocaleString()} {t("EGP")}
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -206,4 +241,4 @@ export default function ProductMovementReport() {
             )}
         </div>
     );
-}
+}
