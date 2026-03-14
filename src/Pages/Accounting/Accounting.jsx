@@ -91,23 +91,34 @@ const Accounting = () => {
     e.preventDefault();
     setTransferring(true);
     try {
-      // إرسال البيانات بناءً على الـ API في صورتك
-      await api.post("/api/admin/bank_account", {
+      await api.post("/api/admin/bank_account/transfer", {
         from_account_id: transferTarget._id,
         to_account_id: transferData.to_account_id,
         amount: Number(transferData.amount),
       });
-      await refetch(); // تحديث الجدول بعد نجاح التحويل
-      setTransferTarget(null); // إغلاق النافذة
-      setTransferData({ to_account_id: "", amount: "" }); // تفريغ البيانات
+
+      toast.success(t("TransferSuccessful") || "تم التحويل بنجاح");
+      await refetch();
+
+      // تصفير البيانات وإغلاق المودال
+      setTransferTarget(null);
+      setTransferData({ to_account_id: "", amount: "" });
+
     } catch (err) {
-      console.error(err);
-      toast.error(t("error") + " : " + (err.response?.data?.message || err.message));
+      console.error("Transfer Error:", err);
+
+      // ✅ استخراج رسالة الخطأ بناءً على الـ Structure الخاص بكِ
+      // نتحقق أولاً إذا كان هناك response من السيرفر وبداخله error.message
+      const serverMessage = err.response?.data?.error?.message;
+      const fallbackMessage = err.message || "Something went wrong";
+
+      // عرض الرسالة القادمة من السيرفر (مثل: Insufficient balance...)
+      toast.error(serverMessage || fallbackMessage);
+
     } finally {
       setTransferring(false);
     }
   };
-
   const columns = [
     { key: "name", header: t("Name"), filterable: false },
     { key: "image", header: t("Image"), filterable: false, render: (_, item) => renderIcon(item.image) },
