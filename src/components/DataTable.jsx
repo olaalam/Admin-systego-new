@@ -42,7 +42,7 @@ export default function DataTable({
   moduleName = null,
   headerExtra = null,
   onExportPdf = null,
-
+  extraActions = null,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -437,9 +437,9 @@ export default function DataTable({
                   </th>
                 ))}
 
-                {showActions && (onEdit || onDelete) && (
+                {showActions && (onEdit || onDelete || extraActions) && (
                   <th className={`px-6 py-3  ${lang === "ar" ? " text-right" : " text-left"} text-xs  font-medium text-gray-500 uppercase tracking-wider`}>
-                    {(onEdit && canEdit) || (onDelete && canDelete) ? t("dataTable.actions") : ""}
+                    {(onEdit && canEdit) || (onDelete && canDelete) || extraActions ? t("dataTable.actions") : ""}
                   </th>
                 )}
               </tr>
@@ -489,9 +489,10 @@ export default function DataTable({
                         </td>
                       ))}
 
-                      {showActions && (onEdit || onDelete) && (
+                      {showActions && (onEdit || onDelete || extraActions) && (
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <div className="flex items-center gap-2">
+                            {extraActions && extraActions(item)}
                             {onEdit && canEdit && (
                               <button
                                 onClick={() => {
