@@ -147,40 +147,41 @@ export default function ModulesGrid() {
               <div
                 key={idx}
                 onClick={() => navigate(module.path)}
-                className="group relative bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200/60 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col active:scale-[0.97]"
+                className="group relative bg-white rounded-[2.5rem] p-6 border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200/60 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col aspect-square active:scale-[0.97]"
               >
                 {/* Animated Background Gradient */}
                 <div className={`absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-700 ${module.color}`} />
 
-                <div className="relative z-10 flex flex-col h-full">
-                  <div className={`w-16 h-16 rounded-3xl ${module.color} flex items-center justify-center mb-8 shadow-xl ${module.shadow} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500`}>
-                    <module.icon className="text-white w-8 h-8" />
-                  </div>
+                <div className="relative z-10 flex flex-col h-full justify-between">
+                  <div>
+                    {/* Icon Section */}
+                    <div className={`w-12 h-12 rounded-2xl ${module.color} flex items-center justify-center mb-4 shadow-lg ${module.shadow} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500`}>
+                      <module.icon className="text-white w-6 h-6" />
+                    </div>
 
-                  <h3 className="text-2xl font-black text-slate-800 mb-4 group-hover:text-red-600 transition-colors tracking-tight">
-                    {t(module.name)}
-                  </h3>
+                    {/* Title Section */}
+                    <h3 className="text-xl font-black text-slate-800 mb-3 group-hover:text-red-600 transition-colors tracking-tight leading-tight">
+                      {t(module.name)}
+                    </h3>
 
-                  <div className="">
-                    <div className="flex flex-wrap gap-2">
+                    {/* ✅ توزيع العناصر في شبكة من عمودين لتقليل الارتفاع والحفاظ على المربع */}
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-2">
                       {module.items.map((item, i) => (
-                        <span
-                          key={i}
-                          className="text-[10px] font-bold px-2.5 py-1 bg-slate-50 text-slate-400 rounded-lg group-hover:bg-slate-100 group-hover:text-slate-600 transition-colors uppercase tracking-wider"
-                        >
-                          {t(item)}
-                        </span>
+                        <div key={i} className="flex items-center gap-1.5 group/item">
+                          <div className="min-w-[4px] h-[4px] rounded-full bg-slate-300 group-hover/item:bg-red-400 transition-colors" />
+                          <span className="text-[9px] font-bold text-slate-400 group-hover/item:text-slate-600 transition-colors uppercase tracking-wider truncate">
+                            {t(item)}
+                          </span>
+                        </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="mt-8 flex items-center justify-between">
-                    <div className="flex items-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 group-hover:text-red-500 transition-colors">
+                  {/* Explore Section */}
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 group-hover:text-red-500 transition-colors">
                       <span>{t("Explore")}</span>
-                      <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-4 group-hover:translate-x-0">
-                      <ChevronRight className="w-4 h-4 text-red-500" />
+                      <ChevronRight className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                 </div>
