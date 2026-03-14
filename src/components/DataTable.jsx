@@ -40,6 +40,9 @@ export default function DataTable({
   downloadTemplate = null,
   onRowClick = null,
   moduleName = null,
+  headerExtra = null,
+  onExportPdf = null,
+
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -193,7 +196,10 @@ export default function DataTable({
     <div className={className}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
+        <div className="flex flex-wrap items-center gap-4">
+          <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
+          {headerExtra}
+        </div>
 
         <div className="flex flex-wrap gap-3 items-center">
           <div className="flex gap-2 order-1 sm:order-none">
@@ -230,6 +236,17 @@ export default function DataTable({
                   }}
                 />
               </label>
+            )}
+            {/* زر تصدير PDF */}
+            {onExportPdf && canView && (
+              <button
+                onClick={() => onExportPdf(filteredData)}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-red-600"
+                title="Export to PDF"
+              >
+                <FileDown size={16} />
+                <span className="hidden sm:inline">{t("PDF")}</span>
+              </button>
             )}
 
             {onExport && canView && (
