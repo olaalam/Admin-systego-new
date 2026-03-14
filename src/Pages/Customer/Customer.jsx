@@ -6,8 +6,10 @@ import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import { useNavigate } from "react-router-dom";
 
 const Customer = () => {
+  const navigate = useNavigate();
   const { data, loading, error, refetch } = useGet("/api/admin/customer");
   const { deleteData, loading: deleting } = useDelete(
     "/api/admin/customer/delete"
@@ -33,6 +35,14 @@ const Customer = () => {
       key: "name",
       header: t("name"),
       filterable: false,
+      render: (value, item) => (
+        <span
+          onClick={() => navigate(`/customer/details/${item._id}`)}
+          className="text-primary hover:underline hover:text-red-600 cursor-pointer font-semibold transition-colors"
+        >
+          {value}
+        </span>
+      ),
     },
     {
       key: "email",

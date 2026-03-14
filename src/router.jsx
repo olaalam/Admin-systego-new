@@ -110,6 +110,7 @@ import ProductReports from "./Pages/ProductReports/ProductReports";
 import FinancialReports from "./Pages/FinancialReports/FinancialReports";
 import Unauthorized from "@/Pages/Unauthorized";
 import ProductMovementReport from "./Pages/ProductMovementReport";
+import CustomerDetails from "./Pages/Customer/CustomerDetails";
 
 
 export default function AppRoutes() {
@@ -706,6 +707,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.CUSTOMER} action={ModuleActions.EDIT}>
               <CustomerEdit />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="details/:id"
+          element={
+            <ProtectedRoute module={AppModules.CUSTOMER} action={ModuleActions.VIEW}>
+              <CustomerDetails />
             </ProtectedRoute>
           }
         />
