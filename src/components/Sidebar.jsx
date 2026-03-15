@@ -62,6 +62,7 @@ const menuItems = [
       { name: "Redeem Points", path: "/redeem-point", module: AppModules.REDEEM_POINTS },
       { name: "Bundles", path: "/pandel", module: AppModules.PANDEL },
       { name: "Coupon", path: "/coupon", module: AppModules.COUPON },
+      { name: "Banner", path: "/banner", module: AppModules.BANNER },
     ],
   },
   {

@@ -40,6 +40,7 @@ export const AppModules = {
     PRODUCT_REPORT: "product_report",
     FINANCIAL_REPORT: "financial_report",
     PRODUCT_MOVEMENT: "product_movement",
+    BANNER: "banner",
 };
 
 export const ModuleActions = {

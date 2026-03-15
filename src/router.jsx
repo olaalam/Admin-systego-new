@@ -111,6 +111,9 @@ import FinancialReports from "./Pages/FinancialReports/FinancialReports";
 import Unauthorized from "@/Pages/Unauthorized";
 import ProductMovementReport from "./Pages/ProductMovementReport";
 import CustomerDetails from "./Pages/Customer/CustomerDetails";
+import Banner from "./Pages/Banner/Banner";
+import BannerEdit from "./Pages/Banner/BannerEdit";
+import BannerAdd from "./Pages/Banner/BannerAdd";
 
 
 export default function AppRoutes() {
@@ -1083,6 +1086,32 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.FINANCIAL_REPORT} action={ModuleActions.VIEW}>
               <FinancialReports />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+      <Route path="banner">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.BANNER} action={ModuleActions.VIEW}>
+              <Banner />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute module={AppModules.BANNER} action={ModuleActions.ADD}>
+              <BannerAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute module={AppModules.BANNER} action={ModuleActions.EDIT}>
+              <BannerEdit />
             </ProtectedRoute>
           }
         />

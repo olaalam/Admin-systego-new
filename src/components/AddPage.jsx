@@ -84,25 +84,41 @@ const AddPage = ({
     setFormData((prev) => ({ ...prev, [key]: newArray }));
   };
 
-  const handleImageChange = async (key, file) => {
-    if (!file) return;
+  const handleImageChange = async (key, files, isMultiple) => {
+    if (!files || files.length === 0) return;
+
     const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
-    if (!validTypes.includes(file.type)) {
-      toast.error("Please upload a valid image (JPG, PNG, GIF, or WebP)");
-      return;
+    const filesArray = Array.from(files);
+
+    // التحقق من الملفات
+    for (let file of filesArray) {
+      if (!validTypes.includes(file.type)) {
+        toast.error(`${file.name} is not a valid image`);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} is too large (max 5MB)`);
+        return;
+      }
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size should be less than 5MB");
-      return;
-    }
+
     try {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, [key]: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      const promises = filesArray.map((file) => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        });
+      });
+
+      const results = await Promise.all(promises);
+
+      setFormData((prev) => ({
+        ...prev,
+        [key]: isMultiple ? results : results[0],
+      }));
     } catch (error) {
-      toast.error("Failed to read image file", error);
+      toast.error("Failed to read image files");
     }
   };
 
@@ -254,21 +270,31 @@ const AddPage = ({
                     </option>
                   ))}
                 </select>
-              ) : field.type === "image" ? (
+              ) : field.type === "image" || field.type === "file" ? (
                 <div className="space-y-3">
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handleImageChange(field.key, e.target.files[0])}
+                    multiple={field.multiple} // دعم اختيار صور متعددة
+                    // لاحظ عدم وجود خاصية value هنا أبداً
+                    onChange={(e) => handleImageChange(field.key, e.target.files, field.multiple)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
                   />
-                  {formData[field.key] && typeof formData[field.key] === "string" && (
-                    <div className="relative w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
-                      <img
-                        src={formData[field.key]}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
+
+                  {/* عرض المعاينة (Preview) */}
+                  {formData[field.key] && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {Array.isArray(formData[field.key]) ? (
+                        formData[field.key].map((img, index) => (
+                          <div key={index} className="relative w-20 h-20 border rounded-lg overflow-hidden">
+                            <img src={img} alt="Preview" className="w-full h-full object-cover" />
+                          </div>
+                        ))
+                      ) : typeof formData[field.key] === "string" ? (
+                        <div className="relative w-20 h-20 border rounded-lg overflow-hidden">
+                          <img src={formData[field.key]} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                      ) : null}
                     </div>
                   )}
                 </div>
