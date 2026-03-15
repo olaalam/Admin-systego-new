@@ -148,19 +148,48 @@ const Product = () => {
     formData.append("file", file);
 
     try {
-      await postData(formData, null, {
+      // 1. استلام الاستجابة من طلب الـ Post
+      const res = await postData(formData, null, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      refetch();
-      console.log("Import successful");
+      if (res?.success) {
+        const { failed, failed_count, success_count, total } = res.data;
+
+        if (failed_count > 0) {
+          // 2. تجميع كل الأخطاء في نص واحد مع فواصل أسطر
+          const errorMessages = failed
+            .map((item) => `• ${item.name}: ${item.reason}`)
+            .join('\n');
+
+          // 3. عرض رسالة Toast واحدة تحتوي على كل التفاصيل
+          toast.error(
+            <div className="text-xs">
+              <p className="font-bold mb-1">
+                Import completed with {failed_count} errors:
+              </p>
+              <div className="whitespace-pre-line opacity-90">
+                {errorMessages}
+              </div>
+            </div>,
+            {
+              autoClose: 8000, // وقت أطول للقراءة
+              className: "min-w-[300px]"
+            }
+          );
+        } else {
+          toast.success(t("Import successful"));
+        }
+
+        refetch();
+      }
     } catch (err) {
       console.error("Import error:", err);
+      toast.error(t("Import failed"));
     }
   };
-
   const downloadTemplate = () => {
     const templateData = [
       {
