@@ -115,6 +115,7 @@ import Banner from "./Pages/Banner/Banner";
 import BannerEdit from "./Pages/Banner/BannerEdit";
 import BannerAdd from "./Pages/Banner/BannerAdd";
 import SupplierDetails from "./Pages/Supplier/SupplierDetails";
+import Decimal from "./Pages/Decimal/Decimal";
 
 
 export default function AppRoutes() {
@@ -1121,6 +1122,17 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.BANNER} action={ModuleActions.EDIT}>
               <BannerEdit />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      <Route path="decimal-setting">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.DECIMAL_SETTING} action={ModuleActions.VIEW}>
+              <Decimal />
             </ProtectedRoute>
           }
         />

@@ -41,6 +41,7 @@ export const AppModules = {
     FINANCIAL_REPORT: "financial_report",
     PRODUCT_MOVEMENT: "product_movement",
     BANNER: "banner",
+    DECIMAL_SETTING: "decimal_setting",
 };
 
 export const ModuleActions = {

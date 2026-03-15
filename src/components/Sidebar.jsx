@@ -125,6 +125,7 @@ const menuItems = [
       { name: "Zones", path: "/zone", module: AppModules.ZONE },
       { name: "Permissions", path: "/permission", module: AppModules.PERMISSION },
       { name: "Currencies", path: "/currency", module: AppModules.CURRENCY },
+      { name: "Decimal Settings", path: "/decimal-setting", module: AppModules.DECIMAL_SETTING },
     ],
   },
 ];
