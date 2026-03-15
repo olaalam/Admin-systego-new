@@ -35,7 +35,7 @@ const modules = [
   },
   {
     name: "Financial",
-    items: ["Financial", "Taxes", "Discounts", "Expenses", "Expense Categories", "Revenue", "Payment Methods", "Payments"],
+    items: ["Financial", "Taxes", "Expenses", "Expense Categories", "Revenue", "Payment Methods", "Payments"],
     icon: CreditCard,
     path: "/accounting",
     color: "bg-emerald-500",
@@ -43,7 +43,7 @@ const modules = [
   },
   {
     name: "Marketing",
-    items: ["Popups", "Points", "Redeem Points", "Bundles", "Coupon", "Banner"],
+    items: ["Popups", "Points", "Redeem Points", "Bundles", "Coupon", "Banner", "Discounts"],
     icon: Megaphone,
     path: "/popup",
     color: "bg-amber-500",

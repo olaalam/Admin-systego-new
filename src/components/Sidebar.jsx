@@ -45,7 +45,6 @@ const menuItems = [
     children: [
       { name: "Financial", path: "/accounting", module: AppModules.FINANCIAL_ACCOUNT },
       { name: "Taxes", path: "/taxes", module: AppModules.TAXES },
-      { name: "Discounts", path: "/discount", module: AppModules.DISCOUNT },
       { name: "Expenses", path: "/expense", module: AppModules.EXPENSE_ADMIN },
       { name: "Expense Categories", path: "/expense-category", module: AppModules.EXPENSE_CATEGORY },
       { name: "Revenue", path: "/revenue", module: AppModules.REVENUE },
@@ -63,6 +62,8 @@ const menuItems = [
       { name: "Bundles", path: "/pandel", module: AppModules.PANDEL },
       { name: "Coupon", path: "/coupon", module: AppModules.COUPON },
       { name: "Banner", path: "/banner", module: AppModules.BANNER },
+      { name: "Discounts", path: "/discount", module: AppModules.DISCOUNT },
+
     ],
   },
   {

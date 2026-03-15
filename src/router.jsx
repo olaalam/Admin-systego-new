@@ -114,6 +114,7 @@ import CustomerDetails from "./Pages/Customer/CustomerDetails";
 import Banner from "./Pages/Banner/Banner";
 import BannerEdit from "./Pages/Banner/BannerEdit";
 import BannerAdd from "./Pages/Banner/BannerAdd";
+import SupplierDetails from "./Pages/Supplier/SupplierDetails";
 
 
 export default function AppRoutes() {
@@ -413,6 +414,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.SUPPLIER} action={ModuleActions.EDIT}>
               <SupplierEdit />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="details/:id"
+          element={
+            <ProtectedRoute module={AppModules.SUPPLIER} action={ModuleActions.VIEW}>
+              <SupplierDetails />
             </ProtectedRoute>
           }
         />

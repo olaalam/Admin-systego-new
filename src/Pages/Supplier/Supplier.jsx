@@ -6,6 +6,7 @@ import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import { useNavigate } from "react-router-dom";
 
 const Supplier = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/supplier");
@@ -18,7 +19,7 @@ const Supplier = () => {
   const isRTL = i18n.language === "ar";
   const [deleteTarget, setDeleteTarget] = useState(null);
   const suppliers = data?.suppliers || [];
-
+  const navigate = useNavigate();
   const cityOptions = (cityData?.cities || []).map((c) => ({ label: c.name, value: c._id }));
   const countryOptions = (countryData?.countries || []).map((c) => ({ label: c.name, value: c._id }));
 
@@ -43,7 +44,16 @@ const Supplier = () => {
   };
 
   const columns = [
-    { key: "username", header: t("Username"), filterable: false },
+    {
+      key: "username", header: t("Username"), filterable: false, render: (value, item) => (
+        <span
+          onClick={() => navigate(`/supplier/details/${item._id}`)}
+          className="text-primary hover:underline hover:text-red-600 cursor-pointer font-semibold transition-colors"
+        >
+          {value}
+        </span>
+      ),
+    },
     { key: "company_name", header: t("CompanyName"), filterable: false },
     { key: "email", header: t("Email"), filterable: false },
     { key: "address", header: t("Address"), filterable: false },
