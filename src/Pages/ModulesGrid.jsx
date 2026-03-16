@@ -99,7 +99,7 @@ const modules = [
   },
   {
     name: "Settings",
-    items: ["Barcode", "Cities", "Country", "Zones", "Permissions", "Currencies", "Decimal"],
+    items: ["Barcode", "Cities", "Country", "Zones", "Permissions", "Currencies", "Decimal", "Service Fees"],
     icon: Settings,
     path: "/barcode",
     color: "bg-gray-600",

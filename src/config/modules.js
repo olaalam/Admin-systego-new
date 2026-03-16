@@ -42,6 +42,7 @@ export const AppModules = {
     PRODUCT_MOVEMENT: "product_movement",
     BANNER: "banner",
     DECIMAL_SETTING: "decimal_setting",
+    SERVICE_FEES: "service_fees",
 };
 
 export const ModuleActions = {

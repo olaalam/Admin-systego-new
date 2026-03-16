@@ -74,7 +74,8 @@ export default function Navbar() {
   // شرط اللوكال هوست والـ Subdomain
   const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
   const isSubdomain = parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'systego';
-
+  const isMainDomain = hostname === "systego.net";
+  const showMasterRefreshBtn = isLocal || isMainDomain;
   // المتغير الذي سنستخدمه في الأسفل لإظهار الزرار
   const showUpdateBtn = isLocal || isSubdomain;
 
@@ -136,6 +137,30 @@ export default function Navbar() {
       setIsUpdating(false);
     }
   };
+  // دالة تحديث الماستر
+  const handleRefreshMaster = async () => {
+    try {
+      setIsUpdating(true);
+
+      // إرسال الطلب مع الـ API Key في الـ Headers
+      // ملاحظة: تأكدي أن usePost تدعم تمرير الـ Headers، إذا كانت لا تدعمها
+      // قد تحتاجين لاستخدام fetch مباشرة أو تعديل الـ hook
+      const response = await postData({}, "https://updater.systego.net/api/update/refresh-master", {
+        headers: {
+          "x-api-key": import.meta.env.VITE_REFRESH_MASTER_KEY
+        }
+      });
+
+      if (response) {
+        console.log("Master Refreshed Successfully");
+      }
+    } catch (error) {
+      console.error("Refresh Master failed:", error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const handleGoToPOS = () => {
     // بيجيب الـ origin الحالي ويضيف عليه المسار
     const posUrl = `${window.location.origin}/point-of-sale`;
@@ -207,6 +232,18 @@ export default function Navbar() {
               <RefreshCw className={`w-5 h-5 ${(isUpdating || apiLoading) ? "animate-spin" : ""}`} />
             </button>
           )}
+          {/* زر تحديث الماستر الجديد */}
+          {showMasterRefreshBtn && (
+            <button
+              onClick={handleRefreshMaster}
+              disabled={isUpdating || apiLoading}
+              className="flex items-center gap-2 text-orange-500 hover:text-orange-600 cursor-pointer disabled:opacity-50"
+              title="Refresh Master (Demos)"
+            >
+              <RefreshCw className={`w-5 h-5 ${(isUpdating || apiLoading) ? "animate-spin" : ""}`} />
+              <span className="text-[10px] font-bold">MASTER</span>
+            </button>
+          )}
 
           {/* قائمة الإشعارات */}
           {hasPermission("notification", "View") && <NotificationDropdown />}
@@ -240,6 +277,7 @@ export default function Navbar() {
           </div>
         </div>
       )}
+
     </>
   );
 }

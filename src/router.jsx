@@ -116,6 +116,9 @@ import BannerEdit from "./Pages/Banner/BannerEdit";
 import BannerAdd from "./Pages/Banner/BannerAdd";
 import SupplierDetails from "./Pages/Supplier/SupplierDetails";
 import Decimal from "./Pages/Decimal/Decimal";
+import ServiceFeesEdit from "./Pages/ServiceFees/ServiceFeesEdit";
+import ServiceFeesAdd from "./Pages/ServiceFees/ServiceFeesAdd";
+import ServiceFees from "./Pages/ServiceFees/ServiceFees";
 
 
 export default function AppRoutes() {
@@ -1138,6 +1141,32 @@ export default function AppRoutes() {
         />
       </Route>
 
+      <Route path="service-fees">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.SERVICE_FEES} action={ModuleActions.VIEW}>
+              <ServiceFees />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute module={AppModules.SERVICE_FEES} action={ModuleActions.ADD}>
+              <ServiceFeesAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute module={AppModules.SERVICE_FEES} action={ModuleActions.EDIT}>
+              <ServiceFeesEdit />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
 
       <Route path="/unauthorized" element={<Unauthorized />} />
 
