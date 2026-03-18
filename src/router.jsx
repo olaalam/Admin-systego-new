@@ -124,6 +124,8 @@ import Couriers from "./Pages/Couriers/Couriers";
 import CouriersEdit from "./Pages/Couriers/CouriersEdit";
 import Shipping from "./Pages/Shipping/Shipping";
 import ShippingEdit from "./Pages/Shipping/ShippingEdit";
+import FreeShippingProducts from "./Pages/FreeShippingProducts/FreeShippingProducts";
+import FreeShippingProductsEdit from "./Pages/FreeShippingProducts/FreeShippingProductsEdit";
 
 
 export default function AppRoutes() {
@@ -1205,7 +1207,7 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.COURIER} action={ModuleActions.VIEW}>
+            <ProtectedRoute module={AppModules.SHIPPING} action={ModuleActions.VIEW}>
               <Shipping />
             </ProtectedRoute>
           }
@@ -1214,8 +1216,28 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.COURIER} action={ModuleActions.EDIT}>
+            <ProtectedRoute module={AppModules.SHIPPING} action={ModuleActions.EDIT}>
               <ShippingEdit />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      <Route path="free-shipping-products">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.FREE_SHIPPING_PRODUCTS} action={ModuleActions.VIEW}>
+              <FreeShippingProducts />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="edit"
+          element={
+            <ProtectedRoute module={AppModules.FREE_SHIPPING_PRODUCTS} action={ModuleActions.EDIT}>
+              <FreeShippingProductsEdit />
             </ProtectedRoute>
           }
         />

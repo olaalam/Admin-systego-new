@@ -63,6 +63,8 @@ const menuItems = [
       { name: "Coupon", path: "/coupon", module: AppModules.COUPON },
       { name: "Banner", path: "/banner", module: AppModules.BANNER },
       { name: "Discounts", path: "/discount", module: AppModules.DISCOUNT },
+      { name: "Shipping", path: "/shipping", module: AppModules.SHIPPING },
+      { name: "Free Shipping Products", path: "/free-shipping-products", module: AppModules.FREE_SHIPPING_PRODUCTS },
 
     ],
   },

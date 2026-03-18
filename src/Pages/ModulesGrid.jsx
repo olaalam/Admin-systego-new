@@ -43,7 +43,7 @@ const modules = [
   },
   {
     name: "Marketing",
-    items: ["Popups", "Points", "Redeem Points", "Bundles", "Coupon", "Banner", "Discounts"],
+    items: ["Popups", "Points", "Redeem Points", "Bundles", "Coupon", "Banner", "Discounts", "Shipping", "Free Shipping Products"],
     icon: Megaphone,
     path: "/popup",
     color: "bg-amber-500",

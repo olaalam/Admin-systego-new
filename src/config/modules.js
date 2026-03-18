@@ -44,6 +44,8 @@ export const AppModules = {
     DECIMAL_SETTING: "decimal_setting",
     SERVICE_FEES: "service_fees",
     COURIER: "courier",
+    SHIPPING: "shipping",
+    FREE_SHIPPING_PRODUCTS: "free_shipping_products",
 
 };
 
