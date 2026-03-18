@@ -119,6 +119,11 @@ import Decimal from "./Pages/Decimal/Decimal";
 import ServiceFeesEdit from "./Pages/ServiceFees/ServiceFeesEdit";
 import ServiceFeesAdd from "./Pages/ServiceFees/ServiceFeesAdd";
 import ServiceFees from "./Pages/ServiceFees/ServiceFees";
+import CouriersAdd from "./Pages/Couriers/CouriersAdd";
+import Couriers from "./Pages/Couriers/Couriers";
+import CouriersEdit from "./Pages/Couriers/CouriersEdit";
+import Shipping from "./Pages/Shipping/Shipping";
+import ShippingEdit from "./Pages/Shipping/ShippingEdit";
 
 
 export default function AppRoutes() {
@@ -1167,6 +1172,58 @@ export default function AppRoutes() {
           }
         />
       </Route>
+
+      <Route path="courier">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.COURIER} action={ModuleActions.VIEW}>
+              <Couriers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute module={AppModules.COURIER} action={ModuleActions.ADD}>
+              <CouriersAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute module={AppModules.COURIER} action={ModuleActions.EDIT}>
+              <CouriersEdit />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+
+      <Route path="shipping">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.COURIER} action={ModuleActions.VIEW}>
+              <Shipping />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute module={AppModules.COURIER} action={ModuleActions.EDIT}>
+              <ShippingEdit />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+
+
+
 
       <Route path="/unauthorized" element={<Unauthorized />} />
 

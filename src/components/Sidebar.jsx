@@ -127,6 +127,7 @@ const menuItems = [
       { name: "Currencies", path: "/currency", module: AppModules.CURRENCY },
       { name: "Decimal Settings", path: "/decimal-setting", module: AppModules.DECIMAL_SETTING },
       { name: "Service Fees", path: "/service-fees", module: AppModules.SERVICE_FEES },
+      { name: "Couriers", path: "/courier", module: AppModules.COURIER },
     ],
   },
 ];
