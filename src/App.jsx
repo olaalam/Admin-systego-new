@@ -17,9 +17,9 @@ const MainLayout = () => {
 
   // State to control the loading status
   const [isLoading, setIsLoading] = useState(true);
-   useEffect(() => {
+  useEffect(() => {
     document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
-    console.log("Direction set to:",  i18n.language === "ar" ? "rtl" : "ltr");
+    console.log("Direction set to:", i18n.language === "ar" ? "rtl" : "ltr");
   }, [i18n.language]);
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -70,14 +70,14 @@ const MainLayout = () => {
               <Loader />
             </div>
           ) : (
-  <div dir={i18n.language === "ar" ? "rtl" : "ltr"}
-     className=""
-      style={{
-    scrollbarWidth: "none",     
-    msOverflowStyle: "none"      
-  }}>
-      <AppRoutes />
-    </div>          )}
+            <div dir={i18n.language === "ar" ? "rtl" : "ltr"}
+              className=""
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none"
+              }}>
+              <AppRoutes />
+            </div>)}
         </main>
       </div>
     </div>
@@ -86,7 +86,8 @@ const MainLayout = () => {
 
 export default function App() {
   return (
-    <Router basename="/admin-login">
+    // <Router basename="/admin-login">
+    <Router>
       <MainLayout />
       <ToastContainer position="top-right" autoClose={3000} />
     </Router>
