@@ -108,9 +108,15 @@ export default function Navbar() {
         let syncEndpoint = "";
 
         // تحديد الـ Endpoint المناسب للمزامنة
-
-        syncEndpoint = "/api/admin/version-updater/sync";
-
+        if (isFrontAddedEmpty && isBackAddedEmpty) {
+          syncEndpoint = "/api/admin/version-updater/sync";
+        } else if (isFrontAddedEmpty) {
+          syncEndpoint = "/api/admin/version-updater/sync-frontend";
+        } else if (isBackAddedEmpty) {
+          syncEndpoint = "/api/admin/version-updater/sync-backend";
+        } else {
+          syncEndpoint = "/api/admin/version-updater/sync";
+        }
 
         // 2. طلب المزامنة الفعلي (Sync)
         const syncData = await postData(payload, syncEndpoint);
