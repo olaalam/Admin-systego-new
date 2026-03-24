@@ -46,6 +46,7 @@ export const AppModules = {
     COURIER: "courier",
     SHIPPING: "shipping",
     FREE_SHIPPING_PRODUCTS: "free_shipping_products",
+    PAYMENT_ECO: "payment_eco",
 
 };
 

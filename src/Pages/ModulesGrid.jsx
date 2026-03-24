@@ -35,7 +35,7 @@ const modules = [
   },
   {
     name: "Financial",
-    items: ["Financial", "Taxes", "Expenses", "Expense Categories", "Revenue", "Payment Methods", "Payments"],
+    items: ["Financial", "Taxes", "Expenses", "Expense Categories", "Revenue", "Payment Methods", "Payments", "Payment Ecommerce"],
     icon: CreditCard,
     path: "/accounting",
     color: "bg-emerald-500",

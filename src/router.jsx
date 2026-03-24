@@ -126,6 +126,7 @@ import Shipping from "./Pages/Shipping/Shipping";
 import ShippingEdit from "./Pages/Shipping/ShippingEdit";
 import FreeShippingProducts from "./Pages/FreeShippingProducts/FreeShippingProducts";
 import FreeShippingProductsEdit from "./Pages/FreeShippingProducts/FreeShippingProductsEdit";
+import PaymentEco from "./Pages/PaymentEcommerce/PaymentEco";
 
 
 export default function AppRoutes() {
@@ -1243,6 +1244,16 @@ export default function AppRoutes() {
         />
       </Route>
 
+      <Route path="payment-eco">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.PAYMENT_ECO} action={ModuleActions.VIEW}>
+              <PaymentEco />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
 
 
 

@@ -50,6 +50,7 @@ const menuItems = [
       { name: "Revenue", path: "/revenue", module: AppModules.REVENUE },
       { name: "Payment Methods", path: "/payment_method", module: AppModules.PAYMENT_METHOD },
       { name: "Payments", path: "/payments", module: AppModules.PAYMENT },
+      { name: "Payment Ecommerce", path: "/payment-eco", module: AppModules.PAYMENT_ECO },
     ],
   },
   {
