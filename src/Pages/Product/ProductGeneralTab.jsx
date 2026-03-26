@@ -107,6 +107,62 @@ const CategoryMultiSelect = ({ label, value, options, onChange, required = false
 };
 
 // ----------------------------------------------------------------------
+// Single-Select Combobox Component
+// ----------------------------------------------------------------------
+const BrandSelect = ({ label, value, options, onChange, t }) => {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <div>
+      <Label className="text-sm font-medium text-gray-700 mb-2 block">
+        {label}
+      </Label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between h-11 font-normal"
+          >
+            {value
+              ? options.find((option) => option._id === value)?.name
+              : t("Select Brand")}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-full p-0">
+          <Command>
+            <CommandInput placeholder={t("Search Brand...")} />
+            <CommandEmpty>{t("No brand found.")}</CommandEmpty>
+            <CommandGroup className="max-h-60 overflow-y-auto">
+              {options.map((brand) => (
+                <CommandItem
+                  key={brand._id}
+                  value={brand.name}
+                  onSelect={() => {
+                    onChange(brand._id);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === brand._id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {brand.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};
+
+// ----------------------------------------------------------------------
 // ProductGeneralTab Component (with Arabic fields and Taxes)
 // ----------------------------------------------------------------------
 
@@ -158,23 +214,13 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
         />
 
         {/* Brand Single Select */}
-        <div>
-          <Label className="text-sm font-medium text-gray-700 mb-2 block">
-            {t("productss.brand")}
-          </Label>
-          <select
-            className="w-full h-11 border border-gray-300 rounded-md px-3 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
-            value={form.brandId}
-            onChange={(e) => handleChange("brandId", e.target.value)}
-          >
-            <option value="">{t("Select Brand")}</option>
-            {brands.map((b) => (
-              <option key={b._id} value={b._id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <BrandSelect
+          label={t("productss.brand")}
+          value={form.brandId}
+          options={brands}
+          onChange={(newId) => handleChange("brandId", newId)}
+          t={t}
+        />
 
         {/* ✅ Tax Single Select */}
         {/* <div>
