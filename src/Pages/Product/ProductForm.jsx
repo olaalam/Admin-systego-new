@@ -337,7 +337,7 @@ const ProductForm = ({
     if (typeof dataUri === "string" && dataUri.startsWith("data:")) {
       return dataUri.split(",")[1];
     }
-    return dataUri; // إذا كان رابط http سيعود كما هو ولن يتم مسحه
+    return dataUri;
   };
   const isFormValid = () => {
     if (!form.name || form.name.trim() === "") return false;
@@ -346,7 +346,7 @@ const ProductForm = ({
     if (!form.product_unit || !form.purchase_unit || !form.sale_unit) return false;
     if (!form.price || Number(form.price) <= 0) return false;
     if (!form.image) return false;
-
+    if (!form.different_price && (!form.code || form.code.trim() === "")) return false;
     if (form.different_price) {
       if (!form.prices || form.prices.length === 0) return false;
       const allVariantsValid = form.prices.every(

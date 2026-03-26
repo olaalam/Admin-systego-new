@@ -6,7 +6,6 @@ import { X, Upload, ChevronDown, RotateCw, Copy } from "lucide-react";
 import { toast } from "react-toastify";
 import useGet from "@/hooks/useGet";
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
 
 const ProductPriceTab = ({
   form,
@@ -37,7 +36,15 @@ const ProductPriceTab = ({
   }, [allVariations]);
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
-
+  React.useEffect(() => {
+    if (generatedCodeData) {
+      // بناءً على الـ Preview في الصورة، المسار هو data.code
+      const newCode = generatedCodeData?.data?.code || generatedCodeData?.code || "";
+      if (newCode) {
+        handleChange("code", newCode);
+      }
+    }
+  }, [generatedCodeData]);
   const toggleVariation = (variationId) => {
     const isSelected = selectedVariationIds.includes(variationId);
     if (isSelected) {
