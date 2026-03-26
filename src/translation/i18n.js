@@ -2819,7 +2819,30 @@ i18n.use(initReactI18next).init({
         "No expenses found for this account.": "لم يتم العثور على مصاريف لهذا الحساب.",
         "Financial Summary": "الملخص المالي",
         "Total Orders": "إجمالي الطلبات",
-        "Revenue": "الإيرادات"
+        "Revenue": "الإيرادات",
+        "Pending": "قيد الانتظار",
+        "Approved": "تمت الموافقة",
+        "Failed": "فشل",
+        "Order Items": "عناصر الطلب",
+        "Details of purchased products": "تفاصيل المنتجات المشتراة",
+        "Quantity": "الكمية",
+        "EGP": "جنيه",
+        "Total": "الإجمالي",
+        "Close": "إغلاق",
+        "No items found": "لم يتم العثور على عناصر",
+        "Order Details": "تفاصيل الطلب",
+        "Order ID": "رقم الطلب",
+        "Customer": "العميل",
+        "Date": "التاريخ",
+        "Payment Method": "طريقة الدفع",
+        "Total Amount": "المبلغ الإجمالي",
+        "Order Status": "حالة الطلب",
+        "View Items": "عرض العناصر",
+        "Details": "تفاصيل",
+
+
+
+
       },
     },
   },

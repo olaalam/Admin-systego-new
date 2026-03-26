@@ -108,16 +108,21 @@ const PaymentEco = () => {
 
     const tabs = [
         { id: "pending", label: t("Pending"), icon: <Clock size={16} />, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-100" },
-        { id: "completed", label: t("Completed"), icon: <CheckCircle2 size={16} />, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
+        { id: "approved", label: t("Approved"), icon: <CheckCircle2 size={16} />, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
         { id: "failed", label: t("Failed"), icon: <X size={16} />, color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-100" },
     ];
 
     // Filter orders based on the active tab status
     const displayData = useMemo(() => {
         if (!responseData?.orders) return [];
-        return responseData.orders.filter(order => order.status === activeTab);
-    }, [responseData, activeTab]);
 
+        return responseData.orders.filter(order => {
+            if (activeTab === "completed") {
+                return order.status === "completed" || order.status === "approved";
+            }
+            return order.status === activeTab;
+        });
+    }, [responseData, activeTab]);
     // Helper to get count for each status
     const getStatusCount = (status) => {
         return responseData?.orders?.filter(order => order.status === status).length || 0;
@@ -169,29 +174,33 @@ const PaymentEco = () => {
             key: "status",
             header: t("Status"),
             render: (status, item) => {
-                const currentStatusConfig = tabs.find(t => t.id === status) || tabs[0];
+                // ماب للألوان الأساسية، وأي حاجة تانية هتاخد لون رمادي افتراضي
+                const statusStyles = {
+                    pending: "bg-amber-50 text-amber-600 border-amber-100",
+                    approved: "bg-emerald-50 text-emerald-600 border-emerald-100",
+                    completed: "bg-emerald-50 text-emerald-600 border-emerald-100",
+                    failed: "bg-rose-50 text-rose-600 border-rose-100",
+                };
+
+                const currentStyle = statusStyles[status] || "bg-gray-50 text-gray-600 border-gray-100";
+                const dotColor = currentStyle.split(' ')[1].replace('text', 'bg');
+
                 return (
                     <div className="flex items-center gap-3">
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 ${currentStatusConfig.bg} ${currentStatusConfig.color} border ${currentStatusConfig.border}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${currentStatusConfig.color.replace('text', 'bg')}`} />
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 border ${currentStyle}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+                            {/* t(status) عشان لو حبيت تترجم الكلمة اللي جاية من الباك في ملفات الـ JSON */}
                             {t(status)}
                         </span>
 
+                        {/* التحكم بيظهر فقط لو الحالة محتاجة أكشن (مثلاً pending) */}
                         {status === 'pending' && (
                             <div className="flex items-center gap-1 shadow-sm border border-gray-100 rounded-lg p-0.5 bg-white">
                                 <button
-                                    onClick={(e) => { e.stopPropagation(); handleStatusChange(item._id, "completed"); }}
+                                    onClick={(e) => { e.stopPropagation(); handleStatusChange(item._id, "approved"); }}
                                     className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-md transition-colors"
-                                    title={t("Mark as Completed")}
                                 >
                                     <CheckCircle2 size={14} />
-                                </button>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); handleStatusChange(item._id, "failed"); }}
-                                    className="p-1.5 hover:bg-rose-50 text-rose-600 rounded-md transition-colors"
-                                    title={t("Mark as Failed")}
-                                >
-                                    <X size={14} />
                                 </button>
                             </div>
                         )}
