@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { X, Upload, ChevronDown, RotateCw, Copy } from "lucide-react";
 import { toast } from "react-toastify";
-import useGet from "@/hooks/useGet";
 import { useTranslation } from "react-i18next";
+import api from "@/api/api";
 
 const ProductPriceTab = ({
   form,
@@ -19,11 +19,25 @@ const ProductPriceTab = ({
 }) => {
   const [showVariationDropdown, setShowVariationDropdown] =
     React.useState(false);
-  const {
-    data: generatedCodeData,
-    loading: generatingCode,
-    refetch: generateCode,
-  } = useGet("/api/admin/product/generate-code", {});
+  const [generatingCode, setGeneratingCode] = useState(false);
+
+  const generateCode = async () => {
+    try {
+      setGeneratingCode(true);
+      const res = await api.get("/api/admin/product/generate-code");
+      const newCode = res.data?.data?.code || res.data?.code || res.data?.data || "";
+      if (newCode) {
+        handleChange("code", newCode);
+      } else {
+        toast.error("Failed to generate code");
+      }
+    } catch (err) {
+      toast.error("Failed to generate code");
+    } finally {
+      setGeneratingCode(false);
+    }
+  };
+
   const uniqueVariations = React.useMemo(() => {
     const seenIds = new Set();
     return allVariations.filter((variation) => {
@@ -36,15 +50,7 @@ const ProductPriceTab = ({
   }, [allVariations]);
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
-  React.useEffect(() => {
-    if (generatedCodeData) {
-      // بناءً على الـ Preview في الصورة، المسار هو data.code
-      const newCode = generatedCodeData?.data?.code || generatedCodeData?.code || "";
-      if (newCode) {
-        handleChange("code", newCode);
-      }
-    }
-  }, [generatedCodeData]);
+
   const toggleVariation = (variationId) => {
     const isSelected = selectedVariationIds.includes(variationId);
     if (isSelected) {
@@ -86,14 +92,20 @@ const ProductPriceTab = ({
   );
 
   const generateVariantCode = async (index) => {
-    await generateCode(); // فقط استدعي الـ refetch
-
-    // بعد ما يتم التحديث، استخدم data من الـ hook نفسه
-    if (generatedCodeData?.code) {
-      handleVariantFieldChange(index, "code", generatedCodeData.code);
-      toast.success(`Generated code: ${generatedCodeData.code}`);
-    } else {
+    try {
+      setGeneratingCode(true);
+      const res = await api.get("/api/admin/product/generate-code");
+      const newCode = res.data?.data?.code || res.data?.code || res.data?.data || "";
+      if (newCode) {
+        handleVariantFieldChange(index, "code", newCode);
+        toast.success(`Generated code: ${newCode}`);
+      } else {
+        toast.error("Failed to generate code");
+      }
+    } catch (err) {
       toast.error("Failed to generate code");
+    } finally {
+      setGeneratingCode(false);
     }
   };
 

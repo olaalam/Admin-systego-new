@@ -341,7 +341,6 @@ const ProductForm = ({
   };
   const isFormValid = () => {
     if (!form.name || form.name.trim() === "") return false;
-    if (!form.code || form.code.trim() === "") return false;
     if (!form.categoryId || form.categoryId.length === 0) return false;
     if (!form.product_unit || !form.purchase_unit || !form.sale_unit) return false;
     if (!form.price || Number(form.price) <= 0) return false;
