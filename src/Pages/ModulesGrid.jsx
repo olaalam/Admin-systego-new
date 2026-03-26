@@ -49,14 +49,14 @@ const modules = [
     color: "bg-amber-500",
     shadow: "shadow-amber-100",
   },
-  {
-    name: "Ecommerce",
-    items: ["Online Store"],
-    icon: ShoppingCart,
-    path: "/ecommerce",
-    color: "bg-indigo-500",
-    shadow: "shadow-indigo-100",
-  },
+  // {
+  //   name: "Ecommerce",
+  //   items: ["Online Store"],
+  //   icon: ShoppingCart,
+  //   path: "/ecommerce",
+  //   color: "bg-indigo-500",
+  //   shadow: "shadow-indigo-100",
+  // },
   {
     name: "Inventory",
     items: ["Warehouse", "Transfers", "Purchase", "Returns"],

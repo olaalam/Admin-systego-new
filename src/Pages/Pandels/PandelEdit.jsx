@@ -9,6 +9,7 @@ import useGet from "@/hooks/useGet";
 import usePut from "@/hooks/usePut";
 import SmartSearch from "@/components/SmartSearch";
 import { useTranslation } from "react-i18next";
+import WarehouseMultiSelect from "./WarehouseMultiSelect";
 
 const PandelEdit = () => {
   const { id } = useParams();
@@ -81,6 +82,56 @@ const PandelEdit = () => {
       placeholder: t("EnterPrice"),
       min: 0,
       step: "0.01",
+    },
+    {
+      key: "warehouse_section", // مفتاح تعريفي للقسم
+      label: t("Warehouses"),
+      type: "custom",
+      render: (formData, setFormData) => (
+        <div className="space-y-4 border p-4 rounded-lg bg-white shadow-sm">
+          {/* Checkbox: All Warehouses */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="all_warehouses"
+              checked={formData.all_warehouses}
+              onChange={(e) => {
+                const isChecked = e.target.checked;
+                setFormData((prev) => ({
+                  ...prev,
+                  all_warehouses: isChecked,
+                  // إذا اختار "كل المخازن" نمسح المصفوفة، وإذا ألغى الاختيار نجهزها مصفوفة فارغة
+                  warehouse_ids: isChecked ? [] : [],
+                }));
+              }}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="all_warehouses" className="text-sm font-bold text-gray-700 cursor-pointer">
+              {t("Available in all warehouses")}
+            </label>
+          </div>
+
+          {/* Multi-Select Combobox: يظهر فقط في حال عدم اختيار "كل المخازن" */}
+          {!formData.all_warehouses && (
+            <div className="pt-2 border-t border-gray-100 animate-in fade-in duration-300">
+              <WarehouseMultiSelect
+                label={t("Select Specific Warehouses")}
+                value={formData.warehouse_ids || []}
+                options={warehouses}
+                onChange={(newIds) =>
+                  setFormData((prev) => ({ ...prev, warehouse_ids: newIds }))
+                }
+                t={t}
+              />
+              {(!formData.warehouse_ids || formData.warehouse_ids.length === 0) && (
+                <p className="text-[11px] text-orange-500 mt-1">
+                  *{t("Please select at least one warehouse")}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      ),
     },
     {
       key: "products",
@@ -369,6 +420,8 @@ const PandelEdit = () => {
         enddate: formData.enddate,
         price: Number(formData.price),
         images: imagesBase64,
+        all_warehouses: formData.all_warehouses,
+        warehouse_ids: formData.all_warehouses ? [] : (formData.warehouse_ids || []),
         products: (formData.products || []).map((sp) => ({
           productId: sp.productId,
           productPriceId: sp.productPriceId || null,
@@ -401,6 +454,8 @@ const PandelEdit = () => {
           products: normalizeExistingProducts(), // ← تحويل البيانات القديمة للشكل الجديد
           images: pandel.images || [],
           searchProduct: "",
+          all_warehouses: pandel.all_warehouses,
+          warehouse_ids: pandel.warehouse_ids || [],
         }}
         onSubmit={handleSubmit}
         onCancel={() => navigate("/pandel")}
