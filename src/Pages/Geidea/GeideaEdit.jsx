@@ -7,14 +7,14 @@ import Loader from "@/components/Loader";
 import useGet from "@/hooks/useGet";
 import api from "@/api/api";
 
-const PaymobEdit = () => {
+const GeideaEdit = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { id } = useParams();
     const [loading, setLoading] = useState(false);
 
     // جلب البيانات الأساسية (الـ Config المراد تعديله)
-    const { data, loading: dataLoading } = useGet(`/api/admin/paymob/${id}`);
+    const { data, loading: dataLoading } = useGet(`/api/admin/geidea/${id}`);
 
     // جلب خيارات طرق الدفع للـ Select
     const { data: methodsData, loading: methodsLoading } = useGet("/api/admin/payment_method");
@@ -27,8 +27,9 @@ const PaymobEdit = () => {
     })) || [];
 
     useEffect(() => {
-        if (data?.paymob) {
-            const fetchedData = Array.isArray(data.paymob) ? data.paymob[0] : data.paymob;
+        const configData = data?.geidea || data?.config;
+        if (configData) {
+            const fetchedData = Array.isArray(configData) ? configData[0] : configData;
             setInitialData({
                 ...fetchedData,
                 // نتأكد أن القيمة المختارة في الـ select هي الـ ID فقط
@@ -45,22 +46,19 @@ const PaymobEdit = () => {
             options: paymentOptions,
             required: true
         },
-        { key: "api_key", label: t("API Key"), type: "text", required: true },
-        { key: "iframe_id", label: t("Iframe ID"), type: "text", required: true },
-        { key: "integration_id", label: t("Integration ID"), type: "text", required: true },
-        { key: "hmac_key", label: t("HMAC Key"), type: "text", required: true },
-        { key: "type", label: t("Type"), type: "text" },
-        { key: "callback", label: t("Callback URL"), type: "text" },
-        { key: "isActive", label: t("Active Status"), type: "checkbox" },
-        { key: "sandboxMode", label: t("Sandbox Mode"), type: "checkbox" }
+        { key: "publicKey", label: t("Public Key"), type: "text", required: true },
+        { key: "apiPassword", label: t("API Password"), type: "text", required: true },
+        { key: "merchantId", label: t("Merchant ID"), type: "text", required: true },
+        { key: "webhookSecret", label: t("Webhook Secret"), type: "text", required: true },
+        { key: "isActive", label: t("Active Status"), type: "checkbox" }
     ];
 
     const handleSubmit = async (formData) => {
         setLoading(true);
         try {
-            await api.put(`/api/admin/paymob/${id}`, formData);
+            await api.put(`/api/admin/geidea/${id}`, formData);
             toast.success(t("Updated successfully"));
-            navigate("/paymob");
+            navigate("/geidea");
         } catch (error) {
             const serverMessage = error?.response?.data?.error?.message;
             toast.error(serverMessage || t("Error processing request"));
@@ -75,15 +73,15 @@ const PaymobEdit = () => {
     return (
         <div className="p-6">
             <AddPage
-                title={t("Edit Paymob Config")}
+                title={t("Edit geidea Config")}
                 fields={fields}
                 initialData={initialData}
                 onSubmit={handleSubmit}
-                onCancel={() => navigate("/paymob")}
+                onCancel={() => navigate("/geidea")}
                 loading={loading}
             />
         </div>
     );
 };
 
-export default PaymobEdit;
+export default GeideaEdit;

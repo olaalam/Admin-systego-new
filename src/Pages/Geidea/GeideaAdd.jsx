@@ -7,7 +7,7 @@ import useGet from "@/hooks/useGet"; // جلب الخطاف الخاص بالب�
 import api from "@/api/api";
 import Loader from "@/components/Loader";
 
-const PaymobAdd = () => {
+const GeideaAdd = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
@@ -30,22 +30,20 @@ const PaymobAdd = () => {
             options: paymentOptions,
             required: true
         },
-        { key: "api_key", label: t("API Key"), type: "text", required: true },
-        { key: "iframe_id", label: t("Iframe ID"), type: "text", required: true },
-        { key: "integration_id", label: t("Integration ID"), type: "text", required: true },
-        { key: "hmac_key", label: t("HMAC Key"), type: "text", required: true },
-        { key: "type", label: t("Type"), type: "text", placeholder: "live or test" },
-        { key: "callback", label: t("Callback URL"), type: "text" },
+        { key: "publicKey", label: t("Public Key"), type: "text", required: true },
+        { key: "apiPassword", label: t("API Password"), type: "text", required: true },
+        { key: "merchantId", label: t("Merchant ID"), type: "text", required: true },
+        { key: "webhookSecret", label: t("Webhook Secret"), type: "text", required: true },
         { key: "isActive", label: t("Active Status"), type: "checkbox" },
-        { key: "sandboxMode", label: t("Sandbox Mode"), type: "checkbox" }
+
     ];
 
     const handleSubmit = async (formData) => {
         setLoading(true);
         try {
-            await api.post("/api/admin/paymob", formData);
+            await api.post("/api/admin/geidea", formData);
             toast.success(t("Added successfully"));
-            navigate("/paymob");
+            navigate("/geidea");
         } catch (error) {
             const serverMessage = error?.response?.data?.error?.message;
             toast.error(serverMessage || t("Error processing request"));
@@ -60,15 +58,15 @@ const PaymobAdd = () => {
     return (
         <div className="p-6">
             <AddPage
-                title={t("Add Paymob Config")}
+                title={t("Add geidea Config")}
                 description={t("Select a payment method and enter credentials")}
                 fields={fields}
                 onSubmit={handleSubmit}
-                onCancel={() => navigate("/paymob")}
+                onCancel={() => navigate("/geidea")}
                 loading={loading}
             />
         </div>
     );
 };
 
-export default PaymobAdd;
+export default GeideaAdd;

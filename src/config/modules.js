@@ -48,6 +48,7 @@ export const AppModules = {
     FREE_SHIPPING_PRODUCTS: "free_shipping_products",
     PAYMENT_ECO: "payment_eco",
     PAY: "pay",
+    GEIDEA: "geidea",
 
 };
 

@@ -109,7 +109,7 @@ const PaymentEco = () => {
     const tabs = [
         { id: "pending", label: t("Pending"), icon: <Clock size={16} />, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-100" },
         { id: "approved", label: t("Approved"), icon: <CheckCircle2 size={16} />, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
-        { id: "failed", label: t("Failed"), icon: <X size={16} />, color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-100" },
+        { id: "rejected", label: t("Rejected"), icon: <X size={16} />, color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-100" },
     ];
 
     // Filter orders based on the active tab status
@@ -179,7 +179,7 @@ const PaymentEco = () => {
                     pending: "bg-amber-50 text-amber-600 border-amber-100",
                     approved: "bg-emerald-50 text-emerald-600 border-emerald-100",
                     completed: "bg-emerald-50 text-emerald-600 border-emerald-100",
-                    failed: "bg-rose-50 text-rose-600 border-rose-100",
+                    rejected: "bg-rose-50 text-rose-600 border-rose-100",
                 };
 
                 const currentStyle = statusStyles[status] || "bg-gray-50 text-gray-600 border-gray-100";

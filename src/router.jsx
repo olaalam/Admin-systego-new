@@ -130,6 +130,9 @@ import PaymentEco from "./Pages/PaymentEcommerce/PaymentEco";
 import Paymob from "./Pages/Paymob/Paymob";
 import PaymobAdd from "./Pages/Paymob/PaymobAdd";
 import PaymobEdit from "./Pages/Paymob/PaymobEdit";
+import Geidea from "./Pages/Geidea/Geidea";
+import GeideaAdd from "./Pages/Geidea/GeideaAdd";
+import GeideaEdit from "./Pages/Geidea/GeideaEdit";
 
 
 export default function AppRoutes() {
@@ -1280,6 +1283,33 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.PAY} action={ModuleActions.EDIT}>
               <PaymobEdit />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      <Route path="geidea">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.PAY} action={ModuleActions.VIEW}>
+              <Geidea />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute module={AppModules.PAY} action={ModuleActions.ADD}>
+              <GeideaAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute module={AppModules.PAY} action={ModuleActions.EDIT}>
+              <GeideaEdit />
             </ProtectedRoute>
           }
         />

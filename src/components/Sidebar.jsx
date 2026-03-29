@@ -52,6 +52,7 @@ const menuItems = [
       { name: "Payments", path: "/payments", module: AppModules.PAYMENT },
       { name: "Payment Ecommerce", path: "/payment-eco", module: AppModules.PAYMENT_ECO },
       { name: "Paymob", path: "/paymob", module: AppModules.PAY },
+      { name: "Geidea", path: "/geidea", module: AppModules.PAY },
     ],
   },
   {
