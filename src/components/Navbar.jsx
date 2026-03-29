@@ -163,7 +163,7 @@ export default function Navbar() {
 
   const handleGoToPOS = () => {
     // بيجيب الـ origin الحالي ويضيف عليه المسار
-    const posUrl = `${window.location.origin}/point-of-sale`;
+    const posUrl = `${window.location.origin}/admin-login/point-of-sale`;
     // '_blank' بتخلي المتصفح يفتح الرابط في تاب جديدة
     window.open(posUrl, '_blank');
   };

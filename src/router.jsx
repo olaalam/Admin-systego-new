@@ -127,6 +127,9 @@ import ShippingEdit from "./Pages/Shipping/ShippingEdit";
 import FreeShippingProducts from "./Pages/FreeShippingProducts/FreeShippingProducts";
 import FreeShippingProductsEdit from "./Pages/FreeShippingProducts/FreeShippingProductsEdit";
 import PaymentEco from "./Pages/PaymentEcommerce/PaymentEco";
+import Paymob from "./Pages/Paymob/Paymob";
+import PaymobAdd from "./Pages/Paymob/PaymobAdd";
+import PaymobEdit from "./Pages/Paymob/PaymobEdit";
 
 
 export default function AppRoutes() {
@@ -1250,6 +1253,33 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.PAYMENT_ECO} action={ModuleActions.VIEW}>
               <PaymentEco />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      <Route path="paymob">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.PAY} action={ModuleActions.VIEW}>
+              <Paymob />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute module={AppModules.PAY} action={ModuleActions.ADD}>
+              <PaymobAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute module={AppModules.PAY} action={ModuleActions.EDIT}>
+              <PaymobEdit />
             </ProtectedRoute>
           }
         />
