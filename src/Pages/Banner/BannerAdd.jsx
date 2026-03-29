@@ -4,16 +4,20 @@ import { toast } from "react-toastify";
 import usePost from "@/hooks/usePost";
 import AddPage from "@/components/AddPage";
 import { useTranslation } from "react-i18next";
+import useGet from "@/hooks/useGet";
 
 export default function BannerAdd() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { postData, loading } = usePost("/api/admin/banner");
+    const { data: modulesData } = useGet("/api/admin/banner/banner-modules");
     const [formData, setFormData] = useState({
-        name: "",
+        name: [], // تغيير القيمة الابتدائية لمصفوفة لأنها multi-select
         images: [],
         isActive: false,
     });
+
+
 
     // تحويل الملفات إلى Base64
     const fileToBase64 = (file) => {
@@ -24,9 +28,21 @@ export default function BannerAdd() {
             reader.onerror = (error) => reject(error);
         });
     };
-
+    const moduleOptions = useMemo(() => {
+        return modulesData?.modules?.map(m => ({
+            label: m.name,
+            value: m.name,
+            disabled: m.isUsed // اختياري: لو الموديول مستخدم ممكن نعطله
+        })) || [];
+    }, [modulesData]);
     const fields = useMemo(() => [
-        { key: "name", label: t("Name"), required: true },
+        {
+            key: "name",
+            label: t("Name"),
+            type: "multiselect",
+            options: moduleOptions,
+            required: true
+        },
         {
             key: "images",
             label: t("Images"),
@@ -40,7 +56,7 @@ export default function BannerAdd() {
             type: "switch",
             required: true,
         },
-    ], [t]);
+    ], [t, moduleOptions]);
 
     const handleSubmit = async (data) => {
         try {

@@ -6,15 +6,24 @@ import { toast } from "react-toastify";
 import Loader from "@/components/Loader";
 import AddPage from "@/components/AddPage";
 import { useTranslation } from "react-i18next";
+import useGet from "@/hooks/useGet";
 
 export default function BannerEdit() {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const { putData, loading: updating } = usePut(`/api/admin/banner/${id}`);
+    const { data: modulesData } = useGet("/api/admin/banner/banner-modules");
     const { t } = useTranslation();
     const [bannerData, setBannerData] = useState(null);
     const [fetching, setFetching] = useState(true);
+    const moduleOptions = useMemo(() => {
+        return modulesData?.modules?.map(m => ({
+            label: m.name,
+            value: m.name,
+            disabled: m.isUsed // اختياري: لو الموديول مستخدم ممكن نعطله
+        })) || [];
+    }, [modulesData]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -49,7 +58,13 @@ export default function BannerEdit() {
     };
 
     const fields = useMemo(() => [
-        { key: "name", label: t("Name"), required: true },
+        {
+            key: "name",
+            label: t("Name"),
+            type: "multiselect",
+            options: moduleOptions,
+            required: true
+        },
         { key: "images", label: t("Images"), type: "file", required: true, multiple: true }, // تأكد من دعم الصور المتعددة
         {
             key: "isActive",
