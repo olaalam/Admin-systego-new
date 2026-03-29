@@ -65,6 +65,18 @@ export default function BannerEdit() {
             options: moduleOptions,
             required: true
         },
+        {
+            key: "title",
+            label: t("Title"),
+            type: "text",
+            required: true,
+        },
+        {
+            key: "description",
+            label: t("Description"),
+            type: "text",
+            required: true,
+        },
         { key: "images", label: t("Images"), type: "file", required: true, multiple: true }, // تأكد من دعم الصور المتعددة
         {
             key: "isActive",
@@ -92,7 +104,9 @@ export default function BannerEdit() {
             const finalBody = {
                 name: formData.name,
                 isActive: formData.isActive, // التأكد أنها Boolean
-                images: base64Images
+                images: base64Images,
+                title: formData.title,
+                description: formData.description,
             };
 
             // 3. إرسال البيانات

@@ -277,6 +277,7 @@ const AddPage = ({
                     accept="image/*"
                     multiple={field.multiple} // دعم اختيار صور متعددة
                     // لاحظ عدم وجود خاصية value هنا أبداً
+                    onClick={(e) => (e.target.value = null)}
                     onChange={(e) => handleImageChange(field.key, e.target.files, field.multiple)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
                   />

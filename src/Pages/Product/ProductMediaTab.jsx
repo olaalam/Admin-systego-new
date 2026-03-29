@@ -56,6 +56,7 @@ const ProductMediaTab = ({
               type="file"
               className="hidden"
               accept="image/*"
+              onClick={(e) => (e.target.value = null)}
               onChange={(e) => handleImageUpload(e)}
             />
           </label>
@@ -80,6 +81,7 @@ const ProductMediaTab = ({
               multiple
               className="hidden"
               accept="image/*"
+              onClick={(e) => (e.target.value = null)}
               onChange={(e) => handleImageUpload(e, true)}
             />
           </label>

@@ -51,6 +51,18 @@ export default function BannerAdd() {
             multiple: true, // مهم جداً للسماح باختيار أكثر من صورة
         },
         {
+            key: "title",
+            label: t("Title"),
+            type: "text",
+            required: true,
+        },
+        {
+            key: "description",
+            label: t("Description"),
+            type: "text",
+            required: true,
+        },
+        {
             key: "isActive",
             label: t("IsActive"),
             type: "switch",

@@ -262,6 +262,8 @@ const ProductForm = ({
       };
       reader.readAsDataURL(file);
     });
+
+    e.target.value = "";
   };
 
   const removeGalleryImage = (index) => {
