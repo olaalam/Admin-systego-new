@@ -144,6 +144,35 @@ const OrdersReports = () => {
 
     const summary = reportData?.summary || {};
 
+    const handleExport = (dataToExport) => {
+        // 1. التأكد من وجود بيانات
+        if (!dataToExport?.length) {
+            toast.error(t("Nodatafound"));
+            return;
+        }
+
+        // 2. تحويل البيانات لشكل مناسب للـ Excel (Mapping)
+        const worksheetData = dataToExport.map((order) => ({
+            [t("Reference")]: order.reference,
+            [t("Date")]: new Date(order.date).toLocaleString(isArabic ? 'ar-EG' : 'en-US'),
+            [t("Status")]: order.order_pending === 0 ? t("Completed") : t("Pending"),
+            [t("Total")]: order.total_amount || 0,
+            [t("Paid")]: order.paid_amount || 0,
+            [t("Due")]: order.due_amount || 0,
+            [t("Customer")]: order.customer_id?.name || t("Unknown"),
+            [t("Phone")]: order.customer_id?.phone || "",
+            [t("Warehouse")]: order.warehouse_id?.name || t("Unknown"),
+        }));
+
+        // 3. إنشاء الـ Workbook والـ Worksheet
+        const ws = XLSX.utils.json_to_sheet(worksheetData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Orders");
+
+        // 4. تحميل الملف باسم معبر
+        XLSX.writeFile(wb, `orders_report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
+
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             <div className="max-w-[1600px] mx-auto space-y-8">
@@ -257,6 +286,7 @@ const OrdersReports = () => {
                                 searchable={true}
                                 moduleName={AppModules.ORDERS_REPORT}
                                 onRowClick={handleViewDetails}
+                                onExport={handleExport}
                             />
                         </div>
                     )}

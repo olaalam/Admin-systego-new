@@ -17,6 +17,8 @@ import {
     CheckCircle2,
     XCircle
 } from "lucide-react";
+import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
 
 const CashierShift = () => {
     const { t, i18n } = useTranslation();
@@ -119,6 +121,39 @@ const CashierShift = () => {
         },
     ], [t, isArabic]);
 
+    const handleExport = (dataToExport) => {
+        // 1. التأكد من وجود بيانات
+        if (!dataToExport?.length) {
+            toast.error(t("Nodatafound"));
+            return;
+        }
+
+        // 2. تحويل البيانات لشكل مناسب للـ Excel (Mapping)
+        const worksheetData = dataToExport.map((shift) => ({
+            [t("Cashier")]: shift.cashier_id?.name || t("Unknown"),
+            [t("Cashier Man")]: shift.cashierman_id?.username || t("Unknown"),
+            [t("Email")]: shift.cashierman_id?.email || "",
+            [t("Status")]: t(shift.status),
+            [t("Sales")]: shift.total_sale_amount || 0,
+            [t("Expenses")]: shift.total_expenses || 0,
+            [t("Net Cash")]: shift.net_cash_in_drawer || 0,
+            [t("Start Time")]: shift.start_time
+                ? new Date(shift.start_time).toLocaleString(isArabic ? 'ar-EG' : 'en-US')
+                : "",
+            [t("End Time")]: shift.end_time
+                ? new Date(shift.end_time).toLocaleString(isArabic ? 'ar-EG' : 'en-US')
+                : "",
+        }));
+
+        // 3. إنشاء الـ Workbook والـ Worksheet
+        const ws = XLSX.utils.json_to_sheet(worksheetData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Shifts");
+
+        // 4. تحميل الملف باسم معبر
+        XLSX.writeFile(wb, `cashier_shifts_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
+
     const displayData = useMemo(() => {
         if (!shiftData) return [];
         if (Array.isArray(shiftData)) return shiftData;
@@ -188,6 +223,7 @@ const CashierShift = () => {
                             moduleName={AppModules.CASHIER_SHIFT}
                             filterable={true}
                             searchable={true}
+                            onExport={handleExport}
                         />
                     </div>
                 )}

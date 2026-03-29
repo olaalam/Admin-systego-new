@@ -161,6 +161,32 @@ const ProductReports = () => {
 
     const summary = reportData?.summary || {};
 
+    const handleExport = (dataToExport) => {
+        // 1. التأكد من وجود بيانات
+        if (!dataToExport?.length) {
+            toast.error(t("Nodatafound"));
+            return;
+        }
+
+        // 2. تحويل البيانات لشكل مناسب للـ Excel (Mapping)
+        const worksheetData = dataToExport.map((order) => ({
+            [t("Product")]: order.product_name,
+            [t("Category")]: order.category,
+            [t("Count")]: order.count || 0,
+            [t("Total Price")]: order.total_price || 0,
+            [t("Orders Count")]: order.orders_count || 0,
+            [t("Avg Price")]: order.avg_price || 0,
+        }));
+
+        // 3. إنشاء الـ Workbook والـ Worksheet
+        const ws = XLSX.utils.json_to_sheet(worksheetData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Orders");
+
+        // 4. تحميل الملف باسم معبر
+        XLSX.writeFile(wb, `orders_report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
+
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             <div className="max-w-[1600px] mx-auto space-y-8">
@@ -307,6 +333,7 @@ const ProductReports = () => {
                             searchable={true}
                             moduleName={AppModules.PRODUCT_REPORT}
                             onRowClick={handleViewDetails}
+                            onExport={handleExport}
                         />
                     )}
                 </div>

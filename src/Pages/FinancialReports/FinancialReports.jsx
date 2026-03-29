@@ -131,6 +131,33 @@ const FinancialReports = () => {
     const dueSummary = reportData?.due_summary || {};
     const pendingSummary = reportData?.pending_summary || {};
 
+    const handleExport = (dataToExport) => {
+        // 1. التأكد من وجود بيانات
+        if (!dataToExport?.length) {
+            toast.error(t("Nodatafound"));
+            return;
+        }
+
+        // 2. تحويل البيانات لشكل مناسب للـ Excel (Mapping)
+        const worksheetData = dataToExport.map((order) => ({
+            [t("Account Name")]: order.account_name,
+            [t("Account Type")]: order.account_type,
+            [t("Total Sales")]: order.total_sales || 0,
+            [t("Total Spent")]: order.total_spent || 0,
+            [t("Net Total")]: order.net_total || 0,
+            [t("Transactions")]: order.transactions_count || 0,
+            [t("Expenses")]: order.expenses_count || 0,
+        }));
+
+        // 3. إنشاء الـ Workbook والـ Worksheet
+        const ws = XLSX.utils.json_to_sheet(worksheetData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Orders");
+
+        // 4. تحميل الملف باسم معبر
+        XLSX.writeFile(wb, `orders_report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
+
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             <div className="max-w-[1600px] mx-auto space-y-8">
@@ -318,6 +345,7 @@ const FinancialReports = () => {
                                 showActions={false}
                                 searchable={true}
                                 moduleName={AppModules.FINANCIAL_REPORT}
+                                onExport={handleExport}
                             />
                         )}
                     </div>
