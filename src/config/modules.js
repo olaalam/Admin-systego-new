@@ -49,6 +49,8 @@ export const AppModules = {
     PAYMENT_ECO: "payment_eco",
     PAY: "pay",
     GEIDEA: "geidea",
+    PAYABLE: "payable",
+
 
 };
 

@@ -133,6 +133,7 @@ import PaymobEdit from "./Pages/Paymob/PaymobEdit";
 import Geidea from "./Pages/Geidea/Geidea";
 import GeideaAdd from "./Pages/Geidea/GeideaAdd";
 import GeideaEdit from "./Pages/Geidea/GeideaEdit";
+import Payable from "./Pages/Payable/Payable";
 
 
 export default function AppRoutes() {
@@ -1315,13 +1316,24 @@ export default function AppRoutes() {
         />
       </Route>
 
+      <Route path="payable">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.PAYABLE} action={ModuleActions.VIEW}>
+              <Payable />
+            </ProtectedRoute>
+          }
+        />
 
 
 
-      <Route path="/unauthorized" element={<Unauthorized />} />
 
-      {/* ❌ 404 - Not Found Route */}
-      <Route path="*" element={<NotFoundPage />} />
+
+        <Route path="/unauthorized" element={<Unauthorized />} />
+
+        {/* ❌ 404 - Not Found Route */}
+        <Route path="*" element={<NotFoundPage />} />
 
     </Routes>
   );
