@@ -1325,15 +1325,17 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+      </Route>
 
 
 
 
 
-        <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* ❌ 404 - Not Found Route */}
-        <Route path="*" element={<NotFoundPage />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
+
+      {/* ❌ 404 - Not Found Route */}
+      <Route path="*" element={<NotFoundPage />} />
 
     </Routes>
   );
