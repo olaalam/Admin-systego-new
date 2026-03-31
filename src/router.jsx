@@ -135,6 +135,7 @@ import GeideaAdd from "./Pages/Geidea/GeideaAdd";
 import GeideaEdit from "./Pages/Geidea/GeideaEdit";
 import Payable from "./Pages/Payable/Payable";
 import Recevible from "./Pages/Recevible/Recevible";
+import Ledger from "./Pages/Ledger/Ledger";
 
 
 export default function AppRoutes() {
@@ -1334,6 +1335,17 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.RECEVIBLE} action={ModuleActions.VIEW}>
               <Recevible />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      <Route path="ledger">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.LEDGER} action={ModuleActions.VIEW}>
+              <Ledger />
             </ProtectedRoute>
           }
         />

@@ -51,6 +51,7 @@ export const AppModules = {
     GEIDEA: "geidea",
     PAYABLE: "payable",
     RECEVIBLE: "recevible",
+    LEDGER: "ledger",
 
 
 };
