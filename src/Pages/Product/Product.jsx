@@ -61,7 +61,7 @@ const Product = () => {
     }
   };
 
-  // ✅ FIX: عدّل الـ search function
+  // ✅ FIX: بحث بالكود وبالاسم في نفس الوقت
   const handleSearchByCode = async (value) => {
     // ✅ امسح البحث السابق
     if (!value || value.trim() === "") {
@@ -76,14 +76,33 @@ const Product = () => {
       if (product) {
         setSearchedProduct([product]);
         toast.success(t("Productfound"));
-      } else {
-        setSearchedProduct([]);
-        toast.error(t("Product not found"));
+        return;
       }
     } catch (err) {
+      console.error("Code search failed, falling back to name search:", err);
+    }
+
+    // ✅ لو مالقاش بالكود، يدور بالاسم محلياً
+    const allProducts = data?.products ?? [];
+    const searchLower = value.toLowerCase().trim();
+    const nameResults = allProducts.filter((p) => {
+      const name = (p.name || "").toLowerCase();
+      const nameAr = (p.name_ar || "").toLowerCase();
+      const barcode = (p.barcode || "").toLowerCase();
+      const sku = (p.sku || "").toLowerCase();
+      return (
+        name.includes(searchLower) ||
+        nameAr.includes(searchLower) ||
+        barcode.includes(searchLower) ||
+        sku.includes(searchLower)
+      );
+    });
+
+    if (nameResults.length > 0) {
+      setSearchedProduct(nameResults);
+    } else {
       setSearchedProduct([]);
-      toast.error(t("Invalidcode"));
-      console.error(err);
+      toast.error(t("Product not found"));
     }
   };
 

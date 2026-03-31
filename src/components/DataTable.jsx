@@ -283,27 +283,20 @@ export default function DataTable({
             <div className="flex-1 min-w-64">
               <SmartSearch
                 value={searchTerm}
-                onChange={async (val) => {
+                onChange={(val) => {
                   setSearchTerm(val);
                   setCurrentPage(1);
 
-                  // ✅ لو المكنة عملت Scan (عادة مكنة السكنر بتبعث الكود وبسرعة)
-                  // أو لو المستخدم كتب كود وعمل Enter
-                  if (onSearchApi && val) {
-                    try {
-                      // نرسل الكود للـ API
-                      const result = await onSearchApi(val);
-
-                      // ✅ السر هنا: لو الـ API رجع نتيجة ناجحة، نصفر الـ Search Bar فوراً
-                      // عشان السكنر يشتغل تاني من غير ما نمسح القديم يدوياً
-                      if (result) {
-                        setSearchTerm("");
-                      }
-                    } catch (err) {
-                      console.error("Scanner/Search error:", err);
-                    }
+                  // ✅ لو مسح السيرش، يرجع كل البرودكت
+                  if (onSearchApi && (!val || val.trim() === "")) {
+                    onSearchApi("");
                   }
                 }}
+                onSearch={onSearchApi ? (val) => {
+                  if (val && val.trim() !== "") {
+                    onSearchApi(val);
+                  }
+                } : undefined}
               />
             </div>
           )}
