@@ -50,6 +50,7 @@ export const AppModules = {
     PAY: "pay",
     GEIDEA: "geidea",
     PAYABLE: "payable",
+    RECEVIBLE: "recevible",
 
 
 };

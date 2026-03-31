@@ -54,6 +54,7 @@ const menuItems = [
       { name: "Paymob", path: "/paymob", module: AppModules.PAY },
       { name: "Geidea", path: "/geidea", module: AppModules.PAY },
       { name: "Payable", path: "/payable", module: AppModules.PAYABLE },
+      { name: "Recevible", path: "/recevible", module: AppModules.RECEVIBLE },
     ],
   },
   {
