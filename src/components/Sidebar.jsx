@@ -94,6 +94,7 @@ const menuItems = [
     icon: MonitorPlay,
     children: [
       { name: "Cashier", path: "/cashier", module: AppModules.CASHIER },
+      { name: "Reserve", path: "/reserve", module: AppModules.RESERVE },
     ],
   },
   {

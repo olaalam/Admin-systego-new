@@ -52,6 +52,7 @@ export const AppModules = {
     PAYABLE: "payable",
     RECEVIBLE: "recevible",
     LEDGER: "ledger",
+    RESERVE: "reserve",
 
 
 };

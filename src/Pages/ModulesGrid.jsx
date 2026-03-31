@@ -67,7 +67,7 @@ const modules = [
   },
   {
     name: "POS",
-    items: ["Cashier"],
+    items: ["Cashier", "Reserve"],
     icon: MonitorPlay,
     path: "/cashier",
     color: "bg-cyan-500",
