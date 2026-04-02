@@ -16,6 +16,7 @@ import SmartSearch from "@/components/SmartSearch";
 import { useTranslation } from "react-i18next";
 import { hasPermission } from "@/lib/checkPermission";
 import { AppModules } from "@/config/modules";
+import SearchableSelect from "./SearchableSelect";
 
 export default function DataTable({
   data = [],
@@ -343,26 +344,22 @@ export default function DataTable({
           </select>
 
           {/* External custom filters (passed via filters prop) */}
+
           {filterable && filters.map((filterConfig) => (
-            <select
+            <SearchableSelect
               key={filterConfig.key}
+              label={`${t("dataTable.all")} ${filterConfig.label}`}
+              placeholder={t("Search...")}
+              options={filterConfig.options}
               value={selectedCustomFilters[filterConfig.key] || ""}
-              onChange={(e) => {
+              onChange={(val) => {
                 setSelectedCustomFilters((prev) => ({
                   ...prev,
-                  [filterConfig.key]: e.target.value,
+                  [filterConfig.key]: val,
                 }));
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-            >
-              <option value="">{t("dataTable.all")} {filterConfig.label}</option>
-              {filterConfig.options.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            />
           ))}
 
           {(searchTerm || Object.values(selectedFilters).some((v) => v) || Object.values(selectedCustomFilters).some((v) => v)) && (
