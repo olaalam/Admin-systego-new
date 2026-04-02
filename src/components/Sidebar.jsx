@@ -51,6 +51,7 @@ const menuItems = [
       { name: "Payment Methods", path: "/payment_method", module: AppModules.PAYMENT_METHOD },
       { name: "Payments", path: "/payments", module: AppModules.PAYMENT },
       { name: "Payment Ecommerce", path: "/payment-eco", module: AppModules.PAYMENT_ECO },
+      { name: "Fawry", path: "/fawry", module: AppModules.FAWRY },
       { name: "Paymob", path: "/paymob", module: AppModules.PAY },
       { name: "Geidea", path: "/geidea", module: AppModules.PAY },
       { name: "Payable", path: "/payable", module: AppModules.PAYABLE },

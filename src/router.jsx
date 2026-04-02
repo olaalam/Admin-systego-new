@@ -137,6 +137,9 @@ import Payable from "./Pages/Payable/Payable";
 import Recevible from "./Pages/Recevible/Recevible";
 import Ledger from "./Pages/Ledger/Ledger";
 import Reserve from "./Pages/Reserve/Reserve";
+import Fawry from "./Pages/Fawry/Fawry";
+import FawryAdd from "./Pages/Fawry/FawryAdd";
+import FawryEdit from "./Pages/Fawry/FawryEdit";
 
 
 export default function AppRoutes() {
@@ -1358,6 +1361,33 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.RESERVE} action={ModuleActions.VIEW}>
               <Reserve />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      <Route path="fawry">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.FAWRY} action={ModuleActions.VIEW}>
+              <Fawry />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute module={AppModules.FAWRY} action={ModuleActions.ADD}>
+              <FawryAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute module={AppModules.FAWRY} action={ModuleActions.EDIT}>
+              <FawryEdit />
             </ProtectedRoute>
           }
         />
