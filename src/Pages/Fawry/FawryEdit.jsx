@@ -46,14 +46,10 @@ const FawryEdit = () => {
             options: paymentOptions,
             required: true
         },
-        { key: "type", label: t("Type"), type: "text", required: true },
-        { key: "callbackUrl", label: t("Callback URL"), type: "text", required: true },
-        { key: "api_key", label: t("API Key"), type: "text", required: true },
-        { key: "iframe_id", label: t("Iframe ID"), type: "text", required: true },
-        { key: "integration_id", label: t("Integration ID"), type: "text", required: true },
-        { key: "hmac_key", label: t("HMAC Key"), type: "text", required: true },
-        { key: "secureKey", label: t("Secure Key"), type: "text", required: true },
         { key: "merchantCode", label: t("Merchant Code"), type: "text", required: true },
+        { key: "secureKey", label: t("Secure Key"), type: "text", required: true },
+        { key: "sandboxMode", label: t("Sandbox Mode"), type: "checkbox" },
+        { key: "isActive", label: t("Active Status"), type: "checkbox" },
     ];
 
     const handleSubmit = async (formData) => {

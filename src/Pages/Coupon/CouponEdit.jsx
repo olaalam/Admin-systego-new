@@ -52,7 +52,7 @@ export default function CouponEdit() {
         helperText: t("AmountHelper"), // "For percentage: enter value like 50 for 50%. For flat: enter fixed amount."
       },
       {
-        key: "minimum_amount",
+        key: "minimum_amount_for_use",
         label: t("MinimumAmount"),
         type: "number",
         required: false,

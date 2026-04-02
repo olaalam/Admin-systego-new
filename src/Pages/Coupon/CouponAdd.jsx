@@ -42,7 +42,7 @@ const CouponAdd = () => {
         helperText: t("AmountHelper"),
       },
       {
-        key: "minimum_amount",
+        key: "minimum_amount_for_use",
         label: t("MinimumAmount"),
         type: "number",
         required: false,
