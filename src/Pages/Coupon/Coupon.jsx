@@ -109,7 +109,7 @@ const Coupon = () => {
         item.type === "percentage" ? `${value * 100}%` : value,
     },
     {
-      key: "minimum_amount",
+      key: "minimum_amount_for_use",
       header: t("MinimumAmount"),
       filterable: false,
       render: (value) => value ?? "-",
