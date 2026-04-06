@@ -140,6 +140,7 @@ import Reserve from "./Pages/Reserve/Reserve";
 import Fawry from "./Pages/Fawry/Fawry";
 import FawryAdd from "./Pages/Fawry/FawryAdd";
 import FawryEdit from "./Pages/Fawry/FawryEdit";
+import ProductWarehouseEdit from "./Pages/ProductWarehouse/ProductWarehouseEdit";
 
 
 export default function AppRoutes() {
@@ -798,6 +799,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.WAREHOUSE} action={ModuleActions.ADD}>
               <ProductWarehouseAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute module={AppModules.WAREHOUSE} action={ModuleActions.EDIT}>
+              <ProductWarehouseEdit />
             </ProtectedRoute>
           }
         />

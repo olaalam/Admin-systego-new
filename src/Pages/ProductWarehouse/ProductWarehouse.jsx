@@ -1,136 +1,144 @@
-// src/pages/ProductWarehouse.jsx
-import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useMemo, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
+import DeleteDialog from "@/components/DeleteForm";
 import useGet from "@/hooks/useGet";
+import useDelete from "@/hooks/useDelete";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import { toast } from "react-toastify";
+import { Package } from "lucide-react";
 
 const ProductWarehouse = () => {
-  const { id } = useParams();
+  const { id: warehouseId } = useParams();
+  const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === "ar";
+  const isArabic = i18n.language === "ar";
+
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  // تخزين الـ ID في localStorage ليتم استخدامه في صفحة الإضافة والتعديل للعودة
   useEffect(() => {
-    if (id) {
-      localStorage.setItem("currentWarehouseId", id);
+    if (warehouseId) {
+      localStorage.setItem("currentWarehouseId", warehouseId);
     }
-  }, [id]);
+  }, [warehouseId]);
 
-  const { data, loading, error } = useGet(`/api/admin/product_warehouse/${id}`);
+  // جلب البيانات
+  const { data, loading, error, refetch } = useGet(`/api/admin/product_warehouse/${warehouseId}`);
 
-  const warehouse = data?.warehouse || {};
-  const products = data?.products || [];
+  // تعريف الـ Hook (المسار الافتراضي للحذف)
+  const { deleteData, loading: deleting } = useDelete("/api/admin/product_warehouse");
 
-  const columns = [
+  const warehouse = data?.data?.warehouse || data?.warehouse || {};
+  const products = data?.data?.products || data?.products || [];
+
+  // دالة الحذف بإرسال الـ Body
+  const handleDelete = async (item) => {
+    try {
+      // الترتيب حسب الـ Hook الخاص بك: (url, body)
+      // نمرر null للـ url ليستخدم الـ defaultUrl أو نكتبه صراحة
+      const body = {
+        productId: item._id, // ID المنتج من الـ JSON
+        warehouseId: warehouseId
+      };
+
+      await deleteData(null, body);
+      refetch(); // تحديث الجدول
+    } catch (err) {
+      console.error("Delete Error:", err);
+    } finally {
+      setDeleteTarget(null);
+    }
+  };
+
+  const columns = useMemo(() => [
     {
       key: "name",
-      header: t("ProductName"),
-      filterable: true,
-      render: (value, row) => (
+      header: t("Product"),
+      render: (val, row) => (
         <div className="flex items-center gap-3">
-          {/* إضافة الصورة إذا كانت متوفرة تعطي شكلاً أفضل للجدول */}
-          {row.image && (
-            <img
-              src={row.image}
-              className="w-8 h-8 rounded object-cover border"
-              alt=""
-            />
-          )}
-          <span className="text-gray-700 font-medium">
-            {value}
-          </span>
+          <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
+            {row.image ? (
+              <img src={row.image} alt={row.name} className="w-full h-full object-cover" />
+            ) : (
+              <Package className="w-5 h-5 text-gray-400" />
+            )}
+          </div>
+          <div>
+            <p className="font-bold text-gray-900">
+              {isArabic ? (row.ar_name || row.name) : row.name}
+            </p>
+            {row.prices?.[0]?.code && (
+              <p className="text-xs text-gray-500 font-mono">{row.prices[0].code}</p>
+            )}
+          </div>
         </div>
-      ),
-    },
-    {
-      // استخدام الكود بدلاً من SKU
-      key: "code",
-      header: t("ProductCode"),
-      filterable: true,
-      render: (value) => (
-        <span className="font-mono text-sm text-gray-800 bg-blue-50 px-2 py-1 rounded">
-          {value || "N/A"}
-        </span>
-      )
-    },
-    {
-      key: "price",
-      header: t("Price"),
-      filterable: false,
-      render: (price) => (
-        <span className="text-primary font-bold">
-          {price ? `${price} EGP` : "N/A"}
-        </span>
       )
     },
     {
       key: "quantity",
-      header: t("InStock"),
-      filterable: false,
-      render: (value) => (
-        <span className={`px-3 py-1 rounded-full text-xs font-bold ${value > 5 ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-600'}`}>
-          {value} {t("Units")}
+      header: t("Quantity"),
+      render: (val) => (
+        <span className="font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded-lg">
+          {val || 0}
         </span>
       )
     },
-  ];
+    {
+      key: "low_stock",
+      header: t("Low Stock Alert"),
+      render: (val) => (
+        <span className="font-bold text-rose-600 bg-rose-50 px-3 py-1 rounded-lg">
+          {val || 0}
+        </span>
+      )
+    }
+  ], [t, isArabic]);
 
   if (loading) return <Loader />;
-  {
-    error && !error.includes("404") && (
-      <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">
-        {t("Errorloadingproductwarehouses")}: {error}
-      </div>
-    )
-  }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen space-y-6">
-
-      {/* قسم تفاصيل المخزن بشكل أكثر احترافية */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
-        <h2 className="text-2xl font-black text-gray-800 mb-4 flex items-center gap-2">
-          <div className="w-2 h-8 bg-primary rounded-full"></div>
-          {warehouse.name}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
-          <div className="flex flex-col">
-            <span className="text-gray-400 mb-1">{t("Address")}</span>
-            <span className="font-semibold text-gray-700">{warehouse.address || "N/A"}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-gray-400 mb-1">{t("Phone Number")}</span>
-            <span className="font-semibold text-gray-700">{warehouse.phone || "N/A"}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-gray-400 mb-1">{t("Contact Email")}</span>
-            <span className="font-semibold text-gray-700">{warehouse.email || "N/A"}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-gray-400 mb-1">{t("Capacity")}</span>
-            <span className="font-bold text-primary">{warehouse.stock_Quantity || 0}{t("Total Items")}</span>
-          </div>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="mb-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <h1 className="text-2xl font-black text-gray-900 mb-2">
+          {t("Warehouse")}: {warehouse.name}
+        </h1>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="flex flex-col"><span className="text-gray-400">{t("Phone")}</span><span className="font-medium">{warehouse.phone}</span></div>
+          <div className="flex flex-col"><span className="text-gray-400">{t("Products")}</span><span className="font-medium">{warehouse.number_of_products}</span></div>
         </div>
       </div>
 
-      {/* جدول المنتجات */}
       <div className="bg-white rounded-2xl shadow-sm border p-3 border-gray-100">
         <DataTable
-          onAdd={() => alert("Add new category clicked!")}
-
           data={products}
           columns={columns}
           title={t("InventoryManagement")}
           addButtonText={t("AddNewProduct")}
           addPath={`/product-warehouse/add`}
+          // نستخدم stockId للتعديل لأنه المعرف الخاص بعملية الربط بين المنتج والمستودع
+          editPath={(item) => `/product-warehouse/edit/${item.stockId}`}
+          onEdit={(item) => navigate(`/product-warehouse/edit/${item.stockId}`)}
+          onAdd={() => navigate(`/product-warehouse/add`)}
+          onDelete={(item) => setDeleteTarget(item)}
           itemsPerPage={10}
           searchable={true}
           filterable={true}
           moduleName={AppModules.PRODUCT_WAREHOUSE}
         />
       </div>
+
+      {deleteTarget && (
+        <DeleteDialog
+          title={t("Remove Product")}
+          message={t("Are you sure you want to remove this product from inventory?")}
+          onConfirm={() => handleDelete(deleteTarget)}
+          onCancel={() => setDeleteTarget(null)}
+          loading={deleting}
+        />
+      )}
     </div>
   );
 };
