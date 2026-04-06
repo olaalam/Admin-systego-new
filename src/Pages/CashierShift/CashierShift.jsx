@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
@@ -19,11 +19,13 @@ import {
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
+import usePut from "@/hooks/usePut";
+
 
 const CashierShift = () => {
     const { t, i18n } = useTranslation();
     const isArabic = i18n.language === "ar";
-
+    const { putData } = usePut();
     const { data: shiftData, loading, error } = useGet("/api/admin/cashiershift");
 
     const columns = useMemo(() => [
@@ -61,15 +63,52 @@ const CashierShift = () => {
         {
             key: "status",
             header: t("Status"),
-            render: (status) => (
-                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 w-fit ${status === 'open'
-                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                    : 'bg-gray-50 text-gray-500 border border-gray-100'
-                    }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${status === 'open' ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`} />
-                    {t(status)}
-                </span>
-            )
+            render: (status, item) => {
+                const isOpen = status === 'open';
+
+                // دالة مخصصة للإغلاق فقط
+                const handleCloseShift = async () => {
+                    // إذا كانت مغلقة بالفعل لا نفعل شيئاً
+                    if (!isOpen) return;
+
+                    try {
+                        // نرسل دائماً status: 'closed' للمسار المحدد
+                        await putData({ status: 'closed' }, `/api/admin/cashiershift/close/${item._id}`);
+
+                        toast.success(t("shift_closed_successfully"));
+
+                        // تحديث البيانات ليعكس الحالة الجديدة
+                        window.location.reload();
+                    } catch (err) {
+                        toast.error(t("failed_to_close_shift"));
+                    }
+                };
+
+                return (
+                    <div className="flex items-center gap-3">
+                        {/* تعديل الزر ليكون قابلاً للضغط فقط إذا كانت الوردية مفتوحة */}
+                        <button
+                            onClick={handleCloseShift}
+                            disabled={!isOpen} // تعطيل الزر إذا كانت الوردية مغلقة
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${isOpen ? 'bg-emerald-500 hover:bg-emerald-600 cursor-pointer' : 'bg-gray-200 cursor-not-allowed'
+                                }`}
+                            title={isOpen ? t("Click to close shift") : t("Shift is already closed")}
+                        >
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${isOpen
+                                        ? (isArabic ? '-translate-x-6' : 'translate-x-6')
+                                        : (isArabic ? '-translate-x-1' : 'translate-x-1')
+                                    }`}
+                            />
+                        </button>
+
+                        {/* عرض النص المقابل للحالة */}
+                        <span className={`text-[10px] font-black uppercase ${isOpen ? 'text-emerald-600' : 'text-gray-400'}`}>
+                            {t(status)}
+                        </span>
+                    </div>
+                );
+            }
         },
         {
             key: "total_sale_amount",
@@ -119,7 +158,7 @@ const CashierShift = () => {
                 </div>
             )
         },
-    ], [t, isArabic]);
+    ], [t, isArabic, putData]);
 
     const handleExport = (dataToExport) => {
         // 1. التأكد من وجود بيانات
