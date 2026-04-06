@@ -103,7 +103,7 @@ export default function CouponEdit() {
           coupon_code: coupon.coupon_code || "",
           type: coupon.type || "percentage",
           amount: Number(coupon.amount) || 0,
-          minimum_amount: Number(coupon.minimum_amount) || "",
+          minimum_amount_for_use: Number(coupon.minimum_amount_for_use) || "",
           quantity: Number(coupon.quantity) || 1,
           // تنسيق التاريخ لـ input type="date" (YYYY-MM-DD)
           expired_date: coupon.expired_date
@@ -131,7 +131,7 @@ export default function CouponEdit() {
         coupon_code: formData.coupon_code.trim().toUpperCase(), // اختياري: تحويل إلى uppercase
         type: formData.type,
         amount: Number(formData.amount),
-        minimum_amount: formData.minimum_amount ? Number(formData.minimum_amount) : undefined,
+        minimum_amount_for_use: formData.minimum_amount_for_use ? Number(formData.minimum_amount_for_use) : undefined,
         quantity: Number(formData.quantity),
         expired_date: formData.expired_date,
       };

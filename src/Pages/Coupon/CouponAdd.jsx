@@ -87,7 +87,7 @@ const CouponAdd = () => {
         coupon_code: formData.coupon_code.trim().toUpperCase(),
         type: formData.type,
         amount: Number(formData.amount),
-        minimum_amount: formData.minimum_amount ? Number(formData.minimum_amount) : undefined,
+        minimum_amount_for_use: formData.minimum_amount_for_use ? Number(formData.minimum_amount_for_use) : undefined,
         quantity: Number(formData.quantity),
         available: Number(formData.available),
         expired_date: formData.expired_date,
