@@ -84,7 +84,7 @@ const menuItems = [
     name: "Inventory",
     icon: Warehouse,
     children: [
-      { name: "Warehouse", path: "/warehouse", module: AppModules.WAREHOUSE },
+      { name: "Branch", path: "/warehouse", module: AppModules.WAREHOUSE },
       { name: "Transfers", path: "/transfer", module: AppModules.TRANSFER },
       { name: "Purchase", path: "/purchase", module: AppModules.PURCHASE },
       { name: "Returns", path: "/purchase-return", module: AppModules.PURCHASE_RETURN },

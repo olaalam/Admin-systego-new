@@ -80,10 +80,10 @@ const WareHouse = () => {
       <DataTable
         data={warehouses}
         columns={columns}
-        title={t("Warehouse Management")}
-        addButtonText={t("Add warehouse")}
-        onAdd={() => alert("Add new warehouse clicked!")}
-        onEdit={(item) => alert(`Edit warehouse: ${item.name}`)}
+        title={t("Branch Management")}
+        addButtonText={t("Add Branch")}
+        onAdd={() => alert("Add new Branch clicked!")}
+        onEdit={(item) => alert(`Edit Branch: ${item.name}`)}
         onDelete={(item) => setDeleteTarget(item)}
         addPath="add"
         editPath={(item) => `edit/${item._id}`}

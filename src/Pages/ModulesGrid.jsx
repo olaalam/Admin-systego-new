@@ -59,7 +59,7 @@ const modules = [
   // },
   {
     name: "Inventory",
-    items: ["Warehouse", "Transfers", "Purchase", "Returns"],
+    items: ["Branch", "Transfers", "Purchase", "Returns"],
     icon: Warehouse,
     path: "/warehouse",
     color: "bg-orange-500",

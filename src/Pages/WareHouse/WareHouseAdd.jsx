@@ -4,13 +4,13 @@ import { useNavigate } from "react-router-dom";
 import AddPage from "@/components/AddPage";
 import { toast } from "react-toastify";
 // ⭐️ استيراد الـ Hook المخصص
-import usePost from "@/hooks/usePost"; 
+import usePost from "@/hooks/usePost";
 import { useTranslation } from "react-i18next";
 
 const WareHouseAdd = () => {
   const navigate = useNavigate();
-  const { t ,i18n } = useTranslation();
- const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   // ⭐️ استخدام usePost: تحديد المسار وجلب postData وحالة التحميل loading
   const { postData, loading } = usePost("/api/admin/warehouse/");
 
@@ -26,7 +26,7 @@ const WareHouseAdd = () => {
     try {
       // ⭐️ استخدام postData بدلاً من api.post
       await postData(data);
-      
+
       toast.success(t("Warehouse added successfully"));
       navigate("/warehouse");
     } catch (err) {
@@ -51,13 +51,13 @@ const WareHouseAdd = () => {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <AddPage
-        title={t("Add Warehouse")}
-        description={t("Fill in the warehouse details")}
+        title={t("Add Branch")}
+        description={t("Fill in the Branch details")}
         fields={fields}
         onSubmit={handleSubmit}
         onCancel={() => navigate("/warehouse")}
         // ⭐️ استخدام حالة التحميل من الـ Hook
-        loading={loading} 
+        loading={loading}
         initialData={{
           name: "",
           address: "",
