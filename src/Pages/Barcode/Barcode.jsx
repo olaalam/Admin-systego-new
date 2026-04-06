@@ -67,6 +67,7 @@ const PrintBarcode = () => {
           productPriceId: priceId,
           quantity: 1,
           productName: product.name,
+          brandName: product.brandId?.name || "",
           // نأخذ الكود والسعر من التنوع، وإذا لم يوجد نأخذه من المنتج الأساسي
           code: priceVariation ? priceVariation.code : (product.code || ""),
           price: priceVariation ? priceVariation.price : (product.price || 0),
@@ -183,6 +184,14 @@ const PrintBarcode = () => {
             style={{ fontSize: `${labelConfig.businessNameSize}px` }}
           >
             {businessName}
+          </div>
+        )}
+        {labelConfig.showBrand && product.brandName && (
+          <div
+            className="font-semibold text-gray-600 italic leading-none mb-1"
+            style={{ fontSize: `${labelConfig.brandSize}px` }}
+          >
+            {product.brandName}
           </div>
         )}
         {labelConfig.showProductName && (
