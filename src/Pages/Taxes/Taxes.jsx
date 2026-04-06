@@ -132,6 +132,7 @@ const Taxes = () => {
         <span className="font-medium text-gray-900 text-sm">{value}</span>
       ),
     },
+
     {
       key: "type",
       header: t("Type"),
@@ -151,8 +152,14 @@ const Taxes = () => {
       key: "amount",
       header: t("Amount"),
       filterable: false,
-      render: (value, item) =>
-        item.type === "percentage" ? `${value * 100}%` : value,
+      render: (val) => (
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-gray-900">
+            {/* نضرب في 100 لتحويل 0.14 إلى 14، ثم نطبق حل التقريب */}
+            {parseFloat((Number(val) * 100).toFixed(10))}%
+          </span>
+        </div>
+      ),
     },
     {
       key: "status",
