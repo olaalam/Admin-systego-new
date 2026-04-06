@@ -31,6 +31,7 @@ const ProductForm = ({
   const [taxes, setTaxes] = useState([]); // ✅ إضافة taxes
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [units, setUnits] = useState([]);
+  const initialFormStateRef = React.useRef(null);
   const [form, setForm] = useState({
     name: "",
     ar_name: "", // ✅ إضافة ar_name
@@ -207,6 +208,7 @@ const ProductForm = ({
         };
 
         console.log("Initial prices:", newForm.prices);
+        initialFormStateRef.current = JSON.parse(JSON.stringify(newForm));
         return newForm;
       });
 
@@ -438,8 +440,62 @@ const ProductForm = ({
       if (!finalForm.brandId) delete finalForm.brandId;
       if (!finalForm.taxesId) delete finalForm.taxesId; // ✅ حذف taxesId إذا كان فارغ
 
-      console.log("📦 Final form submitted:", finalForm);
-      await onSubmit(finalForm);
+      let payload = finalForm;
+
+      if (mode === "edit" && initialFormStateRef.current) {
+        payload = {};
+        const didPricesChange = () => {
+          if (!form.different_price) return false;
+          if (!form.prices || !initialFormStateRef.current.prices) return true;
+          // Length differs
+          if (form.prices.length !== initialFormStateRef.current.prices.length) return true;
+          
+          for (let i = 0; i < form.prices.length; i++) {
+             const curr = form.prices[i];
+             // Try to find the matching variant by options
+             const currOptions = curr.options?.slice().sort().join(",") || "";
+             const init = initialFormStateRef.current.prices.find(p => (p.options?.slice().sort().join(",") || "") === currOptions);
+             
+             if (!init) return true; // new variant added
+             if (Number(curr.price || 0) !== Number(init.price || 0)) return true;
+             if (Number(curr.cost || 0) !== Number(init.cost || 0)) return true;
+             if (Number(curr.quantity || 0) !== Number(init.quantity || 0)) return true;
+             if (Number(curr.start_quantity || 0) !== Number(init.start_quantity || 0)) return true;
+             if ((curr.code || "") !== (init.code || "")) return true;
+             if (curr.image && curr.image.startsWith("data:")) return true;
+          }
+          return false;
+        };
+
+        Object.keys(finalForm).forEach(key => {
+          if (key === "prices") {
+             if (form.different_price && didPricesChange()) {
+                payload.prices = finalForm.prices;
+             }
+          } else if (key === "image" && finalForm.image !== undefined) {
+             payload.image = finalForm.image;
+          } else if (key === "gallery_product" && finalForm.gallery_product?.length > 0) {
+             payload.gallery_product = finalForm.gallery_product;
+          } else if (JSON.stringify(form[key]) !== JSON.stringify(initialFormStateRef.current[key])) {
+             payload[key] = finalForm[key];
+          }
+        });
+        // Handle different_price explicitly in case it was deleted from finalForm
+        if (form.different_price !== initialFormStateRef.current.different_price) {
+           payload.different_price = form.different_price;
+           if (!form.different_price) {
+             payload.prices = [];
+           }
+        }
+
+        // Always ensure category/brand logic applies if they are in payload
+        if (payload.categoryId?.length === 0) delete payload.categoryId;
+        if (!payload.brandId) delete payload.brandId;
+        if (!payload.taxesId) delete payload.taxesId;
+      }
+
+      console.log("📦 Final form submitted:", payload);
+      await onSubmit(payload);
     } catch (err) {
       console.error(err);
       toast.error("Operation failed");
