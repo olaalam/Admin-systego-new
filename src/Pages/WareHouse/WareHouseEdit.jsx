@@ -11,17 +11,18 @@ import { useTranslation } from "react-i18next";
 export default function WareHouseEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-const { t ,i18n } = useTranslation();
- const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const { putData, loading: updating } = usePut(`/api/admin/warehouse/${id}`);
   const [warehouseData, setWarehouseData] = useState(null);
   const [fetching, setFetching] = useState(true);
 
   const fields = useMemo(() => [
-      { key: "name", label: t("Name"), required: true },
+    { key: "name", label: t("Name"), required: true },
     { key: "address", label: t("Address"), required: true },
     { key: "phone", label: t("Phone"), required: true },
     { key: "email", label: t("Email"), type: "email", required: true },
+    { key: "Is_Online", label: t("Is Online"), type: "checkbox", required: true },
   ], []);
 
   useEffect(() => {
@@ -41,6 +42,7 @@ const { t ,i18n } = useTranslation();
           phone: warehouse.phone || "",
           email: warehouse.email || "",
           stock_Quantity: warehouse.stock_Quantity ?? 0,
+          Is_Online: warehouse.Is_Online || false,
         });
       } catch (err) {
         toast.error(t("Failed to fetch warehouse data"));

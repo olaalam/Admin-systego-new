@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 
 const CashierAdd = () => {
   const navigate = useNavigate();
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   // ✅ جلب البنك و المخازن
   const { data, loading } = useGet("/api/admin/cashier/select");
@@ -74,6 +74,21 @@ const { t, i18n } = useTranslation();
         disabled: loading,
         placeholder: loading ? "Loading bank accounts..." : "Select bank accounts",
       },
+      {
+        key: "printer_type",
+        label: t("PrinterType"),
+        type: "select",
+        required: false,
+        options: [
+          { value: "USB", label: t("USB") },
+          { value: "NETWORK", label: t("NETWORK") },
+        ],
+        disabled: loading,
+        placeholder: loading ? "Loading printer type..." : "Select printer type",
+      },
+      { key: "printer_IP", label: t("PrinterIP"), required: false },
+      { key: "printer_port", label: t("PrinterPort"), required: false },
+      { key: "printer_name", label: t("PrinterName"), required: false },
 
       {
         key: "status",

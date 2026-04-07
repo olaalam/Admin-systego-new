@@ -19,6 +19,7 @@ const WareHouseAdd = () => {
     { key: "address", label: t("Address"), required: true },
     { key: "phone", label: t("Phone"), required: true },
     { key: "email", label: t("Email"), type: "email", required: true },
+    { key: "Is_Online", label: t("Is Online"), type: "checkbox", required: true },
     // إضافة حقل اختياري لتحديد ما إذا كان المستودع هو المستودع الافتراضي
   ];
 
@@ -63,6 +64,7 @@ const WareHouseAdd = () => {
           address: "",
           phone: "",
           email: "",
+          Is_Online: false,
           // stock_Quantity: 0, // 💡 هذا الحقل قد يكون غير ضروري في initialData لصفحة الإضافة
         }}
       />

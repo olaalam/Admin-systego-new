@@ -6,11 +6,12 @@ import usePut from "@/hooks/usePut";
 import useGet from "@/hooks/useGet";
 import api from "@/api/api";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 export default function CashierEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const { t, i18n } = useTranslation();
   const { putData, loading: updating } = usePut(`/api/admin/cashier/${id}`);
   const { data: selectData, loading: loadingSelect } = useGet(
     "/api/admin/cashier/select"
@@ -52,6 +53,21 @@ export default function CashierEdit() {
         options: bankAccountOptions,
         disabled: loadingSelect,
       },
+      {
+        key: "printer_type",
+        label: t("PrinterType"),
+        type: "select",
+        required: false,
+        options: [
+          { value: "USB", label: t("USB") },
+          { value: "NETWORK", label: t("NETWORK") },
+        ],
+        disabled: loadingSelect,
+        placeholder: loadingSelect ? "Loading printer type..." : "Select printer type",
+      },
+      { key: "printer_IP", label: t("PrinterIP"), required: false },
+      { key: "printer_port", label: t("PrinterPort"), required: false },
+      { key: "printer_name", label: t("PrinterName"), required: false },
       {
         key: "status",
         label: "Status",

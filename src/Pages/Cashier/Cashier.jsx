@@ -16,6 +16,7 @@ const Cashier = () => {
   const { data: accountData } = useGet("/api/admin/bank_account");
   const { deleteData, loading: deleting } = useDelete("/api/admin/cashier/delete");
 
+
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showBankAccountsModal, setShowBankAccountsModal] = useState(false);
   const [selectedBankAccounts, setSelectedBankAccounts] = useState([]);
@@ -138,6 +139,26 @@ const Cashier = () => {
       header: t("BankAccounts"),
       render: renderBankAccounts,
     },
+    {
+      key: "printer_type",
+      header: t("PrinterType"),
+      render: (type) => type || <span className="text-gray-400">No Type</span>,
+    },
+    {
+      key: "printer_IP",
+      header: t("PrinterIP"),
+      render: (ip) => ip || <span className="text-gray-400">No IP</span>,
+    },
+    {
+      key: "printer_port",
+      header: t("PrinterPort"),
+      render: (port) => port || <span className="text-gray-400">No Port</span>,
+    },
+    {
+      key: "printer_name",
+      header: t("PrinterName"),
+      render: (name) => name || <span className="text-gray-400">No Name</span>,
+    },
   ];
 
   if (loading) return <Loader />;
@@ -159,6 +180,7 @@ const Cashier = () => {
         addPath="add"
         editPath={(item) => `edit/${item._id}`}
         onAdd={() => alert("Add new brand clicked!")}
+        onEdit={(item) => alert(`Edit ${item.name}`)}
         onDelete={(item) => setDeleteTarget(item)}
         searchable={true}
         filterable={true}
