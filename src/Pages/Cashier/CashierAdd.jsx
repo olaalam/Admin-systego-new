@@ -56,14 +56,7 @@ const CashierAdd = () => {
         placeholder: loading ? "Loading warehouses..." : "Select warehouse",
       },
 
-      {
-        key: "balance",
-        label: t("InitialBalance"),
-        type: "number",
-        required: true,
-        min: 0,
-        placeholder: "e.g. 90000",
-      },
+
 
       {
         key: "bankAccounts",
@@ -144,7 +137,7 @@ const CashierAdd = () => {
           name: "",
           ar_name: "",
           warehouse_id: "",
-          balance: "",
+
           bankAccounts: [],
           status: true,
         }}
