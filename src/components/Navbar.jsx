@@ -84,6 +84,9 @@ export default function Navbar() {
    */
   const getClientPayload = () => {
     // نستخدم نفس المنطق اللي حددناه فوق
+    if (isLocal) {
+      return { clientName: "rojada" };
+    }
     if (isSubdomain) {
       return { clientName: parts[0] };
     }
@@ -99,27 +102,9 @@ export default function Navbar() {
       const checkData = await postData(payload, "/api/admin/version-updater");
 
       if (checkData?.success && checkData?.data?.result?.success) {
-        const { frontend, backend } = checkData.data.result.data;
 
-        // التحقق من المصفوفات الفارغة بناءً على طلبك
-        const isFrontAddedEmpty = frontend?.diff?.added?.length === 0;
-        const isBackAddedEmpty = backend?.diff?.added?.length === 0;
-
-        let syncEndpoint = "";
-
-        // تحديد الـ Endpoint المناسب للمزامنة
-        if (isFrontAddedEmpty && isBackAddedEmpty) {
-          syncEndpoint = "/api/admin/version-updater/sync";
-        } else if (isFrontAddedEmpty) {
-          syncEndpoint = "/api/admin/version-updater/sync-frontend";
-        } else if (isBackAddedEmpty) {
-          syncEndpoint = "/api/admin/version-updater/sync-backend";
-        } else {
-          syncEndpoint = "/api/admin/version-updater/sync";
-        }
-
-        // 2. طلب المزامنة الفعلي (Sync)
-        const syncData = await postData(payload, syncEndpoint);
+        // 2. طلب المزامنة الفعلي للجهتين (Sync) لضمان عدم وجود أي فقد في الملفات
+        const syncData = await postData(payload, "/api/admin/version-updater/sync");
 
         if (syncData) {
           // الانتظار قليلاً ليقرأ المستخدم رسالة النجاح من الـ Toast ثم عمل Reload
