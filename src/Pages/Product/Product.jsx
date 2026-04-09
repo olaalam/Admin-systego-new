@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 import usePost from "@/hooks/usePost";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
-
+import api from "@/api/api";
 const Product = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/product");
   const { data: catData } = useGet("/api/admin/category");
@@ -21,7 +21,7 @@ const Product = () => {
   const isRTL = i18n.language === "ar";
   // ✅ FIX: غيّر من [] لـ null
   const [searchedProduct, setSearchedProduct] = useState(null);
-
+  const [updatingId, setUpdatingId] = useState(null);
   const categoryOptions = (catData?.categories || []).map((c) => ({ label: c.name, value: c._id }));
   const brandOptions = (brandData?.brands || []).map((b) => ({ label: b.name, value: b._id }));
 
@@ -47,6 +47,22 @@ const Product = () => {
       return `data:image/jpeg;base64,${imageStr}`;
     }
     return imageStr;
+  };
+
+  const handleOnlineToggle = async (item) => {
+    const newStatus = !item.Is_Online;
+    setUpdatingId(item._id);
+    try {
+      // استخدام API الـ Put لتحديث الحالة
+      await api.put(`/api/admin/product/${item._id}`, { Is_Online: newStatus });
+      toast.success(t("Statusupdatedsuccessfully"));
+      refetch(); // إعادة جلب البيانات لتحديث الجدول
+    } catch (err) {
+      toast.error(t("FailedToUpdateStatus"));
+      console.error(err);
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   // ✅ FIX: الآن هيشتغل صح
@@ -437,6 +453,29 @@ const Product = () => {
       header: t("Features"),
       filterable: false,
       render: (_, item) => renderFeatures(item),
+    },
+    {
+      key: "Is_Online",
+      header: t("Is Online"),
+      filterable: false,
+      render: (value, item) => (
+        <div className="flex items-center gap-2">
+          <label className="relative inline-flex items-center cursor-pointer scale-90">
+            <input
+              type="checkbox"
+              checked={value}
+              onChange={() => handleOnlineToggle(item)}
+              disabled={updatingId === item._id}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 shadow-sm"></div>
+          </label>
+          {/* إظهار مؤشر تحميل صغير بجانب المفتاح عند التحديث */}
+          {updatingId === item._id && (
+            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          )}
+        </div>
+      ),
     },
   ];
 
