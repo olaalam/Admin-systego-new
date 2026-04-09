@@ -85,7 +85,7 @@ export default function Navbar() {
   const getClientPayload = () => {
     // نستخدم نفس المنطق اللي حددناه فوق
     if (isLocal) {
-      return { clientName: "rojada" };
+      return { clientName: "alexmuscle" };
     }
     if (isSubdomain) {
       return { clientName: parts[0] };

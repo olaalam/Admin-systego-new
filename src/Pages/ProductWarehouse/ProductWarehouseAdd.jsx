@@ -2,187 +2,235 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Trash2, Package, Search } from "lucide-react";
+import { Trash2, Search, Loader2, CheckSquare, CheckCircle2, Square } from "lucide-react";
 import AddPage from "@/components/AddPage";
-import Loader from "@/components/Loader";
-import useGet from "@/hooks/useGet";
 import api from "@/api/api";
 import SmartSearch from "@/components/SmartSearch";
 import { useTranslation } from "react-i18next";
 
 const ProductWarehouseAdd = () => {
   const navigate = useNavigate();
-  const { data: productsData, loading: productsLoading } = useGet("/api/admin/product");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === "ar";
-  // جلب معرف المخزن من localStorage
+  const { t } = useTranslation();
   const warehouseId = localStorage.getItem("currentWarehouseId");
-  const products = productsData?.products || [];
+
+  const handleSearchByCode = async (code) => {
+    if (!code) return toast.warn(t("Please enter a code first"));
+    setIsSearching(true);
+    try {
+      const response = await api.post("/api/admin/product/code", { code });
+      setSearchResults(response.data?.data?.products || []);
+    } catch (err) {
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const fields = [
+    // حقول القيم الافتراضية (Global) - اختيارية لتسريع الإدخال
     {
-      key: "productId",
-      label: t("SelectProduct"),
+      key: "default_qty",
+      label: t("Default Quantity"),
+      type: "number",
+      placeholder: "1",
+    },
+    {
+      key: "default_low",
+      label: t("Default Low Stock"),
+      type: "number",
+      placeholder: "5",
+    },
+    // الحقل المخصص للبحث والجدول
+    {
+      key: "items",
       type: "custom",
-      required: true,
       render: (formData, setFormData) => {
-        // العثور على المنتج المختار حالياً من المصفوفة الكاملة
-        const selectedProduct = products.find(p => (p._id || p.id) === formData.productId);
+        const selectedItems = formData.items || [];
+        const selectedIds = selectedItems.map(i => i.productId);
 
-        // منطق الفلترة للبحث اللحظي
-        const searchTerm = (formData.searchProduct || "").toLowerCase().trim();
-        const suggestions = searchTerm.length > 0
-          ? products.filter(p =>
-            (p.name && p.name.toLowerCase().includes(searchTerm)) ||
-            (p.prices?.some(pr => pr.code && pr.code.toString().includes(searchTerm)))
-          ).slice(0, 6) // تقليل العدد لشكل أنظف في صفحة المخزن
-          : [];
+        const toggleProduct = (product) => {
+          if (selectedIds.includes(product._id)) {
+            setFormData(prev => ({
+              ...prev,
+              items: prev.items.filter(item => item.productId !== product._id)
+            }));
+          } else {
+            setFormData(prev => ({
+              ...prev,
+              items: [...prev.items, {
+                productId: product._id,
+                name: product.name,
+                image: product.image,
+                quantity: formData.default_qty || 1, // بياخد من القيمة الافتراضية لو موجودة
+                low_stock: formData.default_low || 5
+              }]
+            }));
+          }
+        };
+
+        const handleSelectAll = () => {
+          const newItems = [...selectedItems];
+          searchResults.forEach(p => {
+            if (!selectedIds.includes(p._id)) {
+              newItems.push({
+                productId: p._id,
+                name: p.name,
+                image: p.image,
+                quantity: formData.default_qty || 1,
+                low_stock: formData.default_low || 5
+              });
+            }
+          });
+          setFormData(prev => ({ ...prev, items: newItems }));
+        };
+
+        const updateItemField = (id, field, value) => {
+          setFormData(prev => ({
+            ...prev,
+            items: prev.items.map(item =>
+              item.productId === id ? { ...item, [field]: value } : item
+            )
+          }));
+        };
 
         return (
           <div className="space-y-4">
-            {!formData.productId ? (
-              <div className="relative z-30">
-                <SmartSearch
-                  value={formData.searchProduct || ""}
-                  onChange={(val) => setFormData(prev => ({ ...prev, searchProduct: val }))}
-                  placeholder={t("ScanOrTypeProduct")}
-                />
-
-                {/* قائمة الاقتراحات المنسدلة */}
-                {suggestions.length > 0 && (
-                  <div className="absolute w-full bg-white border border-gray-200 rounded-xl shadow-2xl mt-2 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                    {suggestions.map((p) => (
-                      <div
-                        key={p._id || p.id}
-                        className="px-4 py-3 hover:bg-red-50 cursor-pointer flex items-center justify-between transition-colors border-b last:border-b-0"
-                        onClick={() => {
-                          setFormData(prev => ({
-                            ...prev,
-                            productId: p._id || p.id,
-                            searchProduct: ""
-                          }));
-                          toast.info(`Selected: ${p.name}`);
-                        }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg border bg-gray-50 overflow-hidden flex-shrink-0">
-                            <img
-                              src={p.image || "/placeholder.png"}
-                              alt=""
-                              className="w-full h-full object-cover"
-                              onError={(e) => e.target.src = "https://via.placeholder.com/40"}
-                            />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-bold text-gray-700">{p.name}</span>
-                            <span className="text-xs text-gray-400 font-mono">{t("Code")}: {p.prices?.[0]?.code || 'N/A'}</span>
-                          </div>
-                        </div>
-                        <div className="text-red-600">
-                          <Search size={14} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* عرض الكارت عند اختيار منتج */
-              <div className="flex items-center justify-between p-4 bg-white border-2 border-red-100 rounded-xl shadow-sm animate-in zoom-in-95 duration-200">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl border-2 border-red-50 overflow-hidden bg-gray-50 shadow-inner">
-                    <img
-                      src={selectedProduct?.image || "/placeholder.png"}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h4 className="text-md font-black text-gray-800">{selectedProduct?.name}</h4>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded-full uppercase">
-                        {t("Selected")}
-                      </span>
-                      <span className="text-xs text-gray-400 font-mono">
-                        #{selectedProduct?.prices?.[0]?.code || 'No Code'}
-                      </span>
-                    </div>
-                  </div>
+            {/* منطقة البحث */}
+            <div className="relative z-30">
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <SmartSearch
+                    value={formData.searchProduct || ""}
+                    onChange={(val) => setFormData(prev => ({ ...prev, searchProduct: val }))}
+                    placeholder={t("Search by name / code / scan...")}
+                  />
                 </div>
                 <button
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, productId: "" }))}
-                  className="p-2.5 text-red-500 hover:bg-red-50 rounded-full transition-all border border-transparent hover:border-red-100"
-                  title="Remove and change product"
+                  onClick={() => handleSearchByCode(formData.searchProduct)}
+                  className="px-5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all"
                 >
-                  <Trash2 size={20} />
+                  {isSearching ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
                 </button>
+              </div>
+
+              {/* نتائج البحث */}
+              {searchResults.length > 0 && (
+                <div className="absolute w-full bg-white border border-gray-200 rounded-xl shadow-2xl mt-2 z-50 overflow-hidden">
+                  <div className="p-2 bg-gray-50 border-b flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("Results")}</span>
+                    <button
+                      type="button"
+                      onClick={handleSelectAll}
+                      className="text-xs bg-red-50 text-red-600 px-3 py-1 rounded-lg font-bold hover:bg-red-100 transition-colors flex items-center gap-1"
+                    >
+                      <CheckSquare size={14} /> {t("Select All")}
+                    </button>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {searchResults.map((p) => (
+                      <div key={p._id} className="px-4 py-3 hover:bg-gray-50 flex items-center justify-between border-b last:border-b-0">
+                        <div className="flex items-center gap-3">
+                          <img src={p.image || "/placeholder.png"} className="w-10 h-10 rounded-lg object-cover border" />
+                          <span className="text-sm font-bold text-gray-700">{p.name}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => toggleProduct(p)}
+                          className={`p-1.5 rounded-lg border transition-all ${selectedIds.includes(p._id) ? "bg-green-500 border-green-500 text-white" : "border-gray-200 text-gray-400 hover:border-red-300"}`}
+                        >
+                          {selectedIds.includes(p._id) ? <CheckCircle2 size={18} /> : <Square size={18} />}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* قائمة المنتجات المختارة - هنا كل منتج له الـ 2 inputs بتوعه */}
+            {selectedItems.length > 0 && (
+              <div className="mt-6 space-y-3">
+                <h3 className="text-xs font-black text-gray-400 uppercase px-1">{t("Selected Products Configuration")}</h3>
+                {selectedItems.map((item) => (
+                  <div key={item.productId} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <img src={item.image || "/placeholder.png"} className="w-10 h-10 rounded-xl object-cover" />
+                        <span className="text-sm font-bold text-gray-800">{item.name}</span>
+                      </div>
+                      <button type="button" onClick={() => toggleProduct({ _id: item.productId })} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+
+                    {/* الـ 2 Inputs لكل منتج */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase">{t("Quantity")}</label>
+                        <input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => updateItemField(item.productId, "quantity", e.target.value)}
+                          className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase">{t("Low Stock Alert")}</label>
+                        <input
+                          type="number"
+                          value={item.low_stock}
+                          onChange={(e) => updateItemField(item.productId, "low_stock", e.target.value)}
+                          className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         );
       },
     },
-    {
-      key: "quantity",
-      label: t("Initial Stock Quantity"),
-      type: "number",
-      required: true,
-      placeholder: t("How many pieces are you adding?"),
-      min: 1,
-    },
-    {
-      key: "low_stock",
-      label: t("Low Stock Alert Level"),
-      type: "number",
-      required: true,
-      placeholder: t("Alert me when stock falls below..."),
-      min: 0,
-    },
   ];
 
   const handleSubmit = async (formData) => {
-    if (!warehouseId) return toast.error(t("warehouseIdMissing"));
-    if (!formData.productId) return toast.error(t("selectProduct"));
-
+    if (!warehouseId) return toast.error(t("Warehouse ID missing"));
+    if (!formData.items?.length) return toast.error(t("Select at least one product"));
 
     setLoading(true);
     try {
       const payload = {
-        productId: formData.productId,
         warehouseId: warehouseId,
-        quantity: Number(formData.quantity),
-        low_stock: Number(formData.low_stock),
+        products: formData.items.map(item => ({
+          productId: item.productId,
+          quantity: Number(item.quantity),
+          low_stock: Number(item.low_stock)
+        }))
       };
 
       await api.post("/api/admin/product_warehouse", payload);
-      toast.success(t("Inventory updated successfully"));
+      toast.success(t("Products added to inventory successfully"));
       navigate(`/product-warehouse/${warehouseId}`);
     } catch (err) {
-      toast.error(err.response?.data?.message || t("Failed to add product to warehouse"));
+      toast.error(err.response?.data?.message || t("Error"));
     } finally {
       setLoading(false);
     }
   };
 
-  if (productsLoading) return <Loader />;
-
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <AddPage
-        title={t("title")}
-        description={t("description")}
-        submitButtonText={t("submit")}
+        title={t("Add Inventory")}
         fields={fields}
         onSubmit={handleSubmit}
         onCancel={() => navigate(`/product-warehouse/${warehouseId}`)}
-        initialData={{
-          productId: "",
-          quantity: "",
-          low_stock: "",
-          searchProduct: ""
-        }}
+        initialData={{ items: [], searchProduct: "", default_qty: "", default_low: "" }}
         loading={loading}
       />
     </div>
