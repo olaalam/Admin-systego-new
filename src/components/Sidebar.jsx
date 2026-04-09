@@ -37,6 +37,8 @@ const menuItems = [
       { name: "Brand", path: "/brand", module: AppModules.BRAND },
       { name: "Attribute", path: "/attribute", module: AppModules.VARIATION },
       { name: "Units", path: "/unit", module: AppModules.UNITS },
+      { name: "Expiring Products", path: "/expiring", module: AppModules.EXPIRING },
+
     ],
   },
   {

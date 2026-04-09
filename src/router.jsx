@@ -141,6 +141,7 @@ import Fawry from "./Pages/Fawry/Fawry";
 import FawryAdd from "./Pages/Fawry/FawryAdd";
 import FawryEdit from "./Pages/Fawry/FawryEdit";
 import ProductWarehouseEdit from "./Pages/ProductWarehouse/ProductWarehouseEdit";
+import Expiring from "./Pages/Expiring/Expiring";
 
 
 export default function AppRoutes() {
@@ -1397,6 +1398,17 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.FAWRY} action={ModuleActions.EDIT}>
               <FawryEdit />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      <Route path="expiring">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.EXPIRING} action={ModuleActions.VIEW}>
+              <Expiring />
             </ProtectedRoute>
           }
         />

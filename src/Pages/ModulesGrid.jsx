@@ -27,7 +27,7 @@ const modules = [
   },
   {
     name: "Product Management",
-    items: ["Product", "Category", "Brand", "Attribute", "Units"],
+    items: ["Product", "Category", "Brand", "Attribute", "Units", "Expiring"],
     icon: Layers,
     path: "/product",
     color: "bg-rose-500",
