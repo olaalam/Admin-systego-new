@@ -21,7 +21,25 @@ const ProductWarehouseAdd = () => {
     setIsSearching(true);
     try {
       const response = await api.post("/api/admin/product/code", { code });
-      setSearchResults(response.data?.data?.products || []);
+      const products = response.data?.data?.products || [];
+
+      // For products with different_price=true, fetch full product data to get prices array
+      const enriched = await Promise.all(
+        products.map(async (product) => {
+          if (product.different_price) {
+            try {
+              const detailRes = await api.get(`/api/admin/product/${product._id}`);
+              const fullProduct = detailRes.data?.data?.product || detailRes.data?.product;
+              if (fullProduct) return { ...product, prices: fullProduct.prices || [] };
+            } catch {
+              // fallback to original if detail fetch fails
+            }
+          }
+          return product;
+        })
+      );
+
+      setSearchResults(enriched);
     } catch (err) {
       setSearchResults([]);
     } finally {
@@ -49,7 +67,38 @@ const ProductWarehouseAdd = () => {
       type: "custom",
       render: (formData, setFormData) => {
         const selectedItems = formData.items || [];
-        const selectedIds = selectedItems.map(i => i.productId);
+        const selectedIds = Array.from(new Set(selectedItems.map(i => i.productId)));
+
+        const buildProductItems = (product, defaultQty, defaultLow) => {
+          const hasVariations = product.prices && product.prices.length > 0;
+
+          // Always add the main product row first
+          const items = [{
+            productId: product._id,
+            productPriceId: null,
+            name: product.name,
+            image: product.image,
+            quantity: defaultQty || 1,
+            low_stock: defaultLow || 5
+          }];
+
+          // If has variations, also add a row for each variation
+          if (hasVariations) {
+            product.prices.forEach(price => {
+              const variationName = price.size || price.color || price.name || price.code || t("Variation");
+              items.push({
+                productId: product._id,
+                productPriceId: price._id || price.id,
+                name: `${product.name} - ${variationName}`,
+                image: product.image,
+                quantity: defaultQty || 1,
+                low_stock: defaultLow || 5
+              });
+            });
+          }
+
+          return items;
+        };
 
         const toggleProduct = (product) => {
           if (selectedIds.includes(product._id)) {
@@ -58,40 +107,31 @@ const ProductWarehouseAdd = () => {
               items: prev.items.filter(item => item.productId !== product._id)
             }));
           } else {
+            const newItems = buildProductItems(product, formData.default_qty, formData.default_low);
             setFormData(prev => ({
               ...prev,
-              items: [...prev.items, {
-                productId: product._id,
-                name: product.name,
-                image: product.image,
-                quantity: formData.default_qty || 1, // بياخد من القيمة الافتراضية لو موجودة
-                low_stock: formData.default_low || 5
-              }]
+              items: [...prev.items, ...newItems]
             }));
           }
         };
 
         const handleSelectAll = () => {
-          const newItems = [...selectedItems];
-          searchResults.forEach(p => {
-            if (!selectedIds.includes(p._id)) {
-              newItems.push({
-                productId: p._id,
-                name: p.name,
-                image: p.image,
-                quantity: formData.default_qty || 1,
-                low_stock: formData.default_low || 5
-              });
+          let newItems = [...selectedItems];
+          searchResults.forEach(product => {
+            if (!selectedIds.includes(product._id)) {
+              newItems = [...newItems, ...buildProductItems(product, formData.default_qty, formData.default_low)];
             }
           });
           setFormData(prev => ({ ...prev, items: newItems }));
         };
 
-        const updateItemField = (id, field, value) => {
+        const updateItemField = (productId, productPriceId, field, value) => {
           setFormData(prev => ({
             ...prev,
             items: prev.items.map(item =>
-              item.productId === id ? { ...item, [field]: value } : item
+              item.productId === productId && item.productPriceId === productPriceId
+                ? { ...item, [field]: value } 
+                : item
             )
           }));
         };
@@ -156,7 +196,7 @@ const ProductWarehouseAdd = () => {
               <div className="mt-6 space-y-3">
                 <h3 className="text-xs font-black text-gray-400 uppercase px-1">{t("Selected Products Configuration")}</h3>
                 {selectedItems.map((item) => (
-                  <div key={item.productId} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-4 animate-in fade-in slide-in-from-top-2">
+                  <div key={`${item.productId}-${item.productPriceId || 'main'}`} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-4 animate-in fade-in slide-in-from-top-2">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
                         <img src={item.image || "/placeholder.png"} className="w-10 h-10 rounded-xl object-cover" />
@@ -174,7 +214,7 @@ const ProductWarehouseAdd = () => {
                         <input
                           type="number"
                           value={item.quantity}
-                          onChange={(e) => updateItemField(item.productId, "quantity", e.target.value)}
+                          onChange={(e) => updateItemField(item.productId, item.productPriceId, "quantity", e.target.value)}
                           className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
                         />
                       </div>
@@ -183,7 +223,7 @@ const ProductWarehouseAdd = () => {
                         <input
                           type="number"
                           value={item.low_stock}
-                          onChange={(e) => updateItemField(item.productId, "low_stock", e.target.value)}
+                          onChange={(e) => updateItemField(item.productId, item.productPriceId, "low_stock", e.target.value)}
                           className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
                         />
                       </div>
@@ -208,6 +248,7 @@ const ProductWarehouseAdd = () => {
         warehouseId: warehouseId,
         products: formData.items.map(item => ({
           productId: item.productId,
+          productPriceId: item.productPriceId || null,
           quantity: Number(item.quantity),
           low_stock: Number(item.low_stock)
         }))
