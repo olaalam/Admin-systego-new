@@ -55,11 +55,6 @@ const VariablePricesDialog = ({ product, onCancel }) => {
           {hasPrices ? (
             <div className="space-y-3">
               {prices.map((priceItem, idx) => {
-                const variation = priceItem.variations?.[0];
-                const variationName = variation?.name || "Variation";
-                const options =
-                  variation?.options?.map((opt) => opt.name).join(" / ") || "";
-
                 return (
                   <div
                     key={priceItem._id || idx}
@@ -67,19 +62,24 @@ const VariablePricesDialog = ({ product, onCancel }) => {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">
-                          {variationName}
-                        </p>
-
-                        {options && (
-                          <p className="text-xs text-gray-600 mt-1">
-                            <span className="font-medium">Options:</span>{" "}
-                            {options}
-                          </p>
-                        )}
+                        {priceItem.variations?.map((variation, vIdx) => (
+                          <div key={vIdx} className="mb-2 last:mb-0">
+                            <p className="text-sm font-bold text-gray-900">
+                              {variation.name}
+                            </p>
+                            {variation.options && (
+                              <p className="text-xs text-gray-600 mt-0.5">
+                                <span className="font-medium">Options:</span>{" "}
+                                {variation.options
+                                  .map((opt) => opt.name)
+                                  .join(" / ")}
+                              </p>
+                            )}
+                          </div>
+                        ))}
 
                         {priceItem.code && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 mt-2">
                             <span className="font-medium">Code:</span>{" "}
                             {priceItem.code}
                           </p>
@@ -113,7 +113,7 @@ const VariablePricesDialog = ({ product, onCancel }) => {
                           <img
                             key={imgIdx}
                             src={img}
-                            alt={`${variationName} - ${imgIdx + 1}`}
+                            alt={`variation-${imgIdx + 1}`}
                             className="h-14 w-14 object-cover rounded-md border border-gray-200 hover:border-red-400 transition-colors"
                           />
                         ))}
