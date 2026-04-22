@@ -7,6 +7,7 @@ import AddPage from "@/components/AddPage";
 import api from "@/api/api";
 import SmartSearch from "@/components/SmartSearch";
 import { useTranslation } from "react-i18next";
+import useGet from "@/hooks/useGet";
 
 const ProductWarehouseAdd = () => {
   const navigate = useNavigate();
@@ -15,6 +16,8 @@ const ProductWarehouseAdd = () => {
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
   const warehouseId = localStorage.getItem("currentWarehouseId");
+  const { data: selectData } = useGet("/api/admin/product/select");
+  const allVariations = selectData?.variations || [];
 
   const handleSearchByCode = async (code) => {
     if (!code) return toast.warn(t("Please enter a code first"));
@@ -85,7 +88,33 @@ const ProductWarehouseAdd = () => {
           // If has variations, also add a row for each variation
           if (hasVariations) {
             product.prices.forEach(price => {
-              const variationName = price.size || price.color || price.name || price.code || t("Variation");
+              let derivedName = price.name;
+              
+              if (!derivedName) {
+                const optionIds = [];
+                price.variations?.forEach((v) => {
+                  v.options?.forEach((opt) => optionIds.push(opt?._id || opt));
+                });
+                if (price.options && Array.isArray(price.options)) {
+                  price.options.forEach(opt => optionIds.push(opt?._id || opt));
+                }
+
+                if (optionIds.length > 0) {
+                  const optionNames = optionIds.map(optId => {
+                    const variation = allVariations.find(v => v.options?.some(o => o._id === optId));
+                    const option = variation?.options?.find(o => o._id === optId);
+                    if (option && variation) {
+                      return `${variation.ar_name || variation.name}: ${option.ar_name || option.name}`;
+                    }
+                    return option ? (option.ar_name || option.name) : null;
+                  }).filter(Boolean);
+                  
+                  if (optionNames.length > 0) derivedName = optionNames.join(" / ");
+                }
+              }
+
+              const variationName = derivedName || price.ar_name || price.name || price.title || price.variation_name || price.flavour || price.size || price.color || price.code || t("Variation");
+              
               items.push({
                 productId: product._id,
                 productPriceId: price._id || price.id,
@@ -102,16 +131,22 @@ const ProductWarehouseAdd = () => {
 
         const toggleProduct = (product) => {
           if (selectedIds.includes(product._id)) {
+            // في حالة الحذف من الـ Selected Products
             setFormData(prev => ({
               ...prev,
-              items: prev.items.filter(item => item.productId !== product._id)
+              items: (prev.items || []).filter(item => item.productId !== product._id)
             }));
           } else {
+            // في حالة الإضافة
             const newItems = buildProductItems(product, formData.default_qty, formData.default_low);
             setFormData(prev => ({
               ...prev,
-              items: [...prev.items, ...newItems]
+              items: [...(prev.items || []), ...newItems],
+              searchProduct: "" // تفريغ حقل البحث
             }));
+
+            // التعديل هنا: قفل القائمة بعد الاختيار
+            setSearchResults([]);
           }
         };
 
@@ -122,15 +157,25 @@ const ProductWarehouseAdd = () => {
               newItems = [...newItems, ...buildProductItems(product, formData.default_qty, formData.default_low)];
             }
           });
-          setFormData(prev => ({ ...prev, items: newItems }));
+
+          setFormData(prev => ({
+            ...prev,
+            items: newItems,
+            searchProduct: "" // تفريغ حقل البحث
+          }));
+
+          // التعديل هنا: قفل القائمة بعد اختيار الكل
+          setSearchResults([]);
         };
+
+
 
         const updateItemField = (productId, productPriceId, field, value) => {
           setFormData(prev => ({
             ...prev,
-            items: prev.items.map(item =>
+            items: (prev.items || []).map(item =>
               item.productId === productId && item.productPriceId === productPriceId
-                ? { ...item, [field]: value } 
+                ? { ...item, [field]: value }
                 : item
             )
           }));

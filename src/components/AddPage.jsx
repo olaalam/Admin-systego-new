@@ -49,7 +49,8 @@ const AddPage = ({
       }, {});
       setFormData(defaults);
     }
-  }, [JSON.stringify(initialData), fields]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(initialData)]);
 
   const handleChange = (key, value) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
