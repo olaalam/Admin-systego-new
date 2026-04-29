@@ -142,6 +142,8 @@ import FawryAdd from "./Pages/Fawry/FawryAdd";
 import FawryEdit from "./Pages/Fawry/FawryEdit";
 import ProductWarehouseEdit from "./Pages/ProductWarehouse/ProductWarehouseEdit";
 import Expiring from "./Pages/Expiring/Expiring";
+import PorfileEdit from "./Pages/Porfile/PorfileEdit";
+import Porfile from "./Pages/Porfile/Porfile";
 
 
 export default function AppRoutes() {
@@ -1409,6 +1411,25 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.EXPIRING} action={ModuleActions.VIEW}>
               <Expiring />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      <Route path="profile">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.PROFILE} action={ModuleActions.VIEW}>
+              <Porfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute module={AppModules.PROFILE} action={ModuleActions.EDIT}>
+              <PorfileEdit />
             </ProtectedRoute>
           }
         />

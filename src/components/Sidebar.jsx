@@ -114,6 +114,7 @@ const menuItems = [
     icon: Users,
     children: [
       { name: "Admin", path: "/admin", module: AppModules.ADMIN },
+      { name: "Profile", path: "/profile", module: AppModules.PROFILE },
     ],
   },
   {

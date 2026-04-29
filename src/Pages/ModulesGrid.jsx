@@ -13,6 +13,7 @@ import {
   BarChart3,
   Settings,
   ChevronRight,
+
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -83,7 +84,7 @@ const modules = [
   },
   {
     name: "HRM",
-    items: ["Admin"],
+    items: ["Admin", "Profile"],
     icon: Users,
     path: "/admin",
     color: "bg-pink-500",

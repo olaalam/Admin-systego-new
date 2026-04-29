@@ -53,6 +53,7 @@ export const AppModules = {
     RECEVIBLE: "recevible",
     LEDGER: "ledger",
     RESERVE: "reserve",
+    PROFILE: "profile",
 
 
 };
