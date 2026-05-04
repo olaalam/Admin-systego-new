@@ -48,7 +48,7 @@ const menuItems = [
       { name: "Financial", path: "/accounting", module: AppModules.FINANCIAL_ACCOUNT },
       { name: "Taxes", path: "/taxes", module: AppModules.TAXES },
       { name: "Expenses", path: "/expense", module: AppModules.EXPENSE_ADMIN },
-      { name: "Expense Categories", path: "/expense-category", module: AppModules.EXPENSE_CATEGORY },
+      { name: "Financial Categories", path: "/expense-category", module: AppModules.EXPENSE_CATEGORY },
       { name: "Revenue", path: "/revenue", module: AppModules.REVENUE },
       { name: "Payment Methods", path: "/payment_method", module: AppModules.PAYMENT_METHOD },
       { name: "Payments", path: "/payments", module: AppModules.PAYMENT },
