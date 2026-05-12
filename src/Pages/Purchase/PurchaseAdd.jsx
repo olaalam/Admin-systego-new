@@ -27,24 +27,65 @@ const PurchaseAdd = () => {
     financials: [{ financial_id: "", payment_amount: 0 }],
     installments: [],
   });
+  const processedProducts = useMemo(() => {
+    if (!selection?.products) return [];
 
+    const allItems = [];
+    selection.products.forEach((product) => {
+      // إذا كان المنتج له أسعار مختلفة (variations)
+      if (product.different_price && product.prices?.length > 0) {
+        product.prices.forEach((variant) => {
+          // سحب اسم الـ variation من أول عنصر في مصفوفة variations داخل السعر
+          const variantName = variant.variations?.[0]?.name || t("Variation");
+
+          allItems.push({
+            ...product,
+            id: variant._id, // نستخدم ID السعر/النوع كـ ID أساسي
+            original_product_id: product._id,
+            displayName: `${product.name} - ${variantName}`,
+            price: variant.price,
+            cost: variant.cost || product.cost,
+          });
+        });
+      } else {
+        // منتج عادي
+        allItems.push({
+          ...product,
+          id: product._id,
+          displayName: product.name,
+        });
+      }
+    });
+    return allItems;
+  }, [selection?.products, t]);
   const currencyCode = selection?.currency?.code || "EGP";
 
   useEffect(() => {
     if (formData.payment_status === "full") {
+      // في حالة الدفع الكامل: نفرغ الأقساط ونضمن وجود خانة دفع واحدة على الأقل بالقيمة الإجمالية
       setFormData(prev => ({
         ...prev,
         installments: [],
-        financials: prev.financials.length > 0 ? prev.financials : [{ financial_id: "", payment_amount: 0 }]
+        financials: prev.financials.length > 0
+          ? prev.financials.map((f, i) => i === 0 ? { ...f, payment_amount: totals.grandTotal } : f)
+          : [{ financial_id: "", payment_amount: totals.grandTotal }]
       }));
     } else if (formData.payment_status === "later") {
-      setFormData(prev => ({ ...prev, financials: [] }));
+      // في حالة الدفع لاحقاً: نفرغ بيانات الخزينة تماماً
+      setFormData(prev => ({
+        ...prev,
+        financials: []
+      }));
     } else if (formData.payment_status === "partial") {
+      // في حالة الدفع الجزئي: نضمن وجود خانة دفع واحدة فارغة للمستخدم ليبدأ الإدخال
       if (formData.financials.length === 0) {
-        setFormData(prev => ({ ...prev, financials: [{ financial_id: "", payment_amount: 0 }] }));
+        setFormData(prev => ({
+          ...prev,
+          financials: [{ financial_id: "", payment_amount: 0 }]
+        }));
       }
     }
-  }, [formData.payment_status]);
+  }, [formData.payment_status]); // نعتمد على تغيير حالة الدفع فقط لتجنب الدخول في Infinite Loop مع الـ Grand Total
 
   const totals = useMemo(() => {
     let itemsTotalBeforeAll = 0;
@@ -100,33 +141,38 @@ const PurchaseAdd = () => {
   };
 
   const suggestions = useMemo(() => {
-    const term = searchProduct.toLowerCase().trim();
-    if (!term) return [];
-    return selection?.products?.filter(p =>
-      p.name?.toLowerCase().includes(term) || p.code?.toString().includes(term)
-    ).slice(0, 8) || [];
-  }, [searchProduct, selection]);
+    const term = searchProduct?.toLowerCase().trim();
+    if (!term) return []; // القائمة تكون فارغة لو مفيش سيرش (وهذا يغلق الـ list)
 
-  const handleSelectProduct = (p) => {
-    if (formData.purchase_items.find(item => item.product_id === (p._id || p.id))) {
+    return processedProducts.filter(p =>
+      p.displayName?.toLowerCase().includes(term) ||
+      p.code?.toString().includes(term)
+    ).slice(0, 10);
+  }, [searchProduct, processedProducts]);
+
+  const handleSelectProduct = (item) => {
+    // التحقق إذا كان المنتج أضيف مسبقاً (باستخدام الـ ID الجديد للـ variation)
+    if (formData.purchase_items.find(p => p.product_id === item.id)) {
+      setSearchProduct(""); // لتفريغ السيرش وإغلاق القائمة
       return toast.warning(t("ProductAlreadyAdded"));
     }
+
     setFormData(prev => ({
       ...prev,
       purchase_items: [...prev.purchase_items, {
-        product_id: p._id || p.id,
-        name: p.name,
+        product_id: item.id,
+        name: item.displayName, // هنا نخزن الاسم الكامل (المنتج + النوع) للأبد في الـ state
         quantity: 1,
-        unit_cost: p.price || 0,
+        unit_cost: item.cost || item.price || 0,
         tax: 0,
         discount: 0,
-        exp_ability: p.exp_ability || false, // حفظ الحالة للتحقق
-        expiry_date: p.exp_ability ? "" : null // تهيئة حقل التاريخ
+        exp_ability: item.exp_ability || false,
+        expiry_date: item.exp_ability ? "" : null
       }]
     }));
-    setSearchProduct("");
-  };
 
+    setSearchProduct(""); // ✅ هذا السطر هو الذي سيغلق الـ List فور الاختيار
+  };
   const handleSave = async () => {
     // 1. التحقق من تاريخ الصلاحية للمنتجات المطلوبة
     const missingExpiry = totals.itemsWithNetCost.find(item => item.exp_ability && !item.expiry_date);
@@ -205,16 +251,55 @@ const PurchaseAdd = () => {
         {/* البحث عن المنتجات */}
         <div className="relative z-40 mb-6">
           <label className="block text-sm font-bold text-gray-700 mb-2">{t("Search Products")}</label>
-          <SmartSearch value={searchProduct} onChange={setSearchProduct} />
+          <SmartSearch
+            value={searchProduct}
+            onChange={(val) => setSearchProduct(val)} // لضمان عمل الـ state
+            onSelect={handleSelectProduct}
+            data={suggestions} // نمرر له الـ suggestions المفلترة
+            keys={["displayName", "code"]}
+            placeholder={t("SearchProduct")}
+          />
           {suggestions.length > 0 && (
             <div className="absolute w-full bg-white border shadow-2xl rounded-xl mt-1 overflow-hidden z-50">
-              {suggestions.map(p => (
-                <div key={p._id} onClick={() => handleSelectProduct(p)} className="p-4 hover:bg-red-50 cursor-pointer flex justify-between items-center border-b last:border-0 transition-colors">
+              {suggestions.map((p) => (
+                <div
+                  key={p.id} // استخدمي p.id لأنه يمثل الـ ID الفريد للـ variation
+                  onClick={() => handleSelectProduct(p)}
+                  className="p-4 hover:bg-red-50 cursor-pointer flex justify-between items-center border-b last:border-0 transition-colors group"
+                >
                   <div className="flex flex-col">
-                    <span className="font-medium text-gray-700">{p.name}</span>
-                    {p.exp_ability && <span className="text-[10px] text-orange-500 font-bold tracking-tighter uppercase">Requires Expiry</span>}
+                    {/* عرض الاسم المعالج الذي يحتوي على اسم المنتج + النوع */}
+                    <span className="font-bold text-gray-800 group-hover:text-red-700 transition-colors">
+                      {p.displayName || p.name}
+                    </span>
+
+                    <div className="flex items-center gap-2 mt-1">
+                      {/* عرض الكود إن وجد */}
+                      {p.code && (
+                        <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-mono">
+                          #{p.code}
+                        </span>
+                      )}
+
+                      {/* تنبيه تاريخ الانتهاء */}
+                      {p.exp_ability && (
+                        <span className="text-[10px] text-orange-500 font-black tracking-tighter uppercase flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+                          {t("Requires Expiry")}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <span className="font-bold text-red-600">{p.price} {currencyCode}</span>
+
+                  {/* السعر والعملة */}
+                  <div className="text-right">
+                    <span className="font-black text-red-600 text-lg">
+                      {p.price}
+                    </span>
+                    <span className="text-red-400 text-xs ml-1 font-bold">
+                      {currencyCode}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
