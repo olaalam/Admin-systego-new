@@ -342,7 +342,7 @@ const PurchaseAdd = () => {
                       <div className="text-center text-gray-300">—</div>
                     )}
                   </td>
-                  <td className="p-4">
+                  <td className="p-2">
                     <input type="number" className="w-full border rounded p-1 text-center" value={item.quantity} onChange={(e) => {
                       const items = [...formData.purchase_items];
                       items[idx].quantity = e.target.value;
