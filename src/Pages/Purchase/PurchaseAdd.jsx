@@ -430,9 +430,22 @@ const PurchaseAdd = () => {
               </div>
             )}
 
-            {formData.payment_status !== 'full' && (
+            {formData.payment_status !== 'full' && (() => {
+              const totalInstallments = formData.installments.reduce((acc, item) => acc + Number(item.amount || 0), 0);
+              const totalPaidFinancials = formData.financials.reduce((acc, f) => acc + Number(f.payment_amount || 0), 0);
+              const remainingAfterInstallments = totals.grandTotal - totalPaidFinancials - totalInstallments;
+              return (
               <div className="p-5 bg-orange-50/50 border border-orange-100 rounded-2xl space-y-4">
-                <label className="text-sm font-black text-orange-700 flex items-center gap-2"><Calendar size={16} /> {t("Installments Schedule")}</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-black text-orange-700 flex items-center gap-2"><Calendar size={16} /> {t("Installments Schedule")}</label>
+                  {formData.installments.length > 0 && (
+                    <div className={`text-xs font-black px-3 py-1 rounded-full ${remainingAfterInstallments > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                      {remainingAfterInstallments > 0
+                        ? `${t("Remaining")}: ${remainingAfterInstallments.toFixed(2)} ${currencyCode}`
+                        : `✓ ${t("Fully Covered")}`}
+                    </div>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <input type="date" id="q_date" className="flex-1 border border-orange-200 rounded-xl p-2.5 text-sm" />
                   <input type="number" id="q_amt" className="w-32 border border-orange-200 rounded-xl p-2.5 text-sm" placeholder="Amount" />
@@ -446,17 +459,47 @@ const PurchaseAdd = () => {
                     }
                   }} className="bg-orange-500 text-white px-4 rounded-xl font-bold hover:bg-orange-600 transition-colors">+</button>
                 </div>
+
+                {/* شريط تقدم السداد */}
+                {totals.grandTotal > 0 && formData.installments.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="w-full bg-orange-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-2 rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min(100, ((totalPaidFinancials + totalInstallments) / totals.grandTotal) * 100)}%`,
+                          background: remainingAfterInstallments <= 0 ? '#22c55e' : '#f97316'
+                        }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] text-orange-500 font-bold">
+                      <span>{t("Scheduled")}: {(totalPaidFinancials + totalInstallments).toFixed(2)}</span>
+                      <span>{Math.min(100, ((totalPaidFinancials + totalInstallments) / totals.grandTotal * 100)).toFixed(0)}%</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-2">
-                  {formData.installments.map((item, i) => (
+                  {formData.installments.map((item, i) => {
+                    const runningTotal = formData.installments.slice(0, i + 1).reduce((acc, it) => acc + Number(it.amount || 0), 0);
+                    const runningRemaining = totals.grandTotal - totalPaidFinancials - runningTotal;
+                    return (
                     <div key={i} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm text-xs border border-orange-100">
                       <span className="font-medium text-gray-500">{item.date}</span>
-                      <span className="font-black text-orange-600">{item.amount} {currencyCode}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="font-black text-orange-600">{Number(item.amount).toFixed(2)} {currencyCode}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${runningRemaining > 0 ? 'bg-red-50 text-red-400' : 'bg-green-50 text-green-500'}`}>
+                          {runningRemaining > 0 ? `${t("Left")}: ${runningRemaining.toFixed(2)}` : `✓`}
+                        </span>
+                      </div>
                       <button onClick={() => setFormData({ ...formData, installments: formData.installments.filter((_, idx) => idx !== i) })} className="text-red-300 hover:text-red-500">×</button>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
-            )}
+              );
+            })()}
           </div>
 
           <div className="bg-gray-900 text-white p-8 rounded-[2.5rem] shadow-2xl flex flex-col justify-between">
