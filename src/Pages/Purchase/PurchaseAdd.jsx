@@ -6,13 +6,11 @@ import { useTranslation } from "react-i18next";
 import { Trash2, Wallet, Calendar, User, Warehouse, Info, Calculator, X, Plus } from "lucide-react";
 import { toast } from "react-toastify";
 import SmartSearch from "@/components/SmartSearch";
-
 const PurchaseAdd = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { postData, loading } = usePost("/api/admin/purchase");
   const { data: selection } = useGet("api/admin/purchase/selection");
-
   const [searchProduct, setSearchProduct] = useState("");
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
@@ -512,5 +510,4 @@ const PurchaseAdd = () => {
     </div>
   );
 };
-
 export default PurchaseAdd;
