@@ -121,9 +121,10 @@ const ProductWarehouse = () => {
           // نستخدم stockId للتعديل لأنه المعرف الخاص بعملية الربط بين المنتج والمستودع
           editPath={(item) => `/product-warehouse/edit/${item.stockId}`}
           onEdit={(item) => navigate(`/product-warehouse/edit/${item.stockId}`)}
-          onAdd={() => navigate(`/product-warehouse/add`)}
+          // onAdd={() => navigate(`/product-warehouse/add`)}
           onDelete={(item) => setDeleteTarget(item)}
           itemsPerPage={10}
+          showActions={true}
           searchable={true}
           filterable={true}
           moduleName={AppModules.PRODUCT_WAREHOUSE}

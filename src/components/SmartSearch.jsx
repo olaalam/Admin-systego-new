@@ -6,13 +6,15 @@ const SmartSearch = ({ value, onChange, onSearch }) => {
   const { t } = useTranslation();
   const debounceRef = useRef(null);
 
+  // SmartSearch.jsx المطور لتجنب الخطأ
   const handleChange = useCallback(
     (val) => {
-      // ✅ حدّث القيمة فوراً في الـ input
-      onChange(val);
+      // التأكد أن onChange موجودة وأنها دالة قبل الاستدعاء
+      if (typeof onChange === "function") {
+        onChange(val);
+      }
 
-      // ✅ لو في onSearch (بحث API)، اعمله debounce 500ms
-      if (onSearch) {
+      if (onSearch && typeof onSearch === "function") {
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => {
           onSearch(val);

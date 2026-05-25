@@ -153,6 +153,38 @@ const Product = () => {
       return;
     }
 
+    const worksheetData = dataToExport.map((product) => {
+      // تجميع الأكواد من الأسعار المتغيرة (إن وجدت)
+      let productCodes = "";
+      if (product.different_price && product.prices && product.prices.length > 0) {
+        // استخراج الأكواد المتغيرة واستبعاد القيم الفارغة، ثم دمجها بفاصلة
+        productCodes = product.prices
+          .map((p) => p.code)
+          .filter((code) => code) // للتأكد من عدم دمج قيم فارغة
+          .join(" , ");
+      } else {
+        // في حالة المنتج العادي، نأخذ الباركود أو الـ SKU إن وجد
+        productCodes = product.barcode || product.sku || "";
+      }
+
+      return {
+        Name: product.name,
+        Category: product.categoryId?.[0]?.name || "",
+        Brand: product.brandId?.name || "",
+        Price: product.price,
+        "Whole Price": product.whole_price || "",
+        Stock: product.quantity,
+        Unit: product.unit,
+        "Min Sale Qty": product.minimum_quantity_sale || 1,
+        "Has Expiry": product.exp_ability ? "Yes" : "No",
+        "Expiry Date": product.date_of_expiery
+          ? new Date(product.date_of_expiery).toLocaleDateString("en-GB")
+          : "",
+        "Variable Price": product.different_price ? "Yes" : "No",
+        // إضافة عمود الكود الجديد هنا
+        "Code": productCodes,
+      };
+    });
     const worksheetData = dataToExport.flatMap((product) => {
       // Products with variable prices → one row per price variant
       if (product.different_price && product.prices?.length) {

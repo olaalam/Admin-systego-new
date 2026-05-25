@@ -75,8 +75,9 @@ const ProductWarehouseAdd = () => {
         const buildProductItems = (product, defaultQty, defaultLow) => {
           const hasVariations = product.prices && product.prices.length > 0;
 
-          // Always add the main product row first
-          const items = [{
+          // لو المنتج مالهوش variations، نبعت row واحدة بدون productPriceId
+          // لو عنده variations، نبعت row لكل variation فقط (بدون main row)
+          const items = hasVariations ? [] : [{
             productId: product._id,
             productPriceId: null,
             name: product.name,
@@ -85,7 +86,7 @@ const ProductWarehouseAdd = () => {
             low_stock: defaultLow || 5
           }];
 
-          // If has variations, also add a row for each variation
+          // If has variations, add a row for each variation only
           if (hasVariations) {
             product.prices.forEach(price => {
               let derivedName = price.name;
