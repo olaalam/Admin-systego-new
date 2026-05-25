@@ -124,7 +124,7 @@ const ProductWarehouse = () => {
           // onAdd={() => navigate(`/product-warehouse/add`)}
           onDelete={(item) => setDeleteTarget(item)}
           itemsPerPage={10}
-          showActions={false}
+          showActions={true}
           searchable={true}
           filterable={true}
           moduleName={AppModules.PRODUCT_WAREHOUSE}
