@@ -52,11 +52,14 @@ const PrintBarcode = () => {
 
   // --- 2. Selection Actions ---
   const addProduct = (product, priceVariation = null) => {
-    // إذا لم يوجد variation، نستخدم معرف المنتج نفسه كمعرف للسعر
-    const priceId = priceVariation ? priceVariation._id : product._id;
+    // لو مفيش variation، productPriceId يبقى null
+    const priceId = priceVariation ? priceVariation._id : null;
+
+    // نستخدم productId كـ key للتمييز لو مفيش variation، وإلا نستخدم priceId
+    const uniqueKey = priceId || product._id;
 
     const exists = selectedProducts.find(
-      (p) => p.productPriceId === priceId
+      (p) => (p.productPriceId ?? p.productId) === uniqueKey
     );
 
     if (!exists) {
@@ -64,11 +67,10 @@ const PrintBarcode = () => {
         ...selectedProducts,
         {
           productId: product._id,
-          productPriceId: priceId,
+          productPriceId: priceId, // null لو مفيش variation
           quantity: 1,
           productName: product.name,
           brandName: product.brandId?.name || "",
-          // نأخذ الكود والسعر من التنوع، وإذا لم يوجد نأخذه من المنتج الأساسي
           code: priceVariation ? priceVariation.code : (product.code || ""),
           price: priceVariation ? priceVariation.price : (product.price || 0),
         },
@@ -77,18 +79,18 @@ const PrintBarcode = () => {
     setSearchTerm("");
   };
 
-  const updateQuantity = (priceId, val) => {
+  const updateQuantity = (productId, priceId, val) => {
     const quantity = Math.max(1, parseInt(val) || 1);
     setSelectedProducts(
       selectedProducts.map((p) =>
-        p.productPriceId === priceId ? { ...p, quantity } : p
+        p.productId === productId && p.productPriceId === priceId ? { ...p, quantity } : p
       )
     );
   };
 
-  const removeProduct = (priceId) => {
+  const removeProduct = (productId, priceId) => {
     setSelectedProducts(
-      selectedProducts.filter((p) => p.productPriceId !== priceId)
+      selectedProducts.filter((p) => !(p.productId === productId && p.productPriceId === priceId))
     );
   };
 
@@ -326,7 +328,7 @@ const PrintBarcode = () => {
                 <tbody className="divide-y divide-gray-100">
                   {selectedProducts.map((product) => (
                     <tr
-                      key={product.productPriceId}
+                      key={`${product.productId}-${product.productPriceId ?? 'main'}`}
                       className="hover:bg-gray-50/50"
                     >
                       <td className="px-6 py-4 font-medium text-gray-900">
@@ -342,6 +344,7 @@ const PrintBarcode = () => {
                           value={product.quantity}
                           onChange={(e) =>
                             updateQuantity(
+                              product.productId,
                               product.productPriceId,
                               e.target.value
                             )
@@ -351,7 +354,7 @@ const PrintBarcode = () => {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button
-                          onClick={() => removeProduct(product.productPriceId)}
+                          onClick={() => removeProduct(product.productId, product.productPriceId)}
                           className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
                         >
                           <Trash2 className="w-5 h-5" />
