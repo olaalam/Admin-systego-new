@@ -153,21 +153,49 @@ const Product = () => {
       return;
     }
 
-    const worksheetData = dataToExport.map((product) => ({
-      Name: product.name,
-      Category: product.categoryId?.[0]?.name || "",
-      Brand: product.brandId?.name || "",
-      Price: product.price,
-      "Whole Price": product.whole_price || "",
-      Stock: product.quantity,
-      Unit: product.unit,
-      "Min Sale Qty": product.minimum_quantity_sale || 1,
-      "Has Expiry": product.exp_ability ? "Yes" : "No",
-      "Expiry Date": product.date_of_expiery
-        ? new Date(product.date_of_expiery).toLocaleDateString("en-GB")
-        : "",
-      "Variable Price": product.different_price ? "Yes" : "No",
-    }));
+    const worksheetData = dataToExport.flatMap((product) => {
+      // Products with variable prices → one row per price variant
+      if (product.different_price && product.prices?.length) {
+        return product.prices.map((priceEntry) => ({
+          Name: product.name,
+          Code: priceEntry.code || product.code || "",
+          Category: product.categoryId?.[0]?.name || "",
+          Brand: product.brandId?.name || "",
+          Price: priceEntry.price ?? product.price,
+          "Whole Price": product.whole_price || "",
+          Stock: product.quantity,
+          Unit: product.unit || "",
+          "Min Sale Qty": product.minimum_quantity_sale || 1,
+          "Has Expiry": product.exp_ability ? "Yes" : "No",
+          "Expiry Date": product.date_of_expiery
+            ? new Date(product.date_of_expiery).toLocaleDateString("en-GB")
+            : "",
+          "Variable Price": "Yes",
+          Variations: priceEntry.variations
+            ?.map((v) => `${v.name}: ${v.options?.map((o) => o.name).join(", ")}`)
+            .join(" | ") || "",
+        }));
+      }
+
+      // Simple product → single row
+      return [{
+        Name: product.name,
+        Code: product.code || product.prices?.[0]?.code || "",
+        Category: product.categoryId?.[0]?.name || "",
+        Brand: product.brandId?.name || "",
+        Price: product.price,
+        "Whole Price": product.whole_price || "",
+        Stock: product.quantity,
+        Unit: product.unit || "",
+        "Min Sale Qty": product.minimum_quantity_sale || 1,
+        "Has Expiry": product.exp_ability ? "Yes" : "No",
+        "Expiry Date": product.date_of_expiery
+          ? new Date(product.date_of_expiery).toLocaleDateString("en-GB")
+          : "",
+        "Variable Price": "No",
+        Variations: "",
+      }];
+    });
 
     const ws = XLSX.utils.json_to_sheet(worksheetData);
     const wb = XLSX.utils.book_new();
