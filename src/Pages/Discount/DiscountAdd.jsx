@@ -11,10 +11,12 @@ import WarehouseMultiSelect from "@/Pages/Pandels/WarehouseMultiSelect";
 const DiscountAdd = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const { data: warehousesData } = useGet("/api/admin/warehouse");
   const warehouses = warehousesData?.warehouses || [];
+
+
 
   const fields = useMemo(
     () => [
@@ -128,7 +130,7 @@ const { t, i18n } = useTranslation();
     <div className="p-6 bg-gray-100 min-h-screen">
       <AddPage
         title={t("AddNewDiscount")}
-  description={t("AddNewDiscountDescription")}
+        description={t("AddNewDiscountDescription")}
         fields={fields}
         onSubmit={handleSubmit}
         onCancel={() => navigate("/discount")}
@@ -137,7 +139,7 @@ const { t, i18n } = useTranslation();
           amount: 15,
         }}
         loading={loading}
-        submitButtonText={t("CreateDiscount")}  
+        submitButtonText={t("CreateDiscount")}
       />
     </div>
   );
