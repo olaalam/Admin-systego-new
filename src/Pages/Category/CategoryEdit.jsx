@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import Loader from "@/components/Loader";
 import AddPage from "@/components/AddPage";
 import { useTranslation } from "react-i18next";
+import { navigateToListWithHighlight } from "@/lib/navigation";
 
 export default function CategoryEdit() {
   const { id } = useParams();
@@ -88,7 +89,7 @@ export default function CategoryEdit() {
       await putData(payload);
 
       toast.success(t("category_updated_successfully"));
-      navigate("/category");
+      navigateToListWithHighlight(navigate, "/category", id);
     } catch (err) {
       const errorMessage =
         err.response?.data?.error?.message ||
@@ -100,7 +101,7 @@ export default function CategoryEdit() {
     }
   };
 
-  const handleCancel = () => navigate("/category");
+  const handleCancel = () => navigateToListWithHighlight(navigate, "/category");
 
   // عرض Loader أثناء جلب البيانات
   if (fetching) return <Loader />;

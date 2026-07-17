@@ -11,7 +11,7 @@ import {
   FileDown,
   X,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import SmartSearch from "@/components/SmartSearch";
 import { useTranslation } from "react-i18next";
 import { hasPermission } from "@/lib/checkPermission";
@@ -52,6 +52,7 @@ export default function DataTable({
   const [itemsPerPageState, setItemsPerPageState] = useState(itemsPerPage);
   const [selectedRows, setSelectedRows] = useState(new Set());
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const safeData = Array.isArray(data) ? data : [];
@@ -172,6 +173,10 @@ export default function DataTable({
   };
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPageState);
+  const highlightedId = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("highlight") || "";
+  }, [location.search]);
 
   const handleFilterChange = (columnKey, value) => {
     setSelectedFilters((prev) => ({
@@ -192,6 +197,27 @@ export default function DataTable({
       onSearchApi("");
     }
   };
+
+  React.useEffect(() => {
+    if (!highlightedId) return;
+
+    const timer = window.setTimeout(() => {
+      const element = document.getElementById(`row-${highlightedId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        element.classList.add(
+          "bg-red-50",
+          "border",
+          "border-red-200",
+          "shadow-sm",
+          "ring-2",
+          "ring-red-300"
+        );
+      }
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [highlightedId]);
 
   return (
     <div className={className}>
@@ -442,10 +468,14 @@ export default function DataTable({
 
                   return (
                     <tr
+                      id={`row-${itemId || index}`}
                       key={itemId || index}
                       onClick={() => onRowClick && onRowClick(item)}
-                      className={`hover:bg-gray-50 transition-colors ${isSelected ? "bg-red-50" : ""
-                        } ${onRowClick ? "cursor-pointer" : ""}`}
+                      className={`hover:bg-gray-50 transition-colors ${isSelected ? "bg-red-50" : ""} ${
+                        highlightedId && String(itemId) === String(highlightedId)
+                          ? "bg-red-50 border border-red-200 shadow-sm ring-2 ring-red-300"
+                          : ""
+                      } ${onRowClick ? "cursor-pointer" : ""}`}
                     >
                       <td className="px-4 py-4">
                         <input

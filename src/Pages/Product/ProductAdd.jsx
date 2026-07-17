@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import usePost from "@/hooks/usePost";
 import ProductForm from "./ProductForm";
 import { useTranslation } from "react-i18next";
+import { navigateToListWithHighlight } from "@/lib/navigation";
 
 const ProductAdd = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const ProductAdd = () => {
       await postData(payload);
 
       toast.success(t("Productaddedsuccessfully"));
-      navigate("/product");
+      navigateToListWithHighlight(navigate, "/product");
     } catch (err) {
       // ⭐️ التعامل مع الأخطاء التفصيلية من الـ API
       const errorMessage =

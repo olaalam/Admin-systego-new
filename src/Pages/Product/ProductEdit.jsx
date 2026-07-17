@@ -5,6 +5,7 @@ import usePut from "@/hooks/usePut";
 import Loader from "@/components/Loader";
 import ProductForm from "./ProductForm";
 import { useTranslation } from "react-i18next";
+import { navigateToListWithHighlight } from "@/lib/navigation";
 
 const ProductEdit = () => {
   const { id } = useParams();
@@ -23,7 +24,7 @@ const ProductEdit = () => {
       // لو فيه صور: await putData(updatedData, null, true);
       await putData(updatedData);
       toast.success(t("Productupdatedsuccessfully"));
-      navigate("/product");
+      navigateToListWithHighlight(navigate, "/product", id);
     } catch {
       toast.error(t("Failed to update product"));
     }

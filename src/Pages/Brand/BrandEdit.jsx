@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import Loader from "@/components/Loader";
 import AddPage from "@/components/AddPage";
 import { useTranslation } from "react-i18next";
+import { navigateToListWithHighlight } from "@/lib/navigation";
 
 export default function BrandEdit() {
   const { id } = useParams();
@@ -70,7 +71,7 @@ export default function BrandEdit() {
       await putData(payload);
 
       toast.success(t("Brand updated successfully!"));
-      navigate("/brand");
+      navigateToListWithHighlight(navigate, "/brand", id);
     } catch (err) {
       const errorMessage =
         err.response?.data?.error?.message ||
@@ -90,7 +91,7 @@ export default function BrandEdit() {
   };
 
 
-  const handleCancel = () => navigate("/brand");
+  const handleCancel = () => navigateToListWithHighlight(navigate, "/brand");
 
   if (fetching) {
     return <Loader />;

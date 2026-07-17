@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
+import { navigateToListWithHighlight } from "@/lib/navigation";
 
 import useGet from "@/hooks/useGet";
 import { toast } from "react-toastify";
@@ -627,7 +628,7 @@ const ProductForm = ({
         <div className="mt-6 flex items-center justify-end gap-3">
           <Button
             variant="outline"
-            onClick={() => navigate("/product")}
+            onClick={() => navigateToListWithHighlight(navigate, "/product", mode === "edit" ? initialData?._id : null)}
             className="px-6"
           >
             {t("Cancel")}
