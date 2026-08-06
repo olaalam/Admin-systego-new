@@ -2,10 +2,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import usePut from "@/hooks/usePut";
+import useGet from "@/hooks/useGet";
 import api from "@/api/api";
 import { toast } from "react-toastify";
 import Loader from "@/components/Loader";
 import AddPage from "@/components/AddPage";
+import WarehouseMultiSelect from "@/Pages/Pandels/WarehouseMultiSelect";
 import { useTranslation } from "react-i18next";
 
 export default function DiscountEdit() {
@@ -15,6 +17,8 @@ const { t, i18n } = useTranslation();
   const { putData, loading: updating } = usePut(
     `/api/admin/discount/${id}`
   );
+  const { data: warehousesData } = useGet("/api/admin/warehouse");
+  const warehouses = warehousesData?.warehouses || [];
 
   const [discountData, setDiscountData] = useState(null);
   const [fetching, setFetching] = useState(true);
@@ -31,14 +35,48 @@ const { t, i18n } = useTranslation();
         required: true,
         placeholder: t("DiscountNamePlaceholder")
       },
-
+      {
+        key: "applyIn",
+        label: t("ApplyIn"),
+        type: "select",
+        required: true,
+        options: [
+          { value: "POS", label: "POS" },
+          { value: "E-commerce", label: "E-commerce" },
+        ],
+        placeholder: t("SelectApplyIn"),
+      },
+      {
+        key: "all_warehouses",
+        label: t("AllWarehouses"),
+        type: "checkbox",
+      },
+      {
+        key: "warehouse_ids",
+        label: t("Warehouses"),
+        type: "custom",
+        render: (formData, setFormData) =>
+          formData.all_warehouses ? (
+            <div className="text-sm text-slate-500">
+              {t("AppliesToAllWarehouses")}
+            </div>
+          ) : (
+            <WarehouseMultiSelect
+              label={t("Warehouses")}
+              options={warehouses}
+              value={formData.warehouse_ids || []}
+              onChange={(val) => setFormData({ ...formData, warehouse_ids: val })}
+              t={t}
+            />
+          ),
+      },
       {
         key: "type",
         label: t("DiscountType"),
         type: "select",
         required: true,
         options: [
-           { value: "percentage", label: t("Percentage") },
+          { value: "percentage", label: t("Percentage") },
           { value: "fixed", label: t("FixedAmount") },
         ],
       },
@@ -54,7 +92,7 @@ const { t, i18n } = useTranslation();
           "If percentage, enter 15 for 15%. If fixed, enter amount value.",
       },
     ],
-    []
+    [t, warehouses]
   );
 
   /* =======================
@@ -81,6 +119,9 @@ const { t, i18n } = useTranslation();
             discount.type === "percentage"
               ? Number(discount.amount) * 100
               : Number(discount.amount),
+          applyIn: discount.applyIn || "POS",
+          all_warehouses: discount.all_warehouses !== undefined ? discount.all_warehouses : true,
+          warehouse_ids: discount.warehouse_ids || [],
         });
       } catch (err) {
         console.error("❌ Error fetching discount:", err);
@@ -99,6 +140,11 @@ const { t, i18n } = useTranslation();
   ======================= */
   const handleSubmit = async (formData) => {
     try {
+      if (!formData.all_warehouses && (!formData.warehouse_ids || formData.warehouse_ids.length === 0)) {
+        toast.error(t("PleaseSelectWarehousesOrEnableAllWarehouses"));
+        return;
+      }
+
       const payload = {
         name: formData.name,
         type: formData.type,
@@ -106,6 +152,9 @@ const { t, i18n } = useTranslation();
           formData.type === "percentage"
             ? Number(formData.amount) / 100
             : Number(formData.amount),
+        applyIn: formData.applyIn,
+        all_warehouses: !!formData.all_warehouses,
+        warehouse_ids: formData.all_warehouses ? [] : formData.warehouse_ids || [],
       };
 
       await putData(payload);
