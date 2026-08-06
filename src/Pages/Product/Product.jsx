@@ -178,7 +178,7 @@ const Product = () => {
         Brand: product.brandId?.name || "",
         Price: product.price,
         "Whole Price": product.whole_price || "",
-        Stock: product.quantity,
+        Stock: product.totalQuantity,
         Unit: product.unit || "",
         "Min Sale Qty": product.minimum_quantity_sale || 1,
         "Has Expiry": product.exp_ability ? "Yes" : "No",
@@ -301,7 +301,7 @@ const Product = () => {
             alt={item.name || "Product"}
             className="h-16 w-16 object-cover rounded-lg border-2 border-gray-200"
           />
-          {item.quantity < 10 && (
+          {item.totalQuantity < 10 && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
               {t("Low")}
             </span>
@@ -347,14 +347,14 @@ const Product = () => {
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500 w-16">{t("Stock")}:</span>
           <span
-            className={`text-sm font-semibold ${(item.quantity || 0) < 10
+            className={`text-sm font-semibold ${(item.totalQuantity || 0) < 10
               ? "text-red-600"
-              : (item.quantity || 0) < 50
+              : (item.totalQuantity || 0) < 50
                 ? "text-orange-600"
                 : "text-green-600"
               }`}
           >
-            {item.quantity || 0}
+            {item.totalQuantity || 0}
           </span>
         </div>
         <div className="flex items-center gap-2">
