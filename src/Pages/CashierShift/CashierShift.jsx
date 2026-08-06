@@ -26,7 +26,7 @@ const CashierShift = () => {
     const { t, i18n } = useTranslation();
     const isArabic = i18n.language === "ar";
     const { putData } = usePut();
-    const { data: shiftData, loading, error } = useGet("/api/admin/cashiershift");
+    const { data: shiftData, loading, error, refetch } = useGet("/api/admin/cashiershift");
 
     const columns = useMemo(() => [
         {
@@ -77,8 +77,8 @@ const CashierShift = () => {
 
                         toast.success(t("shift_closed_successfully"));
 
-                        // تحديث البيانات ليعكس الحالة الجديدة
-                        window.location.reload();
+                        // تحديث البيانات ليعكس الحالة الجديدة بدون إعادة تحميل البروجكت
+                        refetch();
                     } catch (err) {
                         toast.error(t("failed_to_close_shift"));
                     }
@@ -127,6 +127,26 @@ const CashierShift = () => {
                 <div className="flex items-center gap-1.5">
                     <ArrowDownLeft size={14} className="text-rose-500" />
                     <span className="font-black text-gray-900">{val?.toLocaleString()} <span className="text-[9px] text-gray-400">EGP</span></span>
+                </div>
+            )
+        },
+        {
+            key: "returns_count",
+            header: t("Returns"),
+            render: (_, item) => (
+                <div className="space-y-1">
+                    <div className="text-sm font-semibold text-gray-900">{item.returns_count ?? 0}</div>
+                    <div className="text-[10px] text-slate-500">{t("orders")}</div>
+                </div>
+            )
+        },
+        {
+            key: "total_returns",
+            header: t("Return Amount"),
+            render: (val) => (
+                <div className="flex items-center gap-1.5">
+                    <ArrowDownLeft size={14} className="text-blue-500" />
+                    <span className="font-black text-gray-900">{val?.toLocaleString() ?? 0} <span className="text-[9px] text-gray-400">EGP</span></span>
                 </div>
             )
         },

@@ -165,23 +165,8 @@ const ProductPriceTab = ({
       {/* Show start_quantity and cost only when different_price is false */}
       {!form.different_price && (
         <div className="space-y-4">
-          {/* الصف الأول: الكمية والتكلفة */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                {t("StartQuantity")}
-              </Label>
-              <Input
-                type="number"
-                value={form.start_quantaty || 0}
-                onChange={(e) =>
-                  handleChange("start_quantaty", parseInt(e.target.value) || 0)
-                }
-                placeholder="0"
-                className="h-11"
-                min="0"
-              />
-            </div>
+          {/* الصف الأول: التكلفة فقط */}
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
                 {t("Cost(EGP)")}
@@ -435,9 +420,6 @@ const ProductPriceTab = ({
                           {t("Quantity")}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          {t("StartQty")}
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                           {t("Cost(EGP)")}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
@@ -522,22 +504,6 @@ const ProductPriceTab = ({
                               }
                               className="h-9 w-24"
                               min="0"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <Input
-                              type="number"
-                              value={variant.start_quantity || 0}
-                              onChange={(e) =>
-                                handleVariantFieldChange(
-                                  index,
-                                  "start_quantity",
-                                  parseInt(e.target.value) || 0
-                                )
-                              }
-                              className="h-9 w-24"
-                              min="0"
-                              placeholder="0"
                             />
                           </td>
                           <td className="px-4 py-3">

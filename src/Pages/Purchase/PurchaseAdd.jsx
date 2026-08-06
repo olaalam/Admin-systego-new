@@ -202,13 +202,16 @@ const PurchaseAdd = () => {
       payload.installments.push({ date: qDate, amount: qAmt });
     }
 
-    // 3. حذف tax_id إذا كان فارغاً
+    // 3. حذف tax_id أو supplier_id إذا كانا فارغين
     if (!payload.tax_id) {
       delete payload.tax_id;
     }
+    if (!payload.supplier_id) {
+      delete payload.supplier_id;
+    }
 
     // 4. التحقق من الحقول الإجبارية
-    if (!payload.warehouse_id || !payload.supplier_id || payload.purchase_items.length === 0) {
+    if (!payload.warehouse_id || payload.purchase_items.length === 0) {
       return toast.error(t("PleaseCompleteRequiredFields"));
     }
 

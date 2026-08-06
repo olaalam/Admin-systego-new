@@ -54,7 +54,6 @@ const ProductForm = ({
     low_stock: 0,
     exp_ability: false,
     whole_price: 0,
-    start_quantaty: 0,
     cost: 0, // ✅ إضافة cost للمنتج الأساسي
     product_has_imei: false,
     show_quantity: false,
@@ -186,7 +185,6 @@ const ProductForm = ({
               price: p.price,
               quantity: p.quantity || 0,
               cost: p.cost || 0,
-              start_quantity: p.start_quantity || 0,
               code: p.code || "",
               image: p.gallery?.[0] || p.image || "",
               options: optionIds.length ? optionIds : p.options || [],
@@ -200,7 +198,6 @@ const ProductForm = ({
           //   ? new Date(initialData.date_of_expiery).toISOString().split("T")[0]
           //   : "",
           whole_price: initialData.whole_price || 0,
-          start_quantaty: initialData.start_quantaty || 0,
           product_has_imei: initialData.product_has_imei || false,
           show_quantity: initialData.show_quantity || false,
           maximum_to_show: initialData.maximum_to_show || 0,
@@ -405,7 +402,6 @@ const ProductForm = ({
       finalForm.exp_ability = form.exp_ability;
       // if (form.exp_ability) finalForm.date_of_expiery = form.date_of_expiery;
       finalForm.whole_price = form.whole_price || 0;
-      finalForm.start_quantaty = form.start_quantaty || 0;
       finalForm.product_has_imei = form.product_has_imei;
       finalForm.show_quantity = form.show_quantity;
       if (form.show_quantity)
@@ -415,7 +411,6 @@ const ProductForm = ({
         finalForm.prices = form.prices.map((variant) => ({
           price: variant.price,
           cost: variant.cost || 0,
-          start_quantity: variant.start_quantity || 0,
           code: variant.code,
           quantity: variant.quantity ?? 0,
           gallery: variant.image
@@ -460,7 +455,6 @@ const ProductForm = ({
              if (Number(curr.price || 0) !== Number(init.price || 0)) return true;
              if (Number(curr.cost || 0) !== Number(init.cost || 0)) return true;
              if (Number(curr.quantity || 0) !== Number(init.quantity || 0)) return true;
-             if (Number(curr.start_quantity || 0) !== Number(init.start_quantity || 0)) return true;
              if ((curr.code || "") !== (init.code || "")) return true;
              if (curr.image && curr.image.startsWith("data:")) return true;
           }

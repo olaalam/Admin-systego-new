@@ -358,20 +358,8 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
         </div>
       )} */}
 
-      {/* Whole Price & Start Quantity */}
-      <div className="grid grid-cols-2 gap-4 mt-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            {t("productss.start_quantity")}
-          </label>
-          <input
-            type="number"
-            value={form.start_quantaty}
-            onChange={(e) => handleChange("start_quantaty", parseInt(e.target.value) || 0)}
-            className="mt-1 block w-full border rounded-md p-2"
-            placeholder={t("productss.start_quantity_placeholder")}
-          />
-        </div>
+      {/* Whole Price */}
+      <div className="grid grid-cols-1 gap-4 mt-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">
             {t("productss.whole_price")}

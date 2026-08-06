@@ -208,8 +208,9 @@ const PurchaseEdit = () => {
     if (qDate && qAmt) payload.installments.push({ date: qDate, amount: qAmt });
 
     if (!payload.tax_id) delete payload.tax_id;
+    if (!payload.supplier_id) delete payload.supplier_id;
 
-    if (!payload.warehouse_id || !payload.supplier_id || payload.purchase_items.length === 0) {
+    if (!payload.warehouse_id || payload.purchase_items.length === 0) {
       return toast.error(t("PleaseCompleteRequiredFields"));
     }
 

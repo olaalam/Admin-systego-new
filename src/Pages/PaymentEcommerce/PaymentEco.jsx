@@ -10,6 +10,7 @@ import {
     CheckCircle2, X, Clock, Eye, CreditCard, Info, Package,
     Truck, RotateCcw, AlertTriangle, Calendar, RefreshCw, Filter, Check, Loader2, ChevronDown, ShoppingBag, DollarSign
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 
 // Modal Component to show Cart Items (Products)
 const FinancialsModal = ({ items, onCancel }) => {
@@ -103,6 +104,9 @@ const PaymentEco = () => {
     const [updating, setUpdating] = useState(false);
     const [activeTab, setActiveTab] = useState("all");
     const [selectedItems, setSelectedItems] = useState(null);
+    const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+    const [statusDialogOrder, setStatusDialogOrder] = useState(null);
+    const [statusDialogReason, setStatusDialogReason] = useState("");
 
     // قائمة الحالات الكاملة من الصورة
     const statusOptions = [
@@ -117,6 +121,7 @@ const PaymentEco = () => {
         { id: "canceled", label: t("Canceled"), icon: X, color: "text-red-600", bg: "bg-red-50" },
         { id: "scheduled", label: t("Scheduled"), icon: Calendar, color: "text-teal-600", bg: "bg-teal-50" },
         { id: "refund", label: t("Refund"), icon: RefreshCw, color: "text-cyan-600", bg: "bg-cyan-50" },
+        { id: "rejected", label: t("Rejected"), icon: X, color: "text-red-600", bg: "bg-red-50" },
     ];
 
     const displayData = useMemo(() => {
@@ -131,10 +136,13 @@ const PaymentEco = () => {
         return responseData.orders.filter(order => order.status === status).length;
     };
 
-    const handleStatusChange = async (id, newStatus) => {
+    const updateOrderStatus = async (id, newStatus, statusDescription = "") => {
         try {
             setUpdating(true);
-            const res = await api.put(`/api/admin/online-orders/${id}`, { status: newStatus });
+            const res = await api.patch(`/api/admin/online-orders/${id}/status`, {
+                status: newStatus,
+                statusDescription,
+            });
             if (res.data?.success) {
                 toast.success(res.data?.message || t("Status updated successfully"));
                 refetch();
@@ -146,6 +154,25 @@ const PaymentEco = () => {
         } finally {
             setUpdating(false);
         }
+    };
+
+    const handleStatusSelect = (item, newStatus) => {
+        if (!newStatus || newStatus === item.status) return;
+        if (newStatus === "rejected") {
+            setStatusDialogOrder(item);
+            setStatusDialogReason("");
+            setStatusDialogOpen(true);
+            return;
+        }
+        updateOrderStatus(item._id, newStatus);
+    };
+
+    const handleRejectSubmit = async () => {
+        if (!statusDialogOrder) return;
+        await updateOrderStatus(statusDialogOrder._id, "rejected", statusDialogReason.trim());
+        setStatusDialogOpen(false);
+        setStatusDialogOrder(null);
+        setStatusDialogReason("");
     };
 
     const columns = useMemo(() => [
@@ -196,26 +223,29 @@ const PaymentEco = () => {
                     canceled: "bg-red-50 text-red-700 border-red-200/60 ring-red-500/10",
                     scheduled: "bg-teal-50 text-teal-700 border-teal-200/60 ring-teal-500/10",
                     refund: "bg-cyan-50 text-cyan-700 border-cyan-200/60 ring-cyan-500/10",
+                    rejected: "bg-red-50 text-red-700 border-red-200/60 ring-red-500/10",
                 };
 
                 const currentStyle = styles[status] || "bg-slate-50 text-slate-600 border-slate-200";
+                const selectOptions = statusOptions.filter((opt) => opt.id !== "all");
 
                 return (
-                    <div className="flex items-center gap-2">
-                        <span className={`px-3 py-1 rounded-full text-[11px] font-extrabold capitalize tracking-wide flex items-center gap-1.5 border ring-1 ${currentStyle}`}>
+                    <div className="flex flex-col gap-2">
+                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-extrabold capitalize tracking-wide border ring-1 ${currentStyle}`}>
                             <span className="w-1.5 h-1.5 rounded-full bg-current" />
                             {t(status)}
                         </span>
-
-                        {status === 'pending' && (
-                            <button
-                                onClick={(e) => { e.stopPropagation(); handleStatusChange(item._id, "confirmed"); }}
-                                className="p-1.5 hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 rounded-lg transition-colors border border-slate-200 hover:border-emerald-200 bg-white"
-                                title={t("Confirm Order")}
-                            >
-                                <CheckCircle2 size={15} />
-                            </button>
-                        )}
+                        <select
+                            value={status || "pending"}
+                            onChange={(e) => handleStatusSelect(item, e.target.value)}
+                            className="w-full rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 px-3 py-2 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
+                        >
+                            {selectOptions.map((opt) => (
+                                <option key={opt.id} value={opt.id}>
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 );
             }
@@ -356,6 +386,53 @@ const PaymentEco = () => {
                 items={selectedItems}
                 onCancel={() => setSelectedItems(null)}
             />
+
+            <Dialog open={statusDialogOpen} onOpenChange={(open) => !open && setStatusDialogOpen(open)}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>{t("Reject Order")}</DialogTitle>
+                        <DialogDescription>
+                            {t("Please provide a reason for rejecting this order before sending it to the backend.")}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-4">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">{t("Rejection Reason")}</label>
+                            <textarea
+                                value={statusDialogReason}
+                                onChange={(e) => setStatusDialogReason(e.target.value)}
+                                className="w-full min-h-[120px] rounded-2xl border border-slate-200 p-4 text-sm text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 outline-none"
+                                placeholder={t("Enter rejection reason")}
+                            />
+                        </div>
+                        {statusDialogOrder && (
+                            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                                <p className="font-semibold">{t("Order ID")}: <span className="font-medium">#{statusDialogOrder._id?.slice(-6).toUpperCase()}</span></p>
+                                <p>{t("Current Status")}: <span className="font-medium">{t(statusDialogOrder.status)}</span></p>
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                        <DialogClose asChild>
+                            <button
+                                type="button"
+                                onClick={() => setStatusDialogOpen(false)}
+                                className="w-full sm:w-auto px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors"
+                            >
+                                {t("Cancel")}
+                            </button>
+                        </DialogClose>
+                        <button
+                            type="button"
+                            onClick={handleRejectSubmit}
+                            disabled={statusDialogReason.trim().length === 0 || updating}
+                            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
+                        >
+                            {t("Reject Order")}
+                        </button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
