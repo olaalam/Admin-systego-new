@@ -126,6 +126,7 @@ const menuItems = [
       { name: "Product Report", path: "/product-reports", module: AppModules.PRODUCT_REPORT },
       { name: "Financial Report", path: "/financial-reports", module: AppModules.FINANCIAL_REPORT },
       { name: "Product Movement Report", path: "/product-movement-report", module: AppModules.PRODUCT_MOVEMENT },
+      { name: "All Returns", path: "/all-returns", module: AppModules.ALL_RETURNS },
     ],
   },
   {

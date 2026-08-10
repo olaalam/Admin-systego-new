@@ -74,6 +74,7 @@ import ProductWarehouseAdd from "./Pages/ProductWarehouse/ProductWarehouseAdd";
 import Cashier from "./Pages/Cashier/Cashier";
 import CashierAdd from "./Pages/Cashier/CashierAdd";
 import CashierEdit from "./Pages/Cashier/CashierEdit";
+import CashierShiftCashierDetails from "./Pages/CashierShift/CashierShiftCashierDetails";
 import CustomerGroupAdd from "./Pages/CustomerGroup/CustomerGroupAdd";
 import CustomerGroupEdit from "./Pages/CustomerGroup/CustomerGroupEdit";
 import CustomerGroup from "./Pages/CustomerGroup/CustomerGroup";
@@ -102,7 +103,6 @@ import Payments from "./Pages/Payments/Payments";
 import ReturnPurchase from "./Pages/ReturnPurchase/ReturnPurchase";
 import ReturnPurchaseAdd from "./Pages/ReturnPurchase/ReturnPurchaseAdd";
 import CashierShift from "./Pages/CashierShift/CashierShift";
-import CashierShiftDetails from "./Pages/CashierShift/CashierShiftDetails";
 import PermissionAdd from "./Pages/Permission/PermissionAdd";
 import TransferWarehouse from "./Pages/WareHouse/TransferWarehouse";
 import OrdersReports from "./Pages/OrdersReports/OrdersReports";
@@ -144,6 +144,8 @@ import ProductWarehouseEdit from "./Pages/ProductWarehouse/ProductWarehouseEdit"
 import Expiring from "./Pages/Expiring/Expiring";
 import PorfileEdit from "./Pages/Porfile/PorfileEdit";
 import Porfile from "./Pages/Porfile/Porfile";
+import CashierShiftDetails from "./Pages/CashierShift/CashierShiftDetails";
+import AllReturn from "./Pages/AllReturn/AllReturn";
 
 
 export default function AppRoutes() {
@@ -1084,13 +1086,23 @@ export default function AppRoutes() {
           }
         />
         <Route
-          path=":id"
+          path="cashier/:id"
+          element={
+            <ProtectedRoute module={AppModules.CASHIER_SHIFT_REPORT} action={ModuleActions.VIEW}>
+              <CashierShiftCashierDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="cashierShift/:id"
           element={
             <ProtectedRoute module={AppModules.CASHIER_SHIFT_REPORT} action={ModuleActions.VIEW}>
               <CashierShiftDetails />
             </ProtectedRoute>
           }
         />
+
+
       </Route>
 
 
@@ -1436,7 +1448,16 @@ export default function AppRoutes() {
       </Route>
 
 
-
+      <Route path="all-returns">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.ALL_RETURNS} action={ModuleActions.VIEW}>
+              <AllReturn />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
 
 
 

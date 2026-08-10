@@ -32,31 +32,34 @@ const CashierShift = () => {
         {
             key: "cashier_id",
             header: t("Cashier"),
-            render: (val, item) => (
-                <Link to={`/cashier-shift/${item._id}`} className="group flex items-center gap-4 cursor-pointer">
-                    <div className="relative">
-                        <div className="flex items-center gap-2">
-                            <p className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
-                                {val?.name || t("Unknown")}
-                            </p>
-                            <ArrowUpRight size={14} className="text-blue-600 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
-                        </div>
+            render: (val) => (
+                <div className="relative">
+                    <div className="flex items-center gap-2">
+                        <p className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
+                            {val?.name || t("Unknown")}
+                        </p>
                     </div>
-                </Link>
+                </div>
+
             )
         },
         {
             key: "cashierman_id",
             header: t("Cashier Man"),
-            render: (val) => (
+            render: (val, item) => (
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-gray-50 rounded-lg border border-gray-100">
                         <User size={18} className="text-gray-600" />
                     </div>
-                    <div>
-                        <p className="font-semibold text-gray-800">{val?.username || t("Unknown")}</p>
-                        <p className="text-[10px] text-red-600 font-bold uppercase">{val?.email}</p>
-                    </div>
+                    <Link to={`/cashier-shift/cashier/${item.cashierman_id?._id || item._id}`} className="group flex items-center gap-4 cursor-pointer">
+
+                        <div>
+                            <p className="font-semibold text-gray-800">{val?.username || t("Unknown")}</p>
+                            <p className="text-[10px] text-red-600 font-bold uppercase">{val?.email}</p>
+                            <ArrowUpRight size={14} className="text-blue-600 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+
+                        </div>
+                    </Link>
                 </div>
             )
         },
@@ -96,8 +99,8 @@ const CashierShift = () => {
                         >
                             <span
                                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${isOpen
-                                        ? (isArabic ? '-translate-x-6' : 'translate-x-6')
-                                        : (isArabic ? '-translate-x-1' : 'translate-x-1')
+                                    ? (isArabic ? '-translate-x-6' : 'translate-x-6')
+                                    : (isArabic ? '-translate-x-1' : 'translate-x-1')
                                     }`}
                             />
                         </button>
