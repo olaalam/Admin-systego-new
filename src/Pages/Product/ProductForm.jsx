@@ -23,6 +23,8 @@ const ProductForm = ({
   const isRTL = i18n.language === "ar";
   // fetch categories / brands / variations / taxes
   const { data, loading: metaLoading } = useGet("/api/admin/product/select");
+  const { data: discountData, loading: discountsLoading } = useGet("/api/admin/discount");
+  const discounts = discountData?.discounts || [];
 
   // local states
   const [activeTab, setActiveTab] = useState("general");
@@ -61,6 +63,7 @@ const ProductForm = ({
     maximum_to_show: 0,
     is_featured: false,
     code: "",
+    discountId: "",
   });
 
   const [selectedVariationIds, setSelectedVariationIds] = useState([]);
@@ -137,6 +140,25 @@ const ProductForm = ({
 
   useEffect(() => {
     if (mode === "edit" && initialData) {
+      const getDiscountId = (source) => {
+        const candidates = [
+          source?.discountId,
+          source?.discount_id,
+          source?.discount?.id,
+          source?.discount?._id,
+          source?.discount?.ID,
+          source?.discount?.Id,
+          source?.discount,
+        ];
+
+        for (const value of candidates) {
+          if (typeof value === "string" && value.trim()) return value.trim();
+          if (typeof value === "number") return String(value);
+        }
+
+        return "";
+      };
+
       setForm((prev) => {
         const newForm = {
           ...prev,
@@ -154,6 +176,7 @@ const ProductForm = ({
           description: initialData.description || "",
           image: initialData.image || "",
           code: initialData.code || prev.code || "",
+          discountId: getDiscountId(initialData) || prev.discountId || "",
           gallery_product: initialData.gallery_product || initialData.gallery || [],
           minimum_quantity_sale:
             initialData.minimum_quantity_sale || prev.minimum_quantity_sale,
@@ -400,6 +423,13 @@ const ProductForm = ({
       };
       if (finalForm.image === undefined) delete finalForm.image;
 
+      const selectedDiscountId = (form.discountId || "").toString().trim();
+      if (selectedDiscountId) {
+        finalForm.discountId = selectedDiscountId;
+      } else {
+        delete finalForm.discountId;
+      }
+
       finalForm.exp_ability = form.exp_ability;
       // if (form.exp_ability) finalForm.date_of_expiery = form.date_of_expiery;
       finalForm.whole_price = form.whole_price || 0;
@@ -508,8 +538,9 @@ const ProductForm = ({
     units,
     handleImageUpload,
     removeGalleryImage,
-    loading: metaLoading,
+    loading: metaLoading || discountsLoading,
     allVariations,
+    discounts,
     selectedVariationIds,
     handleVariationChange,
     selectedOptionsMap,

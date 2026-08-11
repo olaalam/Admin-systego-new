@@ -166,7 +166,7 @@ const BrandSelect = ({ label, value, options, onChange, t }) => {
 // ProductGeneralTab Component (with Arabic fields and Taxes)
 // ----------------------------------------------------------------------
 
-const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, loading, units }) => {
+const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, loading, units, discounts = [] }) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   if (loading) {
@@ -240,6 +240,26 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
             ))}
           </select>
         </div> */}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+        <div>
+          <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            {t("productss.discount")}
+          </Label>
+          <select
+            className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none"
+            value={form.discountId || ""}
+            onChange={(e) => handleChange("discountId", e.target.value)}
+          >
+            <option value="">{t("productss.select_discount")}</option>
+            {discounts.map((discount) => (
+              <option key={discount._id} value={discount._id}>
+                {discount.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Unit & Min Purchase */}

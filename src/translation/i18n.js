@@ -1011,11 +1011,15 @@ i18n.use(initReactI18next).init({
         "productss": {
           "name_en": "Product Name (English)",
           "name_ar": "Product Name (Arabic)",
+          "discount": "Discount",
+          "select_discount": "Select Discount",
           "name_en_placeholder": "Enter product name in English",
           "name_ar_placeholder": "Enter product name in Arabic",
 
           "category": "Category",
           "brand": "Brand",
+          "discount": "Discount",
+          "select_discount": "Select Discount",
           "select_brand": "Select Brand",
           "tax": "Tax",
           "select_tax": "Select Tax",
