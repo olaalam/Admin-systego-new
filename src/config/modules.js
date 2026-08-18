@@ -54,7 +54,7 @@ export const AppModules = {
     LEDGER: "ledger",
     RESERVE: "reserve",
     PROFILE: "profile",
-
+    STOCKTAKE: "stocktake",
 
 };
 

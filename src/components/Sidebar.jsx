@@ -88,6 +88,7 @@ const menuItems = [
     children: [
       { name: "Branch", path: "/warehouse", module: AppModules.WAREHOUSE },
       { name: "Transfers", path: "/transfer", module: AppModules.TRANSFER },
+      { name: "Stock Take", path: "/stocktake", module: AppModules.STOCKTAKE },
       { name: "Purchase", path: "/purchase", module: AppModules.PURCHASE },
       { name: "Returns", path: "/purchase-return", module: AppModules.PURCHASE_RETURN },
     ],

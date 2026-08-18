@@ -54,6 +54,9 @@ import Permission from "./Pages/Permission/Permission";
 import Transfer from "./Pages/Transfer/Transfer";
 import TransferAdd from "./Pages/Transfer/TransferAdd";
 import TransferDetails from "./Pages/Transfer/TransferDetails";
+import StockTake from "./Pages/StockTake/StockTake";
+import StockTakeCreate from "./Pages/StockTake/StockTakeCreate";
+import StockTakeDetails from "./Pages/StockTake/StockTakeDetails";
 import Revenue from "./Pages/Revenue/Revenue";
 import RevenueAdd from "./Pages/Revenue/RevenueAdd";
 import RevenueEdit from "./Pages/Revenue/RevenueEdit";
@@ -615,6 +618,33 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute module={AppModules.TRANSFER} action={ModuleActions.VIEW}>
               <TransferDetails />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+      {/* Stock Take */}
+      <Route path="stocktake">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.STOCKTAKE} action={ModuleActions.VIEW}>
+              <StockTake />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="create"
+          element={
+            <ProtectedRoute module={AppModules.STOCKTAKE} action={ModuleActions.ADD}>
+              <StockTakeCreate />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="details/:id"
+          element={
+            <ProtectedRoute module={AppModules.STOCKTAKE} action={ModuleActions.VIEW}>
+              <StockTakeDetails />
             </ProtectedRoute>
           }
         />
