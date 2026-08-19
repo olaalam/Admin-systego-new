@@ -25,22 +25,29 @@ const PurchaseAdd = () => {
     financials: [{ financial_id: "", payment_amount: 0 }],
     installments: [],
   });
+  // معالجة المنتجات للبحث
   const processedProducts = useMemo(() => {
     if (!selection?.products) return [];
 
     const allItems = [];
-    selection.products.forEach((product) => {
+    selection.products.forEach(product => {
       // إذا كان المنتج له أسعار مختلفة (variations)
       if (product.different_price && product.prices?.length > 0) {
-        product.prices.forEach((variant) => {
-          // سحب اسم الـ variation من أول عنصر في مصفوفة variations داخل السعر
-          const variantName = variant.variations?.[0]?.name || t("Variation");
+        product.prices.forEach(variant => {
+
+          // سحب اسم الـ variation واسم الـ option التابع له (مثل: Colors: Red)
+          // استخدمنا map للتعامل مع أي عدد من الـ variations لو المنتج له أكثر من نوع (مثلا لون ومقاس)
+          const variantDetails = variant.variations?.map(v => {
+            const optionName = v.options?.[0]?.name;
+            // إذا كان هناك option نعرض (الاسم: الخيار)، وإلا نعرض الاسم فقط
+            return optionName ? `${v.name}: ${optionName}` : v.name;
+          }).join(" | ") || t("Variation");
 
           allItems.push({
             ...product,
-            id: variant._id, // نستخدم ID السعر/النوع كـ ID أساسي
+            id: variant._id,
             original_product_id: product._id,
-            displayName: `${product.name} - ${variantName}`,
+            displayName: `${product.name} - ${variantDetails}`, // النتيجة: test - Colors: Red
             price: variant.price,
             cost: variant.cost || product.cost,
           });
@@ -50,12 +57,13 @@ const PurchaseAdd = () => {
         allItems.push({
           ...product,
           id: product._id,
-          displayName: product.name,
+          displayName: product.name
         });
       }
     });
     return allItems;
   }, [selection?.products, t]);
+
   const currencyCode = selection?.currency?.code || "EGP";
 
   useEffect(() => {
@@ -149,17 +157,24 @@ const PurchaseAdd = () => {
   }, [searchProduct, processedProducts]);
 
   const handleSelectProduct = (item) => {
-    // التحقق إذا كان المنتج أضيف مسبقاً (باستخدام الـ ID الجديد للـ variation)
-    if (formData.purchase_items.find(p => p.product_id === item.id)) {
-      setSearchProduct(""); // لتفريغ السيرش وإغلاق القائمة
+    // منع التكرار: نتحقق من الـ variant_id لو كان variation، أو الـ product_id لو كان منتج عادي
+    const isDuplicate = formData.purchase_items.some(p =>
+      item.original_product_id
+        ? p.variant_id === item.id
+        : p.product_id === item.id
+    );
+
+    if (isDuplicate) {
+      setSearchProduct("");
       return toast.warning(t("ProductAlreadyAdded"));
     }
 
     setFormData(prev => ({
       ...prev,
       purchase_items: [...prev.purchase_items, {
-        product_id: item.id,
-        name: item.displayName, // هنا نخزن الاسم الكامل (المنتج + النوع) للأبد في الـ state
+        product_id: item.original_product_id || item.id, // ID المنتج الأساسي
+        variant_id: item.original_product_id ? item.id : null, // ID السعر/النوع (product_price_id)
+        name: item.displayName,
         quantity: 1,
         unit_cost: item.cost || item.price || 0,
         tax: 0,
@@ -169,58 +184,80 @@ const PurchaseAdd = () => {
       }]
     }));
 
-    setSearchProduct(""); // ✅ هذا السطر هو الذي سيغلق الـ List فور الاختيار
+    setSearchProduct("");
   };
-  const handleSave = async () => {
-    // 1. التحقق من تاريخ الصلاحية للمنتجات المطلوبة
+  const handleSave = async () => { // استخدم handleUpdate في ملف الـ Edit
     const missingExpiry = totals.itemsWithNetCost.find(item => item.exp_ability && !item.expiry_date);
     if (missingExpiry) {
       return toast.error(`${t("Expiry date is required for product")}: ${missingExpiry.name}`);
     }
 
-    // 2. تجهيز البيانات الأساسية
+    // --- بداية خوارزمية التجميع (Grouping) ---
+    const groupedItemsMap = {};
+
+    totals.itemsWithNetCost.forEach((item) => {
+      const mainId = item.product_id;
+
+      // إذا كان المنتج الأساسي غير موجود في القائمة، ننشئ الهيكل الأساسي له
+      if (!groupedItemsMap[mainId]) {
+        groupedItemsMap[mainId] = {
+          product_id: mainId,
+          quantity: 0,
+          unit_cost: Number(item.unit_cost), // نأخذ تكلفة أول عنصر كأساس
+          tax: 0,
+          discount: 0,
+          subtotal: 0,
+          date: formData.date,
+          ...(item.exp_ability && item.expiry_date ? { expiry_date: item.expiry_date } : {}),
+          variations: []
+        };
+      }
+
+      // تجميع الإجماليات للمنتج الأساسي
+      groupedItemsMap[mainId].quantity += Number(item.quantity);
+      groupedItemsMap[mainId].tax += Number(item.tax);
+      groupedItemsMap[mainId].discount += Number(item.discount);
+      groupedItemsMap[mainId].subtotal += Number(item.subtotal);
+
+      // إذا كان العنصر لديه نوع (variation)، نضيفه لمصفوفة variations
+      if (item.variant_id) {
+        groupedItemsMap[mainId].variations.push({
+          quantity: Number(item.quantity),
+          product_price_id: item.variant_id
+        });
+      }
+    });
+
+    // تحويل الكائن إلى مصفوفة نهائية جاهزة للإرسال
+    const finalPurchaseItems = Object.values(groupedItemsMap);
+    // --- نهاية خوارزمية التجميع ---
+
     const payload = {
       ...formData,
       total: totals.itemsTotalBeforeAll,
       grand_total: totals.grandTotal,
-      // تنظيف المنتجات: حذف name, netUnitCost, و expiry_date إذا كان غير مطلوب
-      purchase_items: totals.itemsWithNetCost.map(({ name, netUnitCost, exp_ability, ...rest }) => {
-        const item = { ...rest };
-        if (!exp_ability) {
-          delete item.expiry_date; // حذف التاريخ إذا كان المنتج لا يدعم الصلاحية
-        }
-        return item;
-      }),
+      purchase_items: finalPurchaseItems, // استخدام المنتجات المجمعة هنا
       financials: formData.financials.filter(f => f.financial_id !== "" && Number(f.payment_amount) > 0),
       installments: [...formData.installments]
     };
 
-    // التحقق مما إذا كان هناك قسط مكتوب في الخانات ولم يتم الضغط على +
     const qDate = document.getElementById('q_date')?.value;
     const qAmt = document.getElementById('q_amt')?.value;
     if (qDate && qAmt) {
       payload.installments.push({ date: qDate, amount: qAmt });
     }
 
-    // 3. حذف tax_id أو supplier_id إذا كانا فارغين
-    if (!payload.tax_id) {
-      delete payload.tax_id;
-    }
-    if (!payload.supplier_id) {
-      delete payload.supplier_id;
-    }
+    if (!payload.tax_id) delete payload.tax_id;
+    if (!payload.supplier_id) delete payload.supplier_id;
 
-    // 4. التحقق من الحقول الإجبارية
     if (!payload.warehouse_id || payload.purchase_items.length === 0) {
       return toast.error(t("PleaseCompleteRequiredFields"));
     }
 
-    // 5. إرسال البيانات والتحويل لصفحة القائمة عند النجاح
     try {
-      const response = await postData(payload);
-      // ملاحظة: تأكدي أن postData ترجع true أو البيانات عند النجاح
+      const response = await postData(payload); // استخدم putData في ملف الـ Edit
       if (response) {
-        toast.success(t("PurchaseAddedSuccessfully"));
+        toast.success(t("PurchaseAddedSuccessfully")); // أو Updated Successfully
         navigate("/purchase");
       }
     } catch (error) {
@@ -438,69 +475,69 @@ const PurchaseAdd = () => {
               const totalPaidFinancials = formData.financials.reduce((acc, f) => acc + Number(f.payment_amount || 0), 0);
               const remainingAfterInstallments = totals.grandTotal - totalPaidFinancials - totalInstallments;
               return (
-              <div className="p-5 bg-orange-50/50 border border-orange-100 rounded-2xl space-y-4">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm font-black text-orange-700 flex items-center gap-2"><Calendar size={16} /> {t("Installments Schedule")}</label>
-                  {formData.installments.length > 0 && (
-                    <div className={`text-xs font-black px-3 py-1 rounded-full ${remainingAfterInstallments > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                      {remainingAfterInstallments > 0
-                        ? `${t("Remaining")}: ${remainingAfterInstallments.toFixed(2)} ${currencyCode}`
-                        : `✓ ${t("Fully Covered")}`}
+                <div className="p-5 bg-orange-50/50 border border-orange-100 rounded-2xl space-y-4">
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-black text-orange-700 flex items-center gap-2"><Calendar size={16} /> {t("Installments Schedule")}</label>
+                    {formData.installments.length > 0 && (
+                      <div className={`text-xs font-black px-3 py-1 rounded-full ${remainingAfterInstallments > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                        {remainingAfterInstallments > 0
+                          ? `${t("Remaining")}: ${remainingAfterInstallments.toFixed(2)} ${currencyCode}`
+                          : `✓ ${t("Fully Covered")}`}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <input type="date" id="q_date" className="flex-1 border border-orange-200 rounded-xl p-2.5 text-sm" />
+                    <input type="number" id="q_amt" className="w-32 border border-orange-200 rounded-xl p-2.5 text-sm" placeholder="Amount" />
+                    <button onClick={() => {
+                      const d = document.getElementById('q_date').value;
+                      const a = document.getElementById('q_amt').value;
+                      if (d && a) {
+                        setFormData(prev => ({ ...prev, installments: [...prev.installments, { date: d, amount: a }] }));
+                        document.getElementById('q_date').value = "";
+                        document.getElementById('q_amt').value = "";
+                      }
+                    }} className="bg-orange-500 text-white px-4 rounded-xl font-bold hover:bg-orange-600 transition-colors">+</button>
+                  </div>
+
+                  {/* شريط تقدم السداد */}
+                  {totals.grandTotal > 0 && formData.installments.length > 0 && (
+                    <div className="space-y-1">
+                      <div className="w-full bg-orange-100 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="h-2 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${Math.min(100, ((totalPaidFinancials + totalInstallments) / totals.grandTotal) * 100)}%`,
+                            background: remainingAfterInstallments <= 0 ? '#22c55e' : '#f97316'
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-[10px] text-orange-500 font-bold">
+                        <span>{t("Scheduled")}: {(totalPaidFinancials + totalInstallments).toFixed(2)}</span>
+                        <span>{Math.min(100, ((totalPaidFinancials + totalInstallments) / totals.grandTotal * 100)).toFixed(0)}%</span>
+                      </div>
                     </div>
                   )}
-                </div>
-                <div className="flex gap-2">
-                  <input type="date" id="q_date" className="flex-1 border border-orange-200 rounded-xl p-2.5 text-sm" />
-                  <input type="number" id="q_amt" className="w-32 border border-orange-200 rounded-xl p-2.5 text-sm" placeholder="Amount" />
-                  <button onClick={() => {
-                    const d = document.getElementById('q_date').value;
-                    const a = document.getElementById('q_amt').value;
-                    if (d && a) {
-                      setFormData(prev => ({ ...prev, installments: [...prev.installments, { date: d, amount: a }] }));
-                      document.getElementById('q_date').value = "";
-                      document.getElementById('q_amt').value = "";
-                    }
-                  }} className="bg-orange-500 text-white px-4 rounded-xl font-bold hover:bg-orange-600 transition-colors">+</button>
-                </div>
 
-                {/* شريط تقدم السداد */}
-                {totals.grandTotal > 0 && formData.installments.length > 0 && (
-                  <div className="space-y-1">
-                    <div className="w-full bg-orange-100 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="h-2 rounded-full transition-all duration-500"
-                        style={{
-                          width: `${Math.min(100, ((totalPaidFinancials + totalInstallments) / totals.grandTotal) * 100)}%`,
-                          background: remainingAfterInstallments <= 0 ? '#22c55e' : '#f97316'
-                        }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-[10px] text-orange-500 font-bold">
-                      <span>{t("Scheduled")}: {(totalPaidFinancials + totalInstallments).toFixed(2)}</span>
-                      <span>{Math.min(100, ((totalPaidFinancials + totalInstallments) / totals.grandTotal * 100)).toFixed(0)}%</span>
-                    </div>
+                  <div className="space-y-2">
+                    {formData.installments.map((item, i) => {
+                      const runningTotal = formData.installments.slice(0, i + 1).reduce((acc, it) => acc + Number(it.amount || 0), 0);
+                      const runningRemaining = totals.grandTotal - totalPaidFinancials - runningTotal;
+                      return (
+                        <div key={i} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm text-xs border border-orange-100">
+                          <span className="font-medium text-gray-500">{item.date}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="font-black text-orange-600">{Number(item.amount).toFixed(2)} {currencyCode}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${runningRemaining > 0 ? 'bg-red-50 text-red-400' : 'bg-green-50 text-green-500'}`}>
+                              {runningRemaining > 0 ? `${t("Left")}: ${runningRemaining.toFixed(2)}` : `✓`}
+                            </span>
+                          </div>
+                          <button onClick={() => setFormData({ ...formData, installments: formData.installments.filter((_, idx) => idx !== i) })} className="text-red-300 hover:text-red-500">×</button>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-
-                <div className="space-y-2">
-                  {formData.installments.map((item, i) => {
-                    const runningTotal = formData.installments.slice(0, i + 1).reduce((acc, it) => acc + Number(it.amount || 0), 0);
-                    const runningRemaining = totals.grandTotal - totalPaidFinancials - runningTotal;
-                    return (
-                    <div key={i} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm text-xs border border-orange-100">
-                      <span className="font-medium text-gray-500">{item.date}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="font-black text-orange-600">{Number(item.amount).toFixed(2)} {currencyCode}</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${runningRemaining > 0 ? 'bg-red-50 text-red-400' : 'bg-green-50 text-green-500'}`}>
-                          {runningRemaining > 0 ? `${t("Left")}: ${runningRemaining.toFixed(2)}` : `✓`}
-                        </span>
-                      </div>
-                      <button onClick={() => setFormData({ ...formData, installments: formData.installments.filter((_, idx) => idx !== i) })} className="text-red-300 hover:text-red-500">×</button>
-                    </div>
-                    );
-                  })}
                 </div>
-              </div>
               );
             })()}
           </div>

@@ -74,14 +74,10 @@ const menuItems = [
       { name: "Discounts", path: "/discount", module: AppModules.DISCOUNT },
       { name: "Shipping", path: "/shipping", module: AppModules.SHIPPING },
       { name: "Free Shipping Products", path: "/free-shipping-products", module: AppModules.FREE_SHIPPING_PRODUCTS },
-
+      { name: "Ecommerce", path: "/ecommerce", module: AppModules.ECOMMERCE },
     ],
   },
-  {
-    name: "Ecommerce",
-    icon: ShoppingCart,
-    path: "/ecommerce",
-  },
+
   {
     name: "Inventory",
     icon: Warehouse,

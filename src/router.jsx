@@ -149,6 +149,7 @@ import PorfileEdit from "./Pages/Porfile/PorfileEdit";
 import Porfile from "./Pages/Porfile/Porfile";
 import CashierShiftDetails from "./Pages/CashierShift/CashierShiftDetails";
 import AllReturn from "./Pages/AllReturn/AllReturn";
+import Ecommerce from "./Pages/Ecommerce/Ecommerce";
 
 
 export default function AppRoutes() {
@@ -1488,7 +1489,16 @@ export default function AppRoutes() {
           }
         />
       </Route>
-
+      <Route path="ecommerce">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.VIEW}>
+              <Ecommerce />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
 
 
       <Route path="/unauthorized" element={<Unauthorized />} />

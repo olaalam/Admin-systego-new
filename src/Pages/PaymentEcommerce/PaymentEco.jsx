@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
 import {
     CheckCircle2, X, Clock, Eye, CreditCard, Info, Package,
-    Truck, RotateCcw, AlertTriangle, Calendar, RefreshCw, Filter, Check, Loader2, ChevronDown, ShoppingBag, DollarSign
+    Truck, RotateCcw, AlertTriangle, Calendar, RefreshCw, Filter, Check, Loader2, ChevronDown, ShoppingBag, MapPin
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 
@@ -195,6 +195,34 @@ const PaymentEco = () => {
             )
         },
         {
+            key: "orderType",
+            header: t("Order Type"),
+            render: (_, item) => {
+                const isDelivery = item.orderType === "delivery";
+                const addr = item.shippingAddress;
+                const fullAddress = [addr?.details, addr?.zone, addr?.city].filter(Boolean).join(", ");
+
+                return (
+                    <div className="flex flex-col gap-1 max-w-[200px]">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold w-fit capitalize ${isDelivery ? "bg-indigo-50 text-indigo-700 border border-indigo-200/60" : "bg-slate-100 text-slate-700"
+                            }`}>
+                            <Truck size={12} />
+                            {t(item.orderType || "N/A")}
+                        </span>
+
+                        {isDelivery && fullAddress && (
+                            <div className="flex items-start gap-1 text-[11px] text-slate-600 font-medium leading-tight mt-0.5">
+                                <MapPin size={12} className="text-slate-400 shrink-0 mt-0.5" />
+                                <span className="truncate" title={fullAddress}>
+                                    {fullAddress}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+        },
+        {
             key: "paymentMethod",
             header: t("Payment Method"),
             render: (method) => (
@@ -318,13 +346,12 @@ const PaymentEco = () => {
                     </div>
                 </div>
 
-                {/* Status Dropdown Filter Section (نفس الشكل الموجود في الصورة بالضبط) */}
+                {/* Status Dropdown Filter Section */}
                 <div className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2 w-full md:w-auto">
                         <Filter size={16} className="text-slate-400 shrink-0" />
                         <span className="text-xs font-bold text-slate-600 whitespace-nowrap">{t("Filter Status:")}</span>
 
-                        {/* Styled Dropdown matching image */}
                         <div className="relative w-full md:w-64">
                             <select
                                 value={activeTab}
@@ -351,8 +378,8 @@ const PaymentEco = () => {
                                     key={opt.id}
                                     onClick={() => setActiveTab(opt.id)}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${isActive
-                                            ? "bg-slate-900 text-white shadow-sm"
-                                            : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                        ? "bg-slate-900 text-white shadow-sm"
+                                        : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                                         }`}
                                 >
                                     <Icon size={13} className={isActive ? "text-indigo-400" : opt.color} />

@@ -44,16 +44,35 @@ const PurchaseEdit = () => {
         shipping_cost: Number(p.shipping_cost) || 0,
         discount: Number(p.discount) || 0,
         exchange_rate: p.exchange_rate || 1,
-        purchase_items: (p.items || []).map(item => ({
-          product_id: item.product_id?._id || item.product_id,
-          name: item.product_id?.name || item.name || "Product",
-          quantity: Number(item.quantity) || 0,
-          unit_cost: Number(item.unit_cost) || 0,
-          tax: Number(item.tax) || 0,
-          discount: Number(item.discount || item.discount_share) || 0,
-          exp_ability: item.product_id?.exp_ability || (item.date_of_expiery ? true : false),
-          expiry_date: item.date_of_expiery ? item.date_of_expiery.split("T")[0] : null,
-        })),
+        purchase_items: (p.items || []).flatMap(item => {
+          // إذا كان المنتج يحتوي على Variations، نفكها إلى سطور منفصلة
+          if (item.variations && item.variations.length > 0) {
+            return item.variations.map(variant => ({
+              product_id: item.product_id?._id || item.product_id,
+              variant_id: variant.product_price_id?._id || variant.product_price_id,
+              name: `${item.product_id?.name || item.name} - Variation`, // يمكنك تحسين الاسم إذا كان الباك يرسله
+              quantity: Number(variant.quantity) || 0,
+              unit_cost: Number(item.unit_cost) || 0, // أو variant.cost لو الباك بيرجعها
+              tax: Number(item.tax) || 0,
+              discount: Number(item.discount) || 0,
+              exp_ability: item.product_id?.exp_ability || (item.date_of_expiery ? true : false),
+              expiry_date: item.date_of_expiery ? item.date_of_expiery.split("T")[0] : null,
+            }));
+          } else {
+            // منتج عادي بدون Variations
+            return [{
+              product_id: item.product_id?._id || item.product_id,
+              variant_id: null,
+              name: item.product_id?.name || item.name || "Product",
+              quantity: Number(item.quantity) || 0,
+              unit_cost: Number(item.unit_cost) || 0,
+              tax: Number(item.tax) || 0,
+              discount: Number(item.discount || item.discount_share) || 0,
+              exp_ability: item.product_id?.exp_ability || (item.date_of_expiery ? true : false),
+              expiry_date: item.date_of_expiery ? item.date_of_expiery.split("T")[0] : null,
+            }];
+          }
+        }),
         financials: (p.invoices || []).map(inv => ({
           financial_id: Array.isArray(inv.financial_id) ? inv.financial_id[0] : inv.financial_id,
           payment_amount: Number(inv.amount) || 0,
@@ -69,22 +88,37 @@ const PurchaseEdit = () => {
   // معالجة المنتجات للبحث
   const processedProducts = useMemo(() => {
     if (!selection?.products) return [];
+
     const allItems = [];
     selection.products.forEach(product => {
+      // إذا كان المنتج له أسعار مختلفة (variations)
       if (product.different_price && product.prices?.length > 0) {
         product.prices.forEach(variant => {
-          const variantName = variant.variations?.[0]?.name || t("Variation");
+
+          // سحب اسم الـ variation واسم الـ option التابع له (مثل: Colors: Red)
+          // استخدمنا map للتعامل مع أي عدد من الـ variations لو المنتج له أكثر من نوع (مثلا لون ومقاس)
+          const variantDetails = variant.variations?.map(v => {
+            const optionName = v.options?.[0]?.name;
+            // إذا كان هناك option نعرض (الاسم: الخيار)، وإلا نعرض الاسم فقط
+            return optionName ? `${v.name}: ${optionName}` : v.name;
+          }).join(" | ") || t("Variation");
+
           allItems.push({
             ...product,
             id: variant._id,
             original_product_id: product._id,
-            displayName: `${product.name} - ${variantName}`,
+            displayName: `${product.name} - ${variantDetails}`, // النتيجة: test - Colors: Red
             price: variant.price,
             cost: variant.cost || product.cost,
           });
         });
       } else {
-        allItems.push({ ...product, id: product._id, displayName: product.name });
+        // منتج عادي
+        allItems.push({
+          ...product,
+          id: product._id,
+          displayName: product.name
+        });
       }
     });
     return allItems;
@@ -152,26 +186,35 @@ const PurchaseEdit = () => {
   }, [searchProduct, processedProducts]);
 
   const handleSelectProduct = (item) => {
-    if (formData.purchase_items.find(p => p.product_id === item.id)) {
+    // منع التكرار: نتحقق من الـ variant_id لو كان variation، أو الـ product_id لو كان منتج عادي
+    const isDuplicate = formData.purchase_items.some(p =>
+      item.original_product_id
+        ? p.variant_id === item.id
+        : p.product_id === item.id
+    );
+
+    if (isDuplicate) {
       setSearchProduct("");
       return toast.warning(t("ProductAlreadyAdded"));
     }
+
     setFormData(prev => ({
       ...prev,
       purchase_items: [...prev.purchase_items, {
-        product_id: item.id,
+        product_id: item.original_product_id || item.id, // ID المنتج الأساسي
+        variant_id: item.original_product_id ? item.id : null, // ID السعر/النوع (product_price_id)
         name: item.displayName,
         quantity: 1,
         unit_cost: item.cost || item.price || 0,
         tax: 0,
         discount: 0,
         exp_ability: item.exp_ability || false,
-        expiry_date: item.exp_ability ? "" : null,
-      }],
+        expiry_date: item.exp_ability ? "" : null
+      }]
     }));
+
     setSearchProduct("");
   };
-
   const addFinancialRow = () => {
     setFormData(prev => ({
       ...prev,
