@@ -87,6 +87,7 @@ const menuItems = [
       { name: "Stock Take", path: "/stocktake", module: AppModules.STOCKTAKE },
       { name: "Purchase", path: "/purchase", module: AppModules.PURCHASE },
       { name: "Returns", path: "/purchase-return", module: AppModules.PURCHASE_RETURN },
+      { name: "Wasted", path: "/wasted", module: AppModules.WASTED },
     ],
   },
   {

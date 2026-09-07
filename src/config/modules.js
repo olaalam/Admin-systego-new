@@ -55,7 +55,7 @@ export const AppModules = {
     RESERVE: "reserve",
     PROFILE: "profile",
     STOCKTAKE: "stocktake",
-
+    WASTED: "wasted",
 };
 
 export const ModuleActions = {

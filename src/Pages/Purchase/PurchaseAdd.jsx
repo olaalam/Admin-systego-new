@@ -33,31 +33,44 @@ const PurchaseAdd = () => {
     selection.products.forEach(product => {
       // إذا كان المنتج له أسعار مختلفة (variations)
       if (product.different_price && product.prices?.length > 0) {
-        product.prices.forEach(variant => {
+        // حساب متوسط تكلفة جميع الفارينتات للمنتج كمرجع عام
+        const validVariantCosts = product.prices
+          .map(p => Number(p.cost || 0))
+          .filter(c => c > 0);
+        const overallVariantsAvg = validVariantCosts.length > 0
+          ? validVariantCosts.reduce((a, b) => a + b, 0) / validVariantCosts.length
+          : Number(product.cost || 0);
 
+        product.prices.forEach(variant => {
           // سحب اسم الـ variation واسم الـ option التابع له (مثل: Colors: Red)
-          // استخدمنا map للتعامل مع أي عدد من الـ variations لو المنتج له أكثر من نوع (مثلا لون ومقاس)
           const variantDetails = variant.variations?.map(v => {
             const optionName = v.options?.[0]?.name;
-            // إذا كان هناك option نعرض (الاسم: الخيار)، وإلا نعرض الاسم فقط
             return optionName ? `${v.name}: ${optionName}` : v.name;
           }).join(" | ") || t("Variation");
+
+          const variantCost = Number(variant.cost || 0);
+          // متوسط التكلفة: تكلفة الفارينت إن كانت مسجلة، وإلا متوسط بقية الفارينتات، وإلا تكلفة المنتج الأب
+          const calculatedAvgCost = variantCost > 0 ? variantCost : (overallVariantsAvg || Number(product.cost || 0));
 
           allItems.push({
             ...product,
             id: variant._id,
             original_product_id: product._id,
-            displayName: `${product.name} - ${variantDetails}`, // النتيجة: test - Colors: Red
+            displayName: `${product.name} - ${variantDetails}`,
             price: variant.price,
-            cost: variant.cost || product.cost,
+            cost: variantCost > 0 ? variantCost : (product.cost || 0),
+            avg_cost: calculatedAvgCost,
           });
         });
       } else {
-        // منتج عادي
+        // منتج عادي بدون تشكيلات
+        const prodCost = Number(product.cost || 0);
         allItems.push({
           ...product,
           id: product._id,
-          displayName: product.name
+          displayName: product.name,
+          cost: prodCost,
+          avg_cost: prodCost,
         });
       }
     });
@@ -177,6 +190,7 @@ const PurchaseAdd = () => {
         name: item.displayName,
         quantity: 1,
         unit_cost: item.cost || item.price || 0,
+        avg_cost: item.avg_cost ?? item.cost ?? 0, // متوسط التكلفة الاسترشادي
         tax: 0,
         discount: 0,
         exp_ability: item.exp_ability || false,
@@ -223,7 +237,8 @@ const PurchaseAdd = () => {
       if (item.variant_id) {
         groupedItemsMap[mainId].variations.push({
           quantity: Number(item.quantity),
-          product_price_id: item.variant_id
+          product_price_id: item.variant_id,
+          unit_cost: Number(item.unit_cost),
         });
       }
     });
@@ -352,7 +367,8 @@ const PurchaseAdd = () => {
                 <th className="p-4 text-left">{t("Product")}</th>
                 <th className="p-4 w-32 text-center text-orange-600">{t("Expiry Date")}</th>
                 <th className="p-4 w-20 text-center">{t("Qty")}</th>
-                <th className="p-4 w-24 text-center">{t("Cost")}</th>
+                <th className="p-4 w-28 text-center text-indigo-700 bg-indigo-50/50">{t("Average Cost")}</th>
+                <th className="p-4 w-28 text-center">{t("Cost")}</th>
                 <th className="p-4 w-24 text-orange-600">{t("Disc/Item")}</th>
                 <th className="p-4 w-24 text-blue-600">{t("Tax/Item")}</th>
                 <th className="p-4 text-red-700 bg-red-50 font-bold">{t("Net Cost")}</th>
@@ -381,13 +397,39 @@ const PurchaseAdd = () => {
                     )}
                   </td>
                   <td className="p-2">
-                    <input type="number" className="w-full border rounded p-1 text-center" value={item.quantity} onChange={(e) => {
-                      const items = [...formData.purchase_items];
-                      items[idx].quantity = e.target.value;
-                      setFormData({ ...formData, purchase_items: items });
-                    }} />
+                    <input
+                      type="number"
+                      min="1"
+                      className="w-full border rounded p-1 text-center font-bold"
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const items = [...formData.purchase_items];
+                        items[idx].quantity = e.target.value;
+                        setFormData({ ...formData, purchase_items: items });
+                      }}
+                    />
                   </td>
-                  <td className="p-4 text-center font-mono">{item.unit_cost}</td>
+                  {/* متوسط التكلفة الاسترشادي */}
+                  <td className="p-3 text-center">
+                    <span className="inline-block px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-xs">
+                      {Number(item.avg_cost || 0).toFixed(2)}
+                    </span>
+                  </td>
+                  {/* سعر الشراء (Cost / Unit Cost) - حقل قابل للتعديل */}
+                  <td className="p-2">
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      className="w-full border border-gray-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 rounded p-1.5 text-center font-mono font-bold text-gray-800 bg-white"
+                      value={item.unit_cost}
+                      onChange={(e) => {
+                        const items = [...formData.purchase_items];
+                        items[idx].unit_cost = e.target.value;
+                        setFormData({ ...formData, purchase_items: items });
+                      }}
+                    />
+                  </td>
                   <td className="p-4">
                     <input type="number" className="w-full border border-orange-200 rounded p-1 text-center" value={item.discount} onChange={(e) => {
                       const items = [...formData.purchase_items];

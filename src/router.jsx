@@ -105,6 +105,8 @@ import PurchaseEdit from "./Pages/Purchase/PurchaseEdit";
 import Payments from "./Pages/Payments/Payments";
 import ReturnPurchase from "./Pages/ReturnPurchase/ReturnPurchase";
 import ReturnPurchaseAdd from "./Pages/ReturnPurchase/ReturnPurchaseAdd";
+import Wasted from "./Pages/Wasted/Wasted";
+import WastedAdd from "./Pages/Wasted/WastedAdd";
 import CashierShift from "./Pages/CashierShift/CashierShift";
 import PermissionAdd from "./Pages/Permission/PermissionAdd";
 import TransferWarehouse from "./Pages/WareHouse/TransferWarehouse";
@@ -1105,6 +1107,26 @@ export default function AppRoutes() {
           }
         />
 
+      </Route>
+
+      {/* ✅ Wasted Management (Nested Routes محمية) */}
+      <Route path="wasted">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.WASTED} action={ModuleActions.VIEW}>
+              <Wasted />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute module={AppModules.WASTED} action={ModuleActions.ADD}>
+              <WastedAdd />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       <Route path="cashier-shift">

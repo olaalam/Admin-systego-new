@@ -414,7 +414,7 @@ const PurchasesPage = () => {
                                       {item.options.map((opt) => (
                                         <div key={opt._id} className="bg-white p-2 rounded-lg border border-gray-100 flex justify-between items-center shadow-2xs">
                                           <div>
-                                            <span className="font-mono text-[10px] text-gray-400">{opt.product_price_id?.code || "No Code"}</span>
+                                            <span className="font-mono text-[10px] text-gray-400">{opt.product_price_id?.variation_name}</span>
                                             <p className="font-bold text-gray-700">{t("Cost")}: {opt.product_price_id?.cost || 0} EGP</p>
                                           </div>
                                           <span className="px-2 py-0.5 bg-blue-100 text-blue-700 font-bold rounded-md text-[10px]">
