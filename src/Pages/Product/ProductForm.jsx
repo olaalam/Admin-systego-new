@@ -57,7 +57,7 @@ const ProductForm = ({
     low_stock: 0,
     exp_ability: false,
     whole_price: 0,
-    cost: 0, // ✅ إضافة cost للمنتج الأساسي
+    start_quantaty: 0,
     product_has_imei: false,
     show_quantity: false,
     maximum_to_show: 0,
@@ -68,6 +68,7 @@ const ProductForm = ({
 
   const [selectedVariationIds, setSelectedVariationIds] = useState([]);
   const [selectedOptionsMap, setSelectedOptionsMap] = useState({});
+  const [deletedVariantKeys, setDeletedVariantKeys] = useState(new Set());
 
   // helper: generateCombinations (same logic you used)
   const generateCombinations = (optionsMap, allVariationsLocal) => {
@@ -181,7 +182,6 @@ const ProductForm = ({
           minimum_quantity_sale:
             initialData.minimum_quantity_sale || prev.minimum_quantity_sale,
           price: initialData.price ?? prev.price,
-          cost: initialData.cost ?? prev.cost,
           different_price: initialData.different_price ?? prev.different_price,
           prices: initialData.prices?.map((p) => {
             const optionIds = [];
@@ -207,8 +207,6 @@ const ProductForm = ({
             return {
               _id: p._id,
               price: p.price,
-              quantity: p.quantity || 0,
-              cost: p.cost || 0,
               code: p.code || "",
               image: p.gallery?.[0] || p.image || "",
               options: optionIds.length ? optionIds : p.options || [],
@@ -218,10 +216,8 @@ const ProductForm = ({
           quantity: initialData.quantity || 0,
           low_stock: initialData.low_stock || 0,
           exp_ability: initialData.exp_ability || false,
-          // date_of_expiery: initialData.date_of_expiery
-          //   ? new Date(initialData.date_of_expiery).toISOString().split("T")[0]
-          //   : "",
           whole_price: initialData.whole_price || 0,
+          start_quantaty: initialData.start_quantaty ?? initialData.start_quantity ?? 0,
           product_has_imei: initialData.product_has_imei || false,
           show_quantity: initialData.show_quantity || false,
           maximum_to_show: initialData.maximum_to_show || 0,
@@ -239,12 +235,24 @@ const ProductForm = ({
         data?.variations
       ) {
         const allOptionIds = new Set();
+        const existingSigs = new Set();
         initialData.prices.forEach((p) => {
+          const optIds = [];
           p.variations?.forEach((variation) =>
-            variation.options?.forEach((opt) => allOptionIds.add(opt._id))
+            variation.options?.forEach((opt) => {
+              allOptionIds.add(opt._id);
+              optIds.push(String(opt._id));
+            })
           );
-          if (p.options && Array.isArray(p.options))
-            p.options.forEach((opt) => allOptionIds.add(opt));
+          if (p.options && Array.isArray(p.options)) {
+            p.options.forEach((opt) => {
+              allOptionIds.add(opt);
+              optIds.push(String(opt));
+            });
+          }
+          if (optIds.length > 0) {
+            existingSigs.add(optIds.sort().join(","));
+          }
         });
 
         const newSelected = {};
@@ -258,6 +266,16 @@ const ProductForm = ({
             newSelectedVarIds.push(variation._id);
           }
         });
+
+        const allCombos = generateCombinations(newSelected, data.variations);
+        const initialDeleted = new Set();
+        allCombos.forEach((c) => {
+          const sig = (c.options || []).slice().map(String).sort().join(",");
+          if (!existingSigs.has(sig)) {
+            initialDeleted.add(sig);
+          }
+        });
+        setDeletedVariantKeys(initialDeleted);
 
         setSelectedOptionsMap(newSelected);
         setSelectedVariationIds(newSelectedVarIds);
@@ -319,16 +337,32 @@ const ProductForm = ({
     });
   }, []);
 
+  const handleRemoveVariant = useCallback((index) => {
+    setForm((prevForm) => {
+      const targetVariant = prevForm.prices[index];
+      if (targetVariant && targetVariant.options) {
+        const sig = (targetVariant.options || []).slice().map(String).sort().join(",");
+        setDeletedVariantKeys((prev) => new Set(prev).add(sig));
+      }
+      const newPrices = prevForm.prices.filter((_, i) => i !== index);
+      return { ...prevForm, prices: newPrices };
+    });
+  }, []);
+
   useEffect(() => {
     if (form.different_price) {
-      const newVariants = generateCombinations(selectedOptionsMap, allVariations);
+      const allCombinations = generateCombinations(selectedOptionsMap, allVariations);
+      const newVariants = allCombinations.filter((combo) => {
+        const sig = (combo.options || []).slice().map(String).sort().join(",");
+        return !deletedVariantKeys.has(sig);
+      });
+
       setForm((prevForm) => {
         const updatedPrices = newVariants.map((newVariant) => {
+          const newOptionsStr = (newVariant.options || []).slice().map(String).sort().join(",");
           const oldVariant = prevForm.prices.find((p) => {
             if (!p.options) return false;
-            if (p.options.length !== newVariant.options.length) return false;
-            const oldOptionsStr = [...p.options].sort().join(",");
-            const newOptionsStr = [...newVariant.options].sort().join(",");
+            const oldOptionsStr = (p.options || []).slice().map(String).sort().join(",");
             return oldOptionsStr === newOptionsStr;
           });
           const optionNames = newVariant.options
@@ -355,7 +389,7 @@ const ProductForm = ({
     } else {
       setForm((prevForm) => ({ ...prevForm, prices: [] }));
     }
-  }, [selectedOptionsMap, form.different_price, allVariations]);
+  }, [selectedOptionsMap, form.different_price, allVariations, deletedVariantKeys]);
 
 
   const cleanBase64 = (dataUri) => {
@@ -368,14 +402,13 @@ const ProductForm = ({
     if (!form.name || form.name.trim() === "") return false;
     if (!form.categoryId || form.categoryId.length === 0) return false;
     if (!form.product_unit || !form.purchase_unit || !form.sale_unit) return false;
-    if (!form.price || Number(form.price) <= 0) return false;
+    if (!form.different_price && (!form.price || Number(form.price) <= 0)) return false;
     if (!form.image) return false;
     if (!form.different_price && (!form.code || form.code.trim() === "")) return false;
     if (form.different_price) {
       if (!form.prices || form.prices.length === 0) return false;
       const allVariantsValid = form.prices.every(
-        (variant) =>
-          variant.price > 0 && (variant.stock ?? variant.low_stock) >= 0
+        (variant) => Number(variant.price) > 0
       );
       if (!allVariantsValid) return false;
       const allOptionsSelected = selectedVariationIds.every(
@@ -383,7 +416,7 @@ const ProductForm = ({
       );
       if (!allOptionsSelected) return false;
     } else {
-      if ((form.quantity ?? 0) < 0 || (form.low_stock ?? 0) < 0) return false;
+      if ((form.low_stock ?? 0) < 0) return false;
     }
 
     return true;
@@ -410,7 +443,6 @@ const ProductForm = ({
         purchase_unit: form.purchase_unit,
         sale_unit: form.sale_unit,
         price: form.price,
-        cost: form.cost || 0,
         description: form.description,
         image: isNewImage(form.image) ? cleanBase64(form.image) : undefined,
         gallery_product: form.gallery_product
@@ -433,22 +465,27 @@ const ProductForm = ({
       finalForm.exp_ability = form.exp_ability;
       // if (form.exp_ability) finalForm.date_of_expiery = form.date_of_expiery;
       finalForm.whole_price = form.whole_price || 0;
+      finalForm.start_quantaty = form.start_quantaty || 0;
       finalForm.product_has_imei = form.product_has_imei;
       finalForm.show_quantity = form.show_quantity;
       if (form.show_quantity)
         finalForm.maximum_to_show = form.maximum_to_show || 0;
 
       if (finalForm.different_price) {
-        finalForm.prices = form.prices.map((variant) => ({
-          price: variant.price,
-          cost: variant.cost || 0,
-          code: variant.code,
-          quantity: variant.quantity ?? 0,
-          gallery: variant.image
-            ? [cleanBase64(variant.image)]
-            : (variant.gallery || []).map((img) => cleanBase64(img)),
-          options: variant.options,
-        }));
+        finalForm.prices = form.prices.map((variant) => {
+          const variantPayload = {
+            price: Number(variant.price) || 0,
+            code: variant.code || "",
+            gallery: variant.image
+              ? [cleanBase64(variant.image)]
+              : (variant.gallery || []).map((img) => cleanBase64(img)),
+            options: variant.options,
+          };
+          if (variant._id) {
+            variantPayload._id = variant._id;
+          }
+          return variantPayload;
+        });
       } else {
         finalForm = {
           ...finalForm,
@@ -478,14 +515,14 @@ const ProductForm = ({
           
           for (let i = 0; i < form.prices.length; i++) {
              const curr = form.prices[i];
-             // Try to find the matching variant by options
-             const currOptions = curr.options?.slice().sort().join(",") || "";
-             const init = initialFormStateRef.current.prices.find(p => (p.options?.slice().sort().join(",") || "") === currOptions);
+             const currOptions = (curr.options || []).slice().sort().join(",");
+             const init = initialFormStateRef.current.prices.find(p =>
+               (p._id && curr._id && p._id === curr._id) ||
+               ((p.options || []).slice().sort().join(",") === currOptions)
+             );
              
              if (!init) return true; // new variant added
              if (Number(curr.price || 0) !== Number(init.price || 0)) return true;
-             if (Number(curr.cost || 0) !== Number(init.cost || 0)) return true;
-             if (Number(curr.quantity || 0) !== Number(init.quantity || 0)) return true;
              if ((curr.code || "") !== (init.code || "")) return true;
              if (curr.image && curr.image.startsWith("data:")) return true;
           }
@@ -546,6 +583,7 @@ const ProductForm = ({
     selectedOptionsMap,
     handleOptionsChange,
     handleVariantFieldChange,
+    handleRemoveVariant,
   };
 
   const headerTitle = mode === "add" ? t("Add New Product") : t("Edit Product");

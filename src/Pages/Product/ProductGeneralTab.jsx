@@ -22,26 +22,52 @@ const CategoryMultiSelect = ({ label, value, options, onChange, required = false
   const [open, setOpen] = React.useState(false);
   const { t, i18n } = useTranslation();
 
-  const selectedValues = new Set(value);
+  // Ensure options have unique IDs
+  const uniqueOptions = React.useMemo(() => {
+    const seen = new Set();
+    return (options || []).filter((opt) => {
+      if (!opt?._id) return false;
+      const idStr = String(opt._id);
+      if (seen.has(idStr)) return false;
+      seen.add(idStr);
+      return true;
+    });
+  }, [options]);
+
+  // Normalize selected IDs as Strings
+  const selectedValues = React.useMemo(() => {
+    const set = new Set();
+    (value || []).forEach((v) => {
+      if (typeof v === "object" && v?._id) {
+        set.add(String(v._id));
+      } else if (v) {
+        set.add(String(v));
+      }
+    });
+    return set;
+  }, [value]);
 
   const handleSelect = (optionId) => {
-    if (selectedValues.has(optionId)) {
-      selectedValues.delete(optionId);
+    const idStr = String(optionId);
+    const newSet = new Set(selectedValues);
+    if (newSet.has(idStr)) {
+      newSet.delete(idStr);
     } else {
-      selectedValues.add(optionId);
+      newSet.add(idStr);
     }
-
-    onChange(Array.from(selectedValues));
+    onChange(Array.from(newSet));
   };
 
   const handleRemove = (optionId) => {
-    selectedValues.delete(optionId);
-    onChange(Array.from(selectedValues));
-  }
+    const idStr = String(optionId);
+    const newSet = new Set(selectedValues);
+    newSet.delete(idStr);
+    onChange(Array.from(newSet));
+  };
 
-  const selectedNames = options
-    .filter(option => selectedValues.has(option._id))
-    .map(option => option.name);
+  const selectedOptions = React.useMemo(() => {
+    return uniqueOptions.filter((opt) => selectedValues.has(String(opt._id)));
+  }, [uniqueOptions, selectedValues]);
 
   return (
     <div>
@@ -55,23 +81,33 @@ const CategoryMultiSelect = ({ label, value, options, onChange, required = false
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between h-11"
+            className="w-full justify-between h-auto min-h-11 py-1.5 px-3 font-normal"
           >
-            {selectedNames.length > 0 ? (
-              <div className="flex flex-wrap gap-1 max-w-[90%]">
-                {selectedNames.map((name, index) => (
-                  <Badge key={index} variant="secondary" className="pl-2">
-                    {name}
-                    <X className="ml-1 h-3 w-3 cursor-pointer" onClick={(e) => {
-                      e.stopPropagation();
-                      const selectedOption = options.find(opt => opt.name === name);
-                      if (selectedOption) handleRemove(selectedOption._id);
-                    }} />
-                  </Badge>
+            {selectedOptions.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5 max-w-[90%]">
+                {selectedOptions.map((opt) => (
+                  <span
+                    key={opt._id}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100 transition-colors"
+                  >
+                    <span>{opt.name}</span>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      className="cursor-pointer hover:bg-blue-200 hover:text-red-600 rounded-full p-0.5 transition-colors pointer-events-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleRemove(opt._id);
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </span>
+                  </span>
                 ))}
               </div>
             ) : (
-              t("Select Category")
+              <span className="text-gray-500">{t("Select Category")}</span>
             )}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -81,10 +117,10 @@ const CategoryMultiSelect = ({ label, value, options, onChange, required = false
             <CommandInput placeholder={`Search ${label}...`} />
             <CommandEmpty>No {label} found.</CommandEmpty>
             <CommandGroup className="max-h-60 overflow-y-auto">
-              {options.map((option) => (
+              {uniqueOptions.map((option) => (
                 <CommandItem
                   key={option._id}
-                  value={option.name}
+                  value={`${option.name}___${option._id}`}
                   onSelect={() => {
                     handleSelect(option._id);
                   }}
@@ -92,7 +128,7 @@ const CategoryMultiSelect = ({ label, value, options, onChange, required = false
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      selectedValues.has(option._id) ? "opacity-100" : "opacity-0"
+                      selectedValues.has(String(option._id)) ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {option.name}
@@ -139,7 +175,7 @@ const BrandSelect = ({ label, value, options, onChange, t }) => {
               {options.map((brand) => (
                 <CommandItem
                   key={brand._id}
-                  value={brand.name}
+                  value={`${brand.name}___${brand._id}`}
                   onSelect={() => {
                     onChange(brand._id);
                     setOpen(false);
@@ -378,8 +414,21 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
         </div>
       )} */}
 
-      {/* Whole Price */}
-      <div className="grid grid-cols-1 gap-4 mt-4">
+      {/* Whole Price & Start Quantity */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            {t("productss.start_quantity")}
+          </label>
+          <input
+            type="number"
+            value={form.start_quantaty ?? 0}
+            onChange={(e) => handleChange("start_quantaty", parseFloat(e.target.value) || 0)}
+            className="mt-1 block w-full border rounded-md p-2"
+            placeholder={t("productss.start_quantity_placeholder")}
+            min="0"
+          />
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
             {t("productss.whole_price")}
@@ -390,8 +439,11 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
             onChange={(e) => handleChange("whole_price", parseFloat(e.target.value) || 0)}
             className="mt-1 block w-full border rounded-md p-2"
             placeholder={t("productss.whole_price_placeholder")}
+            min="0"
+            step="0.01"
           />
         </div>
+        
       </div>
 
       {/* Product has IMEI */}

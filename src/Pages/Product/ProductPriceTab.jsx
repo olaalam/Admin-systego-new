@@ -16,6 +16,7 @@ const ProductPriceTab = ({
   selectedOptionsMap = {},
   handleOptionsChange,
   handleVariantFieldChange,
+  handleRemoveVariant,
 }) => {
   const [showVariationDropdown, setShowVariationDropdown] =
     React.useState(false);
@@ -123,28 +124,30 @@ const ProductPriceTab = ({
   return (
     <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
       {/* Base product fields */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label className="text-sm font-medium text-gray-700 mb-2 block">
-            {t("UnitPrice(EGP)")} <span className="text-red-500">*</span>
-          </Label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-              {t("EGP")}
-            </span>
-            <Input
-              type="number"
-              value={form.price}
-              onChange={(e) =>
-                handleChange("price", parseFloat(e.target.value) || 0)
-              }
-              placeholder="0.00"
-              className="h-11 pl-14"
-              step="0.01"
-              min="0"
-            />
+      <div className={`grid ${form.different_price ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
+        {!form.different_price && (
+          <div>
+            <Label className="text-sm font-medium text-gray-700 mb-2 block">
+              {t("UnitPrice(EGP)")} <span className="text-red-500">*</span>
+            </Label>
+            <div className="relative">
+              <span className={`absolute ${isRTL ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 text-gray-500`}>
+                {t("EGP")}
+              </span>
+              <Input
+                type="number"
+                value={form.price}
+                onChange={(e) =>
+                  handleChange("price", parseFloat(e.target.value) || 0)
+                }
+                placeholder="0.00"
+                className={`h-11 ${isRTL ? "pr-14" : "pl-14"}`}
+                step="0.01"
+                min="0"
+              />
+            </div>
           </div>
-        </div>
+        )}
         <div>
           <Label className="text-sm font-medium text-gray-700 mb-2 block">
             {t("low_stock")}
@@ -162,35 +165,10 @@ const ProductPriceTab = ({
         </div>
       </div>
 
-      {/* Show start_quantity and cost only when different_price is false */}
+      {/* Show barcode only when different_price is false */}
       {!form.different_price && (
         <div className="space-y-4">
-          {/* الصف الأول: التكلفة فقط */}
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                {t("Cost(EGP)")}
-              </Label>
-              <div className="relative">
-                <span className={`absolute ${isRTL ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 text-gray-500`}>
-                  {t("EGP")}
-                </span>
-                <Input
-                  type="number"
-                  value={form.cost || 0}
-                  onChange={(e) =>
-                    handleChange("cost", parseFloat(e.target.value) || 0)
-                  }
-                  placeholder="0.00"
-                  className={`h-11 ${isRTL ? "pr-14" : "pl-14"}`}
-                  step="0.01"
-                  min="0"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* الصف الثاني: حقل الكود والنسخ والتوليد */}
+          {/* حقل الكود والنسخ والتوليد */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700 block">{t("Barcode")}</Label>
             <div className="flex items-center gap-2">
@@ -407,23 +385,20 @@ const ProductPriceTab = ({
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        <th className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-700 uppercase tracking-wider`}>
                           {t("Variant")}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        <th className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-700 uppercase tracking-wider`}>
                           {t("Price(EGP)")}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        <th className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-700 uppercase tracking-wider`}>
                           {t("Code")}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          {t("Quantity")}
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          {t("Cost(EGP)")}
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        <th className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-700 uppercase tracking-wider`}>
                           {t("Photo")}
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          {isRTL ? "إجراء" : "Action"}
                         </th>
                       </tr>
                     </thead>
@@ -492,38 +467,6 @@ const ProductPriceTab = ({
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <Input
-                              type="number"
-                              value={variant.quantity || 0}
-                              onChange={(e) =>
-                                handleVariantFieldChange(
-                                  index,
-                                  "quantity",
-                                  parseInt(e.target.value) || 0
-                                )
-                              }
-                              className="h-9 w-24"
-                              min="0"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <Input
-                              type="number"
-                              value={variant.cost || 0}
-                              onChange={(e) =>
-                                handleVariantFieldChange(
-                                  index,
-                                  "cost",
-                                  parseFloat(e.target.value) || 0
-                                )
-                              }
-                              className="h-9 w-32"
-                              step="0.01"
-                              min="0"
-                              placeholder="0.00"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
                               {variant.image ? (
                                 <div className="relative w-12 h-12 rounded border border-gray-200 overflow-hidden">
@@ -565,6 +508,16 @@ const ProductPriceTab = ({
                                 </label>
                               )}
                             </div>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveVariant && handleRemoveVariant(index)}
+                              className="h-9 w-9 inline-flex items-center justify-center text-red-500 hover:text-white hover:bg-red-500 border border-red-200 hover:border-red-500 rounded-lg transition-colors"
+                              title={isRTL ? "حذف المتغير" : "Delete variant"}
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
                           </td>
                         </tr>
                       ))}
