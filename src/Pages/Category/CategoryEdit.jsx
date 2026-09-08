@@ -38,6 +38,8 @@ export default function CategoryEdit() {
           name: category.name || "",
           ar_name: category.ar_name || "",
           image: category.image || "",
+          banner: category.banner || "",
+          order: category.order !== undefined && category.order !== null ? category.order : "",
           parentId: category.parentId?._id || category.parentId || "", // ضمان أخذ الـ ID
         });
 
@@ -68,6 +70,8 @@ export default function CategoryEdit() {
     { key: "ar_name", label: t("Name(Arabic)"), required: true },
     { key: "name", label: t("Name(English)"), required: false },
     { key: "image", label: t("Image"), type: "image", required: true },
+    { key: "banner", label: isRTL ? "البانر" : "Banner", type: "image", required: false },
+    { key: "order", label: isRTL ? "الترتيب" : "Order", type: "number", min: 0, required: false, placeholder: isRTL ? "أدخل رقم الترتيب (اختياري)" : "Enter order number (optional)" },
     {
       key: "parentId",
       label: t("ParentCategory"),
@@ -82,8 +86,22 @@ export default function CategoryEdit() {
       const payload = { ...formData };
 
       // لو الصورة string قديمة (URL) → ما نبعتهاش
-      if (typeof payload.image === "string" && payload.image === categoryData.image) {
+      if (typeof payload.image === "string" && payload.image === categoryData?.image) {
         delete payload.image;
+      }
+
+      // لو البانر string قديمة (URL) أو لم يتغير → ما نبعتوش
+      if (typeof payload.banner === "string" && payload.banner === categoryData?.banner) {
+        delete payload.banner;
+      }
+      if (!payload.banner) {
+        delete payload.banner;
+      }
+
+      if (payload.order !== undefined && payload.order !== "" && payload.order !== null) {
+        payload.order = Number(payload.order);
+      } else {
+        delete payload.order;
       }
 
       await putData(payload);

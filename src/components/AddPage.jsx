@@ -57,7 +57,7 @@ const AddPage = ({
 
     const fieldDef = fields.find((f) => f.key === key);
     if (fieldDef && fieldDef.onChange) {
-      fieldDef.onChange(value);
+      fieldDef.onChange(value, setFormData);
     }
   };
 

@@ -12,7 +12,8 @@ import {
 const CustomerDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const isRTL = i18n.language === "ar";
 
     // استدعاء البيانات من الـ API
     const { data, loading, error } = useGet(`/api/admin/customer/single-page/${id}`);
@@ -44,7 +45,7 @@ const CustomerDetails = () => {
                         </h1>
                         <div className="flex items-center gap-2 text-slate-500 text-sm">
                             <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
-                                {customerData.customer_group_id?.name || "General"}
+                                {customerData.customer_group || customerData.customer_group_id?.name || (typeof customerData.customer_group_id === "string" ? customerData.customer_group_id : null) || (isRTL ? "عام" : "General")}
                             </span>
                             <span>•</span>
                             <span>{customerData.email}</span>
@@ -115,6 +116,7 @@ const CustomerDetails = () => {
                                         <InfoField label={t("FullName")} value={customerData.customer_name} />
                                         <InfoField label={t("PhoneNumber")} value={customerData.phone_number} />
                                         <InfoField label={t("EmailAddress")} value={customerData.email} />
+                                        <InfoField label={isRTL ? "مجموعة العملاء" : "Customer Group"} value={customerData.customer_group || customerData.customer_group_id?.name || (typeof customerData.customer_group_id === "string" ? customerData.customer_group_id : null) || (isRTL ? "بدون مجموعة" : "None")} />
                                     </div>
                                 </section>
 

@@ -56,28 +56,37 @@ placeholder: fetchingParents
 
 
     return [
-    { key: "ar_name", label: t("Name(Arabic)"), required: true },
-{ key: "name", label: t("Name(English)"), required: false },
-
+      { key: "ar_name", label: t("Name(Arabic)"), required: true },
+      { key: "name", label: t("Name(English)"), required: false },
       { key: "image", label: t("Image"), type: "image", required: true },
-      // إضافة حقل الحالة كـ switch
+      { key: "banner", label: isRTL ? "البانر" : "Banner", type: "image", required: false },
+      { key: "order", label: isRTL ? "رقم الاوردر " : "Order Number", type: "number", min: 0, required: false, placeholder: isRTL ? "أدخل رقم الاوردر (اختياري)" : "Enter order number (optional)" },
       parentCategoryField,
     ];
-  }, [parentOptions, fetchingParents]); // يعتمد على البيانات وحالة التحميل
+  }, [parentOptions, fetchingParents, isRTL, t]); // يعتمد على البيانات وحالة التحميل
 
   const handleSubmit = async (data) => {
     try {
-      // ⭐️ استخدام postData بدلاً من api.post
-      await postData(data); 
+      const payload = { ...data };
+      if (payload.order !== undefined && payload.order !== "" && payload.order !== null) {
+        payload.order = Number(payload.order);
+      } else {
+        delete payload.order;
+      }
+      if (!payload.banner) {
+        delete payload.banner;
+      }
+
+      await postData(payload); 
       
-toast.success(t("category_added_successfully"));
+      toast.success(t("category_added_successfully"));
       navigate("/category");
     } catch (err) {
       // ✅ التعامل مع الأخطاء (استخدام نفس منطق عرض الأخطاء المفصل)
       const errorMessage =
         err.response?.data?.error?.message ||
         err.response?.data?.message ||
-t("failed_to_add_category")
+        t("failed_to_add_category")
 
       const errorDetails = err.response?.data?.error?.details;
       if (errorDetails && Array.isArray(errorDetails)) {
@@ -92,13 +101,13 @@ t("failed_to_add_category")
   return (
     <div className="p-6">
       <AddPage
-      title={t("add_category")}
-description={t("add_category_description")}
+        title={t("add_category")}
+        description={t("add_category_description")}
         fields={fields}
         onSubmit={handleSubmit}
         onCancel={() => navigate("/category")}
         loading={submitting || fetchingParents} 
-        initialData={{ parentId: "" }}
+        initialData={{ parentId: "", order: "" }}
       />
     </div>
   );

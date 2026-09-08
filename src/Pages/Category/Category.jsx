@@ -1,5 +1,5 @@
-// src/pages/categorys.jsx
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import * as XLSX from "xlsx";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
@@ -38,6 +38,25 @@ const Category = () => {
   const categories = data?.categories || [];
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
+
+  const [orderSort, setOrderSort] = useState(null); // null | "asc" | "desc"
+
+  const toggleOrderSort = () => {
+    setOrderSort((prev) => {
+      if (prev === null) return "asc";
+      if (prev === "asc") return "desc";
+      return null;
+    });
+  };
+
+  const sortedCategories = useMemo(() => {
+    if (!orderSort) return categories;
+    return [...categories].sort((a, b) => {
+      const aVal = a.order !== undefined && a.order !== null ? Number(a.order) : 999;
+      const bVal = b.order !== undefined && b.order !== null ? Number(b.order) : 999;
+      return orderSort === "asc" ? aVal - bVal : bVal - aVal;
+    });
+  }, [categories, orderSort]);
 
   // Build parent category filter options (only categories that appear as parentId of at least one item)
   const parentOptions = [
@@ -97,6 +116,7 @@ const Category = () => {
       "Name (Arabic)": category.ar_name || "",
       "Parent Category": category.parentId?.name || "",
       "Parent Category (Arabic)": category.parentId?.ar_name || "",
+      Order: category.order !== undefined && category.order !== null ? category.order : 999,
       "Product Quantity": category.product_quantity || 0,
       "Image URL": category.image || "",
     }));
@@ -142,6 +162,7 @@ const Category = () => {
         "Name (Arabic)": "",
         "Parent Category": "",
         "Parent Category (Arabic)": "",
+        Order: "",
         "Product Quantity": "",
         "Image URL": "",
       },
@@ -243,6 +264,47 @@ const Category = () => {
       render: (_, item) => renderParentCategory(item),
     },
     {
+      key: "order",
+      header: (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleOrderSort();
+          }}
+          className={`inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer select-none ${
+            orderSort ? "text-red-600 font-semibold" : "text-gray-500 hover:text-gray-900"
+          }`}
+          title={
+            orderSort === "asc"
+              ? isRTL ? "ترتيب: من الأكبر للأصغر" : "Sort: Descending"
+              : orderSort === "desc"
+              ? isRTL ? "إلغاء الترتيب (الافتراضي)" : "Reset to default order"
+              : isRTL ? "ترتيب: من الأصغر للأكبر" : "Sort: Ascending"
+          }
+        >
+          <span>{isRTL ? "الترتيب" : "Order"}</span>
+          {orderSort === "asc" ? (
+            <ArrowUp size={14} className="text-red-600 stroke-[2.5]" />
+          ) : orderSort === "desc" ? (
+            <ArrowDown size={14} className="text-red-600 stroke-[2.5]" />
+          ) : (
+            <ArrowUpDown size={14} className="text-gray-400 group-hover:text-gray-600" />
+          )}
+        </button>
+      ),
+      filterable: false,
+      render: (_, item) => {
+        const orderVal =
+          item.order !== undefined && item.order !== null ? item.order : 999;
+        return (
+          <span className="inline-flex items-center justify-center min-w-[2.25rem] px-2.5 py-1 text-xs font-bold rounded-md bg-gray-100 text-gray-800 border border-gray-200">
+            {orderVal}
+          </span>
+        );
+      },
+    },
+    {
       key: "product_quantity",
       header: t("Products"),
       filterable: false,
@@ -285,7 +347,7 @@ const Category = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <DataTable
-        data={categories}
+        data={sortedCategories}
         columns={columns}
         title={t("CategoryManagement")}
         onAdd={() => alert("Add new category clicked!")}

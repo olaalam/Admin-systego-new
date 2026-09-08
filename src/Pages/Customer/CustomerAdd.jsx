@@ -12,19 +12,33 @@ const CustomerAdd = () => {
   const navigate = useNavigate();
 
   const [countries, setCountries] = useState([]);
+  const [customerGroups, setCustomerGroups] = useState([]);
   const [selectedCountryId, setSelectedCountryId] = useState("");
   const [fetching, setFetching] = useState(true);
 
   const { postData, loading: submitting } = usePost("/api/admin/customer");
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
-  // 🔹 جلب الدول + المدن مرة واحدة
+
+  // 🔹 جلب الدول + مجموعات العملاء مرة واحدة
   useEffect(() => {
-    const fetchCountries = async () => {
+    const fetchData = async () => {
       setFetching(true);
       try {
-        const res = await api.get("/api/admin/customer/countries");
-        setCountries(res.data?.data?.countries || []);
+        const [countriesRes, groupsRes] = await Promise.all([
+          api.get("/api/admin/customer/countries"),
+          api.get("/api/admin/customer/groups"),
+        ]);
+
+        setCountries(countriesRes.data?.data?.countries || []);
+
+        const rawGroups =
+          groupsRes.data?.data?.groups ||
+          groupsRes.data?.data?.customerGroups ||
+          groupsRes.data?.groups ||
+          groupsRes.data?.customerGroups ||
+          [];
+        setCustomerGroups(rawGroups);
       } catch (err) {
         toast.error(t("Failedtoloadcountriesandcities"));
         console.error(err);
@@ -33,7 +47,7 @@ const { t, i18n } = useTranslation();
       }
     };
 
-    fetchCountries();
+    fetchData();
   }, []);
 
   // 🔹 خيارات الدول
@@ -44,47 +58,76 @@ const { t, i18n } = useTranslation();
   // 🔹 المدن حسب الدولة المختارة
   const cityOptions = useMemo(() => {
     const country = countries.find((c) => c._id === selectedCountryId);
-    return country?.cities?.map((city) => ({
-      label: city.name,
-      value: city._id,
-    })) || [];
+    return (
+      country?.cities?.map((city) => ({
+        label: city.name,
+        value: city._id,
+      })) || []
+    );
   }, [countries, selectedCountryId]);
 
+  // 🔹 خيارات مجموعات العملاء (اختياري)
+  const customerGroupOptions = useMemo(() => {
+    return [
+      { label: isRTL ? "-- بدون مجموعة (اختياري) --" : "-- None (Optional) --", value: "" },
+      ...customerGroups.map((g) => ({
+        label: g.name,
+        value: g._id,
+      })),
+    ];
+  }, [customerGroups, isRTL]);
+
   // ✅ إعداد الحقول
-  const fields = useMemo(() => [
-    { key: "name", label: t("CustomerName"), required: true },
-    { key: "email", label: t("Email"), type: "email", required: true },
-    { key: "phone_number", label: t("PhoneNumber"), required: true },
-    { key: "address", label: t("Address"), required: true },
-    {
-      key: "countryId",
-      label: t("Country"),
-      type: "select",
-      required: true,
-      options: countryOptions,
-      disabled: fetching,
-      onChange: (value, setFormData) => {
-        setSelectedCountryId(value);
-        setFormData((prev) => ({ ...prev, countryId: value, cityId: "" }));
+  const fields = useMemo(
+    () => [
+      { key: "name", label: t("CustomerName"), required: true },
+      { key: "email", label: t("Email"), type: "email", required: false },
+      { key: "phone_number", label: t("PhoneNumber"), required: true },
+      { key: "address", label: t("Address"), required: false },
+      {
+        key: "customer_group_id",
+        label: isRTL ? "مجموعة العملاء" : "Customer Group",
+        type: "select",
+        required: false,
+        options: customerGroupOptions,
       },
-    },
-    {
-      key: "cityId",
-      label: t("City"),
-      type: "select",
-      required: true,
-      options: cityOptions,
-      disabled: !selectedCountryId || fetching,
-    },
-    { key: "is_Due", label: t("HasDue"), type: "switch", required: true },
-    { key: "amount_Due", label: t("AmountDue"), type: "number", required: false },
-  ], [countryOptions, cityOptions, selectedCountryId, fetching]);
+      {
+        key: "countryId",
+        label: t("Country"),
+        type: "select",
+        required: false,
+        options: countryOptions,
+        disabled: fetching,
+        onChange: (value, setFormData) => {
+          setSelectedCountryId(value);
+          setFormData((prev) => ({ ...prev, countryId: value, cityId: "" }));
+        },
+      },
+      {
+        key: "cityId",
+        label: t("City"),
+        type: "select",
+        required: false,
+        options: cityOptions,
+        disabled: !selectedCountryId || fetching,
+      },
+      { key: "is_Due", label: t("HasDue"), type: "switch", required: false },
+      { key: "amount_Due", label: t("AmountDue"), type: "number", required: false },
+    ],
+    [countryOptions, cityOptions, customerGroupOptions, selectedCountryId, fetching, isRTL, t]
+  );
 
   // ✅ إرسال البيانات
   const handleSubmit = async (formData) => {
     try {
       const payload = {
-        ...formData,
+        name: formData.name,
+        email: formData.email || undefined,
+        phone_number: formData.phone_number,
+        address: formData.address || undefined,
+        country: formData.country || formData.countryId || null,
+        city: formData.city || formData.cityId || null,
+        customer_group_id: formData.customer_group_id ? formData.customer_group_id : null,
         is_Due: Boolean(formData.is_Due),
         amount_Due: Number(formData.amount_Due || 0),
       };
@@ -104,13 +147,19 @@ const { t, i18n } = useTranslation();
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <AddPage
-       title={t("add_customer_title")}
-description={t("add_customer_description")}
+        title={t("add_customer_title")}
+        description={t("add_customer_description")}
         fields={fields}
         onSubmit={handleSubmit}
         onCancel={() => navigate("/customer")}
         loading={submitting}
-        initialData={{ is_Due: false, amount_Due: 0, countryId: "", cityId: "" }}
+        initialData={{
+          is_Due: false,
+          amount_Due: 0,
+          countryId: "",
+          cityId: "",
+          customer_group_id: "",
+        }}
       />
     </div>
   );

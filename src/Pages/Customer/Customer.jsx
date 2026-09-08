@@ -45,6 +45,21 @@ const Customer = () => {
       ),
     },
     {
+      key: "customer_group_id",
+      header: isRTL ? "مجموعة العملاء" : "Customer Group",
+      filterable: false,
+      render: (value) => {
+        const groupName = value?.name || (typeof value === "string" ? value : null);
+        return groupName ? (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+            {groupName}
+          </span>
+        ) : (
+          <span className="text-gray-400 text-xs">---</span>
+        );
+      },
+    },
+    {
       key: "email",
       header: t("email"),
       filterable: false,

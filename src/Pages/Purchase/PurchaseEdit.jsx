@@ -8,7 +8,8 @@ import { toast } from "react-toastify";
 import SmartSearch from "@/components/SmartSearch";
 
 const PurchaseEdit = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isArabic = i18n.language === "ar";
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -117,23 +118,13 @@ const PurchaseEdit = () => {
     selection.products.forEach(product => {
       // إذا كان المنتج له أسعار مختلفة (variations)
       if (product.different_price && product.prices?.length > 0) {
-        // حساب متوسط تكلفة جميع الفارينتات للمنتج كمرجع عام
-        const validVariantCosts = product.prices
-          .map(p => Number(p.cost || 0))
-          .filter(c => c > 0);
-        const overallVariantsAvg = validVariantCosts.length > 0
-          ? validVariantCosts.reduce((a, b) => a + b, 0) / validVariantCosts.length
-          : Number(product.cost || 0);
-
         product.prices.forEach(variant => {
-          // سحب اسم الـ variation واسم الـ option التابع له (مثل: Colors: Red)
           const variantDetails = variant.variations?.map(v => {
             const optionName = v.options?.[0]?.name;
             return optionName ? `${v.name}: ${optionName}` : v.name;
           }).join(" | ") || t("Variation");
 
           const variantCost = Number(variant.cost || 0);
-          const calculatedAvgCost = variantCost > 0 ? variantCost : (overallVariantsAvg || Number(product.cost || 0));
 
           allItems.push({
             ...product,
@@ -141,8 +132,8 @@ const PurchaseEdit = () => {
             original_product_id: product._id,
             displayName: `${product.name} - ${variantDetails}`,
             price: variant.price,
-            cost: variantCost > 0 ? variantCost : (product.cost || 0),
-            avg_cost: calculatedAvgCost,
+            cost: variantCost,
+            avg_cost: variantCost,
           });
         });
       } else {
@@ -152,8 +143,8 @@ const PurchaseEdit = () => {
           ...product,
           id: product._id,
           displayName: product.name,
-          cost: prodCost,
-          avg_cost: prodCost,
+          cost: prodCost > 0 ? prodCost : 0,
+          avg_cost: prodCost > 0 ? prodCost : 0,
         });
       }
     });
@@ -234,6 +225,8 @@ const PurchaseEdit = () => {
       return toast.warning(t("ProductAlreadyAdded"));
     }
 
+    const itemCost = Number(item.cost || 0);
+
     setFormData(prev => ({
       ...prev,
       purchase_items: [...prev.purchase_items, {
@@ -241,8 +234,8 @@ const PurchaseEdit = () => {
         variant_id: item.original_product_id ? item.id : null, // ID السعر/النوع (product_price_id)
         name: item.displayName,
         quantity: 1,
-        unit_cost: item.cost || item.price || 0,
-        avg_cost: item.avg_cost ?? item.cost ?? 0, // متوسط التكلفة الاسترشادي
+        unit_cost: itemCost, // ينادي مباشرة على الكوست من السيلكشن حتى لو 0
+        avg_cost: itemCost, // متوسط التكلفة يساوي الكوست مباشرة
         tax: 0,
         discount: 0,
         exp_ability: item.exp_ability || false,
@@ -433,10 +426,16 @@ const PurchaseEdit = () => {
                     />
                   </td>
                   {/* متوسط التكلفة الاسترشادي */}
-                  <td className="p-3 text-center">
-                    <span className="inline-block px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-xs">
-                      {Number(item.avg_cost || 0).toFixed(2)}
-                    </span>
+                  <td className="p-3 text-center whitespace-nowrap">
+                    {Number(item.avg_cost || 0) > 0 ? (
+                      <span className="inline-block px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-xs">
+                        {Number(item.avg_cost).toFixed(2)}
+                      </span>
+                    ) : (
+                      <span className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold bg-gray-100 text-gray-500 border border-gray-200">
+                        {isArabic ? "لم يتم الشراء بعد" : "Not purchased yet"}
+                      </span>
+                    )}
                   </td>
                   <td className="p-2">
                     <input

@@ -26,6 +26,9 @@ import {
   Coins,
   TrendingDown,
   CalendarDays,
+  Calendar,
+  RotateCcw,
+  X,
 } from "lucide-react";
 import {
   Dialog,
@@ -39,16 +42,97 @@ const Wasted = () => {
   const navigate = useNavigate();
   const isArabic = i18n.language === "ar";
 
-  // State للفلتر النشط (الكل أو حسب السبب)
-  const [activeFilter, setActiveFilter] = useState("/api/admin/wasted");
+  // ── حالات الفلترة (السبب والفترة الزمنية من / إلى) ──────────────────────
+  const [selectedReason, setSelectedReason] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  // ── تحويل التاريخ المحلي إلى بداية ونهاية اليوم بصيغة ISO لـ MongoDB ──
+  const getStartOfDayISO = (dateStr) => {
+    if (!dateStr) return null;
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const d = new Date(year, month - 1, day, 0, 0, 0, 0);
+    return d.toISOString();
+  };
+
+  const getEndOfDayISO = (dateStr) => {
+    if (!dateStr) return null;
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const d = new Date(year, month - 1, day, 23, 59, 59, 999);
+    return d.toISOString();
+  };
+
+  // بناء رابط جلب الهوالك ديناميكياً بناءً على الفلاتر النشطة
+  const wastedEndpoint = useMemo(() => {
+    const params = new URLSearchParams();
+    if (selectedReason) params.append("reason", selectedReason);
+    if (fromDate) {
+      const fromISO = getStartOfDayISO(fromDate);
+      if (fromISO) params.append("from", fromISO);
+    }
+    if (toDate) {
+      const toISO = getEndOfDayISO(toDate);
+      if (toISO) params.append("to", toISO);
+    }
+    const qs = params.toString();
+    return qs ? `/api/admin/wasted?${qs}` : "/api/admin/wasted";
+  }, [selectedReason, fromDate, toDate]);
+
+  // بناء رابط جلب الإحصائيات مع الفلترة بالتواريخ
+  const statsEndpoint = useMemo(() => {
+    const params = new URLSearchParams();
+    if (fromDate) {
+      const fromISO = getStartOfDayISO(fromDate);
+      if (fromISO) params.append("from", fromISO);
+    }
+    if (toDate) {
+      const toISO = getEndOfDayISO(toDate);
+      if (toISO) params.append("to", toISO);
+    }
+    const qs = params.toString();
+    return qs ? `/api/admin/wasted/stats?${qs}` : "/api/admin/wasted/stats";
+  }, [fromDate, toDate]);
 
   // جلب قائمة الهوالك
-  const { data: wastedResponse, loading, refetch } = useGet(activeFilter);
+  const { data: wastedResponse, loading, refetch } = useGet(wastedEndpoint);
 
   // جلب إحصائيات التوالف من الباك إند
-  const { data: statsResponse, refetch: refetchStats } = useGet(
-    "/api/admin/wasted/stats"
-  );
+  const { data: statsResponse, refetch: refetchStats } = useGet(statsEndpoint);
+
+  // ── دوال مساعدة للفترات الزمنية السريعة (Date Presets) ─────────────────
+  const formatDateForInput = (d) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleSetToday = () => {
+    const today = formatDateForInput(new Date());
+    setFromDate(today);
+    setToDate(today);
+  };
+
+  const handleSetLast7Days = () => {
+    const now = new Date();
+    const past = new Date();
+    past.setDate(now.getDate() - 6);
+    setFromDate(formatDateForInput(past));
+    setToDate(formatDateForInput(now));
+  };
+
+  const handleSetThisMonth = () => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    setFromDate(formatDateForInput(firstDay));
+    setToDate(formatDateForInput(now));
+  };
+
+  const handleResetFilters = () => {
+    setSelectedReason("");
+    setFromDate("");
+    setToDate("");
+  };
 
   // حالة المودال الخاص بالتفاصيل
   const [viewItem, setViewItem] = useState(null);
@@ -377,11 +461,19 @@ const Wasted = () => {
       {
         key: "createdAt",
         header: t("Date"),
-        render: (date) => (
-          <span className="text-xs text-gray-500">
-            {date ? new Date(date).toLocaleDateString() : "---"}
-          </span>
-        ),
+        render: (date) => {
+          if (!date) return <span className="text-xs text-gray-400">---</span>;
+          const d = new Date(date);
+          return (
+            <div className="flex items-center gap-1.5 text-xs text-gray-700 whitespace-nowrap">
+              <span className="font-semibold">{d.toLocaleDateString()}</span>
+              <span className="inline-flex items-center gap-1 text-[11px] font-mono text-gray-500 bg-gray-100/80 px-1.5 py-0.5 rounded-md">
+                <Clock size={11} className="text-gray-400 shrink-0" />
+                {d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            </div>
+          );
+        },
       },
       {
         key: "actions",
@@ -402,36 +494,36 @@ const Wasted = () => {
     ];
   }, [isArabic, t, approvingId]);
 
-  // ── 8. فلاتر التبويب العلوية ──────────────────────────────────────────
-  const filters = [
+  // ── 8. فلاتر أسباب الهالك (Reason Tabs) ───────────────────────────────
+  const reasonTabs = [
     {
+      value: "",
       label: t("All"),
-      path: "/api/admin/wasted",
       icon: <PackageSearch size={16} />,
     },
     {
+      value: "damaged",
       label: t("damaged"),
-      path: "/api/admin/wasted?reason=damaged",
       icon: <Flame size={16} />,
     },
     {
+      value: "expired",
       label: t("expired"),
-      path: "/api/admin/wasted?reason=expired",
       icon: <Clock size={16} />,
     },
     {
+      value: "theft",
       label: t("theft"),
-      path: "/api/admin/wasted?reason=theft",
       icon: <ShieldAlert size={16} />,
     },
     {
+      value: "lost",
       label: t("lost"),
-      path: "/api/admin/wasted?reason=lost",
       icon: <HelpCircle size={16} />,
     },
     {
+      value: "stocktake_not_found",
       label: t("stocktake_not_found"),
-      path: "/api/admin/wasted?reason=stocktake_not_found",
       icon: <AlertTriangle size={16} />,
     },
   ];
@@ -521,21 +613,113 @@ const Wasted = () => {
         </div>
       </div>
 
-      {/* ── أزرار الفلترة السريعة (Filter Tabs) ────────────────────────── */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {filters.map((f) => (
-          <button
-            key={f.path}
-            onClick={() => setActiveFilter(f.path)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
-              activeFilter === f.path
-                ? "bg-gray-900 text-white border-gray-900 shadow-md -translate-y-0.5"
-                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-            }`}
-          >
-            {f.icon} {f.label}
-          </button>
-        ))}
+      {/* ── تابة وبطاقة الفلترة المتقدمة (Reason & Date Filtration) ───── */}
+      <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs mb-6 space-y-4">
+        {/* صف تابات أسباب الهالك مع زر إعادة الضبط */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2">
+            {reasonTabs.map((tab) => {
+              const isActive = selectedReason === tab.value;
+              return (
+                <button
+                  key={tab.value}
+                  onClick={() => setSelectedReason(tab.value)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
+                    isActive
+                      ? "bg-gray-900 text-white border-gray-900 shadow-xs -translate-y-0.5"
+                      : "bg-gray-50/80 text-gray-600 border-gray-200/80 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+                >
+                  {tab.icon}
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {(selectedReason || fromDate || toDate) && (
+            <button
+              onClick={handleResetFilters}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-100 transition-colors"
+              title={isArabic ? "مسح جميع الفلاتر" : "Reset all filters"}
+            >
+              <RotateCcw size={13} />
+              <span>{isArabic ? "إعادة ضبط الفلاتر" : "Reset Filters"}</span>
+            </button>
+          )}
+        </div>
+
+        {/* شريط فلترة الفترة الزمنية (from & to) */}
+        <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex items-center gap-1.5 text-xs font-black text-gray-700">
+              <Calendar size={15} className="text-gray-500" />
+              <span>{isArabic ? "الفترة الزمنية:" : "Date Range:"}</span>
+            </div>
+
+            {/* From Input */}
+            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-200 text-xs focus-within:border-gray-900 focus-within:bg-white transition-colors">
+              <span className="text-gray-400 font-medium">
+                {isArabic ? "من:" : "From:"}
+              </span>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="bg-transparent border-none text-xs font-semibold text-gray-800 focus:outline-none"
+              />
+            </div>
+
+            {/* To Input */}
+            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-200 text-xs focus-within:border-gray-900 focus-within:bg-white transition-colors">
+              <span className="text-gray-400 font-medium">
+                {isArabic ? "إلى:" : "To:"}
+              </span>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="bg-transparent border-none text-xs font-semibold text-gray-800 focus:outline-none"
+              />
+            </div>
+
+            {/* زر مسح التواريخ فقط */}
+            {(fromDate || toDate) && (
+              <button
+                onClick={() => {
+                  setFromDate("");
+                  setToDate("");
+                }}
+                className="p-1 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-gray-100 transition-colors"
+                title={isArabic ? "مسح التواريخ" : "Clear dates"}
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
+
+          {/* فلاتر سريعة للتواريخ */}
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={handleSetToday}
+              className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+            >
+              {isArabic ? "اليوم" : "Today"}
+            </button>
+            <button
+              onClick={handleSetLast7Days}
+              className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+            >
+              {isArabic ? "آخر 7 أيام" : "Last 7 Days"}
+            </button>
+            <button
+              onClick={handleSetThisMonth}
+              className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+            >
+              {isArabic ? "هذا الشهر" : "This Month"}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── جدول البيانات (DataTable) مع زر الإضافة الوحيد المعتمد ─────── */}
