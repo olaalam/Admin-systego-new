@@ -630,7 +630,12 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.STOCKTAKE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.STOCKTAKE}
+              action={ModuleActions.VIEW}
+              requiredFeature="haveStockTake"
+              featureName="Stock Take"
+            >
               <StockTake />
             </ProtectedRoute>
           }
@@ -638,7 +643,12 @@ export default function AppRoutes() {
         <Route
           path="create"
           element={
-            <ProtectedRoute module={AppModules.STOCKTAKE} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.STOCKTAKE}
+              action={ModuleActions.ADD}
+              requiredFeature="haveStockTake"
+              featureName="Stock Take"
+            >
               <StockTakeCreate />
             </ProtectedRoute>
           }
@@ -646,7 +656,12 @@ export default function AppRoutes() {
         <Route
           path="details/:id"
           element={
-            <ProtectedRoute module={AppModules.STOCKTAKE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.STOCKTAKE}
+              action={ModuleActions.VIEW}
+              requiredFeature="haveStockTake"
+              featureName="Stock Take"
+            >
               <StockTakeDetails />
             </ProtectedRoute>
           }
@@ -1133,7 +1148,12 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.CASHIER_SHIFT_REPORT} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.CASHIER_SHIFT_REPORT}
+              action={ModuleActions.VIEW}
+              requiredFeature="haveReports"
+              featureName="Reports"
+            >
               <CashierShift />
             </ProtectedRoute>
           }
@@ -1141,7 +1161,12 @@ export default function AppRoutes() {
         <Route
           path="cashier/:id"
           element={
-            <ProtectedRoute module={AppModules.CASHIER_SHIFT_REPORT} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.CASHIER_SHIFT_REPORT}
+              action={ModuleActions.VIEW}
+              requiredFeature="haveReports"
+              featureName="Reports"
+            >
               <CashierShiftCashierDetails />
             </ProtectedRoute>
           }
@@ -1149,21 +1174,28 @@ export default function AppRoutes() {
         <Route
           path="cashierShift/:id"
           element={
-            <ProtectedRoute module={AppModules.CASHIER_SHIFT_REPORT} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.CASHIER_SHIFT_REPORT}
+              action={ModuleActions.VIEW}
+              requiredFeature="haveReports"
+              featureName="Reports"
+            >
               <CashierShiftDetails />
             </ProtectedRoute>
           }
         />
-
-
       </Route>
-
 
       <Route path="orders-reports">
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.ORDERS_REPORT} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.ORDERS_REPORT}
+              action={ModuleActions.VIEW}
+              requiredFeature="haveReports"
+              featureName="Reports"
+            >
               <OrdersReports />
             </ProtectedRoute>
           }
@@ -1174,7 +1206,12 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.PRODUCT_REPORT} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.PRODUCT_REPORT}
+              action={ModuleActions.VIEW}
+              requiredFeature="haveReports"
+              featureName="Reports"
+            >
               <ProductReports />
             </ProtectedRoute>
           }
@@ -1184,7 +1221,12 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.PRODUCT_MOVEMENT} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.PRODUCT_MOVEMENT}
+              action={ModuleActions.VIEW}
+              requiredFeature="haveReports"
+              featureName="Reports"
+            >
               <ProductMovementReport />
             </ProtectedRoute>
           }
@@ -1195,7 +1237,12 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.FINANCIAL_REPORT} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.FINANCIAL_REPORT}
+              action={ModuleActions.VIEW}
+              requiredFeature="haveReports"
+              featureName="Reports"
+            >
               <FinancialReports />
             </ProtectedRoute>
           }
@@ -1505,7 +1552,12 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.ALL_RETURNS} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.ALL_RETURNS}
+              action={ModuleActions.VIEW}
+              requiredFeature="haveReports"
+              featureName="Reports"
+            >
               <AllReturn />
             </ProtectedRoute>
           }

@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "@/App.css";
 import Loader from "./components/Loader";
 import { useTranslation } from "react-i18next";
+import { TenantProvider } from "@/context/TenantContext";
 
 const MainLayout = () => {
   const location = useLocation();
@@ -87,9 +88,10 @@ const MainLayout = () => {
 export default function App() {
   return (
     <Router basename="/admin-login">
-
-      <MainLayout />
-      <ToastContainer position="top-right" autoClose={3000} />
+      <TenantProvider>
+        <MainLayout />
+        <ToastContainer position="top-right" autoClose={3000} />
+      </TenantProvider>
     </Router>
   );
 }

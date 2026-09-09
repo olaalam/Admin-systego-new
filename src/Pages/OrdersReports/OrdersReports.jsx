@@ -174,7 +174,7 @@ const OrdersReports = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-6 bg-gray-50 min-h-screen ">
             <div className="max-w-[1600px] mx-auto space-y-8">
                 {/* Header & Filters */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">

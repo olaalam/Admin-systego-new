@@ -1,21 +1,30 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import useGet from "@/hooks/useGet";
 import usePost from "@/hooks/usePost";
 import { useTranslation } from "react-i18next";
-import { Trash2, Wallet, Calendar, User, Warehouse, Info, Calculator, X, Plus } from "lucide-react";
+import { Trash2, Wallet, Calendar, User, Warehouse, Info, Calculator, X, Plus, ShoppingCart, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
 import SmartSearch from "@/components/SmartSearch";
+import api from "@/api/api";
+
 const PurchaseAdd = () => {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
   const navigate = useNavigate();
+  const location = useLocation();
+  const resolveState = location.state;
+  const isFromStocktake = Boolean(resolveState?.fromStocktakeResolve);
+  const prefilledRef = useRef(false);
+
   const { postData, loading } = usePost("/api/admin/purchase");
   const { data: selection } = useGet("api/admin/purchase/selection");
   const [searchProduct, setSearchProduct] = useState("");
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
-    warehouse_id: "",
+    warehouse_id: resolveState?.warehouseId
+      ? (typeof resolveState.warehouseId === "object" ? resolveState.warehouseId._id : resolveState.warehouseId)
+      : "",
     supplier_id: "",
     tax_id: "",
     payment_status: "full",
@@ -69,6 +78,102 @@ const PurchaseAdd = () => {
   }, [selection?.products, t]);
 
   const currencyCode = selection?.currency?.code || "EGP";
+
+  // Auto-fill everything when navigated from Stocktake Discrepancy Resolution
+  useEffect(() => {
+    if (!isFromStocktake || prefilledRef.current) return;
+    if (!selection) return;
+
+    if (selection.products && selection.products.length > 0 && processedProducts.length === 0) {
+      return; // wait until processedProducts memo completes
+    }
+
+    prefilledRef.current = true;
+
+    // 1. Target Warehouse ID
+    const targetWarehouseId = resolveState.warehouseId
+      ? (typeof resolveState.warehouseId === "object" ? resolveState.warehouseId._id : resolveState.warehouseId)
+      : (selection.warehouse?.[0]?._id || "");
+
+    // 2. Default Supplier ID (auto-select first supplier if available)
+    const defaultSupplierId = selection.supplier?.[0]?._id || "";
+
+    // 3. Default Financial Account (auto-select first financial account if available)
+    const defaultFinancialId = selection.financial?.[0]?._id || "";
+
+    // 4. Product matching
+    let matchedItem = null;
+    if (processedProducts.length > 0) {
+      if (resolveState.productPriceId) {
+        matchedItem = processedProducts.find(
+          (p) => String(p.id) === String(resolveState.productPriceId)
+        );
+      }
+      if (!matchedItem && resolveState.productId) {
+        matchedItem = processedProducts.find(
+          (p) => String(p.original_product_id || p.id) === String(resolveState.productId)
+        );
+      }
+      if (!matchedItem && resolveState.productName) {
+        matchedItem = processedProducts.find(
+          (p) => p.displayName?.toLowerCase().includes(resolveState.productName?.toLowerCase())
+        );
+      }
+    }
+
+    const qty = Math.max(1, Number(resolveState.quantity) || 1);
+    const defaultExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+    let prefilledItem;
+    if (matchedItem) {
+      const itemCost = Number(matchedItem.cost ?? matchedItem.avg_cost ?? matchedItem.price ?? 1);
+      const safeCost = itemCost > 0 ? itemCost : (Number(matchedItem.price) > 0 ? Number(matchedItem.price) : 1);
+      prefilledItem = {
+        product_id: matchedItem.original_product_id || matchedItem.id,
+        variant_id: matchedItem.original_product_id ? matchedItem.id : null,
+        name: matchedItem.displayName,
+        quantity: qty,
+        unit_cost: safeCost,
+        avg_cost: safeCost,
+        tax: 0,
+        discount: 0,
+        exp_ability: matchedItem.exp_ability || false,
+        expiry_date: matchedItem.exp_ability ? defaultExpiry : null,
+      };
+    } else {
+      prefilledItem = {
+        product_id: resolveState.productId,
+        variant_id: resolveState.productPriceId || null,
+        name: resolveState.productName || "Product",
+        quantity: qty,
+        unit_cost: 1,
+        avg_cost: 1,
+        tax: 0,
+        discount: 0,
+        exp_ability: false,
+        expiry_date: null,
+      };
+    }
+
+    const estTotal = prefilledItem.quantity * prefilledItem.unit_cost;
+
+    setFormData((prev) => ({
+      ...prev,
+      warehouse_id: targetWarehouseId || prev.warehouse_id,
+      supplier_id: prev.supplier_id || defaultSupplierId,
+      purchase_items: [prefilledItem],
+      financials: defaultFinancialId
+        ? [{ financial_id: defaultFinancialId, payment_amount: estTotal }]
+        : (prev.financials.length > 0 ? prev.financials : [{ financial_id: "", payment_amount: 0 }]),
+      payment_status: defaultFinancialId ? "full" : "later",
+    }));
+
+    toast.info(
+      isArabic
+        ? `تم تجهيز فاتورة الشراء للمنتج (${prefilledItem.name}) بالكمية (${qty}) تلقائياً`
+        : `Pre-filled purchase for product (${prefilledItem.name}) with qty (${qty})`
+    );
+  }, [isFromStocktake, resolveState, selection, processedProducts, isArabic]);
 
   useEffect(() => {
     if (formData.payment_status === "full") {
@@ -240,13 +345,22 @@ const PurchaseAdd = () => {
     const finalPurchaseItems = Object.values(groupedItemsMap);
     // --- نهاية خوارزمية التجميع ---
 
+    let finalFinancials = formData.financials;
+    if (formData.payment_status === "full" && finalFinancials.length > 0) {
+      finalFinancials = finalFinancials.map((f, i) =>
+        i === 0 ? { ...f, payment_amount: totals.grandTotal } : f
+      );
+    }
+
     const payload = {
       ...formData,
       total: totals.itemsTotalBeforeAll,
       grand_total: totals.grandTotal,
       purchase_items: finalPurchaseItems, // استخدام المنتجات المجمعة هنا
-      financials: formData.financials.filter(f => f.financial_id !== "" && Number(f.payment_amount) > 0),
-      installments: [...formData.installments]
+      financials: finalFinancials.filter(
+        (f) => f.financial_id !== "" && Number(f.payment_amount) > 0
+      ),
+      installments: [...formData.installments],
     };
 
     const qDate = document.getElementById('q_date')?.value;
@@ -265,6 +379,40 @@ const PurchaseAdd = () => {
     try {
       const response = await postData(payload); // استخدم putData في ملف الـ Edit
       if (response) {
+        if (isFromStocktake && resolveState?.stocktakeId && resolveState?.itemId) {
+          const purchaseId =
+            response?.purchase?._id ||
+            response?.data?.purchase?._id ||
+            response?._id ||
+            response?.data?._id;
+
+          if (purchaseId) {
+            try {
+              await api.post(`/api/admin/stocktake/${resolveState.stocktakeId}/resolve`, {
+                itemId: resolveState.itemId,
+                action: "create_purchase",
+                referenceId: purchaseId,
+              });
+              toast.success(
+                isArabic
+                  ? "تم إنشاء فاتورة الشراء وتسوية صنف الجرد بنجاح"
+                  : "Purchase created and stocktake item resolved successfully"
+              );
+              navigate(`/stocktake/details/${resolveState.stocktakeId}`);
+              return;
+            } catch (resolveErr) {
+              console.error("Resolve error after purchase:", resolveErr);
+              toast.warning(
+                isArabic
+                  ? "تم إنشاء فاتورة الشراء، ولكن تعذر تسوية صنف الجرد تلقائياً"
+                  : "Purchase created, but failed to automatically resolve stocktake item"
+              );
+              navigate(`/stocktake/details/${resolveState.stocktakeId}`);
+              return;
+            }
+          }
+        }
+
         toast.success(t("PurchaseAddedSuccessfully")); // أو Updated Successfully
         navigate("/purchase");
       }
@@ -275,6 +423,47 @@ const PurchaseAdd = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-sm p-8 border">
+
+        {/* Banner when coming from stocktake resolve */}
+        {isFromStocktake && (
+          <div className="mb-8 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-xs flex-shrink-0">
+                <ShoppingCart size={22} />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-emerald-950">
+                  {isArabic ? "تسوية فائض جرد المخزون عبر الشراء" : "Stocktake Surplus Resolution via Purchase"}
+                </h4>
+                <p className="text-xs text-emerald-800 mt-0.5">
+                  {isArabic
+                    ? `تم تعبئة بيانات المنتج والكمية الزائدة (${resolveState?.quantity || 1} قطعة) تلقائياً. اضغط "تأكيد الشراء وتسوية الجرد" لإتمام العملية دون الحاجة لإدخال بيانات يدوياً.`
+                    : `Product and surplus quantity (${resolveState?.quantity || 1}) are pre-filled automatically. Click "Confirm Purchase & Resolve" to finish without typing anything.`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 self-end sm:self-auto">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={loading}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <ShoppingCart size={15} />
+                {loading ? (isArabic ? "جاري الإتمام..." : "Processing...") : (isArabic ? "شراء وتسوية فوراً" : "Buy & Resolve Now")}
+              </button>
+              {resolveState?.stocktakeId && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/stocktake/details/${resolveState.stocktakeId}`)}
+                  className="text-xs font-semibold text-gray-500 hover:text-gray-700 underline cursor-pointer"
+                >
+                  {isArabic ? "العودة للجرد" : "Back to Stocktake"}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* المورد والمخزن */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -628,7 +817,16 @@ const PurchaseAdd = () => {
         </div>
 
         <button onClick={handleSave} disabled={loading} className="w-full mt-12 bg-red-600 hover:bg-red-700 text-white py-5 rounded-2xl font-black text-xl transition-all shadow-2xl shadow-red-100/50 flex items-center justify-center gap-3">
-          {loading ? t("Processing...") : <><Calculator size={24} /> {t("Confirm & Save Purchase")}</>}
+          {loading ? (
+            t("Processing...")
+          ) : (
+            <>
+              {isFromStocktake ? <ShoppingCart size={24} /> : <Calculator size={24} />}
+              {isFromStocktake
+                ? (isArabic ? "تأكيد الشراء وتسوية الجرد" : "Confirm Purchase & Resolve Stocktake")
+                : t("Confirm & Save Purchase")}
+            </>
+          )}
         </button>
       </div>
     </div>

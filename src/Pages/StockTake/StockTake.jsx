@@ -8,17 +8,22 @@ import useDelete from "@/hooks/useDelete";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import api from "@/api/api";
+import { toast } from "react-toastify";
 
 const StockTake = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/stocktake");
   const { deleteData, loading: deleting } = useDelete();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const isRTL = i18n.language === "ar";
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
 
   const stocktakes = data?.stocktakes || data || [];
 
-  const renderStatus = (status) => {
+  const renderStatus = (status, item) => {
     const statusConfig = {
       draft: { bg: "bg-gray-100 text-gray-800", label: t("Draft") },
       processing: { bg: "bg-blue-100 text-blue-800", label: t("Processing") },
@@ -28,9 +33,24 @@ const StockTake = () => {
     };
     const config = statusConfig[status] || statusConfig.draft;
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${config.bg}`}>
-        {config.label}
-      </span>
+      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${config.bg}`}>
+          {config.label}
+        </span>
+        {status === "processing" && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setCancelTarget(item);
+            }}
+            className="px-2.5 py-0.5 text-xs font-semibold text-red-600 hover:text-white bg-red-50 hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-full transition-all cursor-pointer shadow-xs"
+            title={isRTL ? "إلغاء الجرد" : "Cancel Stock Take"}
+          >
+            {isRTL ? "إلغاء" : "Cancel"}
+          </button>
+        )}
+      </div>
     );
   };
 
@@ -94,7 +114,7 @@ const StockTake = () => {
     {
       key: "status",
       header: t("Status"),
-      render: (val) => renderStatus(val),
+      render: (val, item) => renderStatus(val, item),
     },
     {
       key: "createdAt",
@@ -111,11 +131,41 @@ const StockTake = () => {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await deleteData(`/api/admin/stocktake/${deleteTarget._id}`);
-      setDeleteTarget(null);
-      refetch();
+      const res = await api.delete(`/api/admin/stocktake/${deleteTarget._id}`);
+      if (res.data?.success) {
+        toast.success(isRTL ? "تم حذف الجرد بنجاح" : "Stock take deleted successfully");
+        setDeleteTarget(null);
+        refetch();
+      } else {
+        toast.error(res.data?.message || t("Failed to delete stock take"));
+      }
     } catch (err) {
       console.error("Delete error:", err);
+      toast.error(
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        t("Failed to delete stock take")
+      );
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!cancelTarget) return;
+    try {
+      setCancelling(true);
+      await api.patch(`/api/admin/stocktake/${cancelTarget._id}/cancel`);
+      toast.success(isRTL ? "تم إلغاء الجرد بنجاح" : "Stock take cancelled successfully");
+      setCancelTarget(null);
+      refetch();
+    } catch (err) {
+      console.error("Cancel error:", err);
+      toast.error(
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        t("Failed to cancel stock take")
+      );
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -172,6 +222,21 @@ const StockTake = () => {
           message={t("Are you sure you want to delete this stock take? This action cannot be undone.")}
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {cancelTarget && (
+        <DeleteDialog
+          title={isRTL ? "إلغاء عملية الجرد" : "Cancel Stock Take"}
+          message={
+            isRTL
+              ? "هل أنت متأكد من رغبتك في إلغاء عملية الجرد هذه؟ لن تتمكن من متابعة الجرد بعد الإلغاء."
+              : "Are you sure you want to cancel this stock take? You will not be able to continue this stock take after cancellation."
+          }
+          onConfirm={handleCancel}
+          onCancel={() => setCancelTarget(null)}
+          confirmText={cancelling ? (isRTL ? "جاري الإلغاء..." : "Cancelling...") : (isRTL ? "إلغاء الجرد" : "Cancel Stock Take")}
+          cancelText={isRTL ? "تراجع" : "Cancel"}
         />
       )}
     </div>

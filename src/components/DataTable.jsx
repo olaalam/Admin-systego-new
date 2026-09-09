@@ -477,7 +477,7 @@ export default function DataTable({
                           : ""
                       } ${onRowClick ? "cursor-pointer" : ""}`}
                     >
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={isSelected}
@@ -510,12 +510,13 @@ export default function DataTable({
                       ))}
 
                       {showActions && (onEdit || onDelete || extraActions) && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             {extraActions && extraActions(item)}
                             {onEdit && canEdit && (
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   if (editPath) {
                                     const path =
                                       typeof editPath === "function"
@@ -534,7 +535,10 @@ export default function DataTable({
                             )}
                             {onDelete && canDelete && (
                               <button
-                                onClick={() => onDelete(item)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDelete(item);
+                                }}
                                 className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded transition-colors"
                                 title="Delete"
                               >

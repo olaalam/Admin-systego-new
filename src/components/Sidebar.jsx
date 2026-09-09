@@ -25,6 +25,9 @@ import { useState, useEffect } from "react";
 import logo from "@/assets/logo.jpg";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import { useTenantInfo } from "@/context/TenantContext";
+import { Lock } from "lucide-react";
+import { toast } from "react-toastify";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/analytics" },
@@ -177,13 +180,21 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
+  const { features, loading: tenantLoading } = useTenantInfo();
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userPermissions = user.permissions || [];
   const isSuperAdmin = user.role === "superadmin" || user.role_name?.toLowerCase() === "super admin";
+
+  const isFeatureLocked = (path) => {
+    if (tenantLoading) return false;
+    if (path === "/stocktake" && !features.haveStockTake) return true;
+    if (activeModuleGroup?.name === "Reports" && !features.haveReports) return true;
+    return false;
+  };
 
   // Permission check
   const canViewModule = (moduleName) => {
@@ -247,15 +258,23 @@ export default function Sidebar() {
       {/* Module header */}
       {activeModuleGroup && (!desktopCollapsed || isMobile) && (
         <div className="px-4 pt-5 pb-3 flex-shrink-0">
-          <div className={`flex items-center gap-3 p-3 rounded-2xl ${accentClass}`}>
-            {ModuleIcon && (
-              <div className={`w-8 h-8 rounded-xl ${iconBgClass} flex items-center justify-center flex-shrink-0`}>
-                <ModuleIcon className="w-4 h-4 text-white" />
-              </div>
+          <div className={`flex items-center justify-between p-3 rounded-2xl ${accentClass}`}>
+            <div className="flex items-center gap-3 truncate">
+              {ModuleIcon && (
+                <div className={`w-8 h-8 rounded-xl ${iconBgClass} flex items-center justify-center flex-shrink-0`}>
+                  <ModuleIcon className="w-4 h-4 text-white" />
+                </div>
+              )}
+              <span className="font-black text-sm tracking-tight truncate">
+                {t(activeModuleGroup.name)}
+              </span>
+            </div>
+            {!tenantLoading && activeModuleGroup.name === "Reports" && !features.haveReports && (
+              <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md flex-shrink-0">
+                <Lock className="w-3 h-3 text-amber-600" />
+                <span>{i18n.language === "ar" ? "مغلق" : "Locked"}</span>
+              </span>
             )}
-            <span className="font-black text-sm tracking-tight truncate">
-              {t(activeModuleGroup.name)}
-            </span>
           </div>
         </div>
       )}
@@ -286,6 +305,41 @@ export default function Sidebar() {
         {filteredChildren.length > 0 ? (
           filteredChildren.map((child, i) => {
             const isActive = location.pathname === child.path || (child.path !== "/" && location.pathname.startsWith(child.path + "/"));
+            const isLocked = isFeatureLocked(child.path);
+
+            if (isLocked) {
+              return (
+                <div
+                  key={i}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium opacity-50 cursor-not-allowed bg-slate-50/80 text-slate-400 select-none hover:bg-slate-100/60 transition-all ${
+                    desktopCollapsed && !isMobile ? "justify-center px-2" : ""
+                  }`}
+                  title={
+                    i18n.language === "ar"
+                      ? `${t(child.name)} (غير متاح في باقتك - يتطلب ترقية)`
+                      : `${t(child.name)} (Requires Upgrade)`
+                  }
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    {(!desktopCollapsed || isMobile) && (
+                      <span className="truncate">{t(child.name)}</span>
+                    )}
+                    {desktopCollapsed && !isMobile && (
+                      <span className="text-[10px] text-center leading-tight">{t(child.name).slice(0, 2)}</span>
+                    )}
+                  </div>
+                  {(!desktopCollapsed || isMobile) && (
+                    <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md flex-shrink-0 shadow-xs">
+                      <Lock className="w-2.5 h-2.5" />
+                      <span>{i18n.language === "ar" ? "ترقية" : "Upgrade"}</span>
+                    </span>
+                  )}
+                  {desktopCollapsed && !isMobile && (
+                    <Lock className="w-3.5 h-3.5 text-amber-600" />
+                  )}
+                </div>
+              );
+            }
 
             return (
               <Link

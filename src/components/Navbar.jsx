@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { ArrowLeft, LogOut, RefreshCw, Search, X } from "lucide-react";
+import { ArrowLeft, LogOut, RefreshCw, Search, X, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import '../translation/i18n';
 import NotificationDropdown from "./NotificationDropdown";
 import { hasPermission } from "@/lib/checkPermission";
 import usePost from "@/hooks/usePost";
+import { useTenantInfo } from "@/context/TenantContext";
+import { toast } from "react-toastify";
 import logo from "@/assets/logo.jpg";
 export default function Navbar() {
   const navigate = useNavigate();
@@ -20,6 +22,10 @@ export default function Navbar() {
 
   // استخدام الـ Hook الخاص بالـ Post لعمل الـ API Calls
   const { postData, loading: apiLoading } = usePost();
+
+  // جلب بيانات الـ Tenant و الـ features
+  const { features, refreshTenant } = useTenantInfo();
+  const [isRefreshingTenant, setIsRefreshingTenant] = useState(false);
 
   // حالة لعرض الـ Loader الكبير وقت التحديث
   const [isUpdating, setIsUpdating] = useState(false);
@@ -146,7 +152,37 @@ export default function Navbar() {
     }
   };
 
+  // دالة ريفريش بيانات الـ Tenant
+  const handleRefreshTenant = async () => {
+    try {
+      setIsRefreshingTenant(true);
+      await refreshTenant();
+      toast.success(
+        i18n.language === "ar"
+          ? "تم تحديث بيانات المؤسسة والاشتراك بنجاح"
+          : "Tenant info refreshed successfully"
+      );
+    } catch (error) {
+      console.error("Refresh Tenant failed:", error);
+      toast.error(
+        i18n.language === "ar"
+          ? "فشل تحديث بيانات المؤسسة"
+          : "Failed to refresh tenant info"
+      );
+    } finally {
+      setIsRefreshingTenant(false);
+    }
+  };
+
   const handleGoToPOS = () => {
+    if (!features?.havePOS) {
+      toast.warning(
+        i18n.language === "ar"
+          ? "نظام نقاط البيع (POS) غير متاح في باقتك الحالية"
+          : "POS is not available in your current package"
+      );
+      return;
+    }
     // بيجيب الـ origin الحالي ويضيف عليه المسار
     const posUrl = `${window.location.origin}/point-of-sale`;
     // '_blank' بتخلي المتصفح يفتح الرابط في تاب جديدة
@@ -200,12 +236,48 @@ export default function Navbar() {
         </div>
         <div className="flex items-center gap-4">
 
+          {/* زر POS وشارة الترقية إذا كانت الميزة غير متوفرة */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleGoToPOS}
+              disabled={!features?.havePOS}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                features?.havePOS
+                  ? "bg-secondary text-white hover:bg-opacity-90 cursor-pointer shadow-sm"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+              }`}
+              title={
+                !features?.havePOS
+                  ? (i18n.language === "ar" ? "نظام نقاط البيع (POS) غير متاح في باقتك - يتطلب ترقية" : "POS requires plan upgrade")
+                  : "POS"
+              }
+            >
+              {!features?.havePOS && <Lock className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />}
+              <span>POS</span>
+            </button>
+
+            {!features?.havePOS && (
+              <span
+                className="flex items-center gap-1 text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 px-2 py-1 rounded-lg cursor-default select-none shadow-xs"
+                title={i18n.language === "ar" ? "هذه الميزة تتطلب ترقية باقتك الحالية" : "This feature requires a plan upgrade"}
+              >
+                <Lock className="w-3 h-3 text-amber-600 flex-shrink-0" />
+                <span>{i18n.language === "ar" ? "يتطلب ترقية" : "Upgrade"}</span>
+              </span>
+            )}
+          </div>
+
+          {/* زر ريفريش بيانات الـ Tenant */}
           <button
-            onClick={handleGoToPOS}
-            className="flex items-center gap-2 bg-secondary text-white px-4 py-1.5 rounded-lg hover:bg-opacity-90 transition-all text-sm font-bold"
+            onClick={handleRefreshTenant}
+            disabled={isRefreshingTenant}
+            className="flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 cursor-pointer disabled:opacity-50 transition-colors p-1.5 hover:bg-emerald-50 rounded-lg"
+            title={i18n.language === "ar" ? "تحديث بيانات المؤسسة والاشتراك" : "Refresh Tenant Info"}
           >
-            POS
+            <RefreshCw className={`w-4 h-4 ${isRefreshingTenant ? "animate-spin" : ""}`} />
+            <span className="text-[10px] font-bold">TENANT</span>
           </button>
+
           {/* زر التحديث - يظهر في الـ localhost والـ subdomains فقط */}
           {showUpdateBtn && (
             <button
