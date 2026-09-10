@@ -22,8 +22,8 @@ const ProductForm = ({
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   // fetch categories / brands / variations / taxes
-  const { data, loading: metaLoading } = useGet("/api/admin/product/select");
-  const { data: discountData, loading: discountsLoading } = useGet("/api/admin/discount");
+  const { data, loading: metaLoading, refetch: refetchMeta } = useGet("/api/admin/product/select");
+  const { data: discountData, loading: discountsLoading, refetch: refetchDiscounts } = useGet("/api/admin/discount");
   const discounts = discountData?.discounts || [];
 
   // local states
@@ -584,6 +584,11 @@ const ProductForm = ({
     handleOptionsChange,
     handleVariantFieldChange,
     handleRemoveVariant,
+    refetchMeta,
+    refetchDiscounts,
+    setCategories,
+    setBrands,
+    setUnits,
   };
 
   const headerTitle = mode === "add" ? t("Add New Product") : t("Edit Product");

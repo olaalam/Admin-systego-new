@@ -11,8 +11,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronsUpDown, X, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import QuickAddCategoryModal from "./modals/QuickAddCategoryModal";
+import QuickAddBrandModal from "./modals/QuickAddBrandModal";
+import QuickAddDiscountModal from "./modals/QuickAddDiscountModal";
+import QuickAddUnitModal from "./modals/QuickAddUnitModal";
 
 // ----------------------------------------------------------------------
 // Multi-Select Combobox Component
@@ -20,7 +24,7 @@ import { cn } from "@/lib/utils";
 
 const CategoryMultiSelect = ({ label, value, options, onChange, required = false }) => {
   const [open, setOpen] = React.useState(false);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   // Ensure options have unique IDs
   const uniqueOptions = React.useMemo(() => {
@@ -202,9 +206,98 @@ const BrandSelect = ({ label, value, options, onChange, t }) => {
 // ProductGeneralTab Component (with Arabic fields and Taxes)
 // ----------------------------------------------------------------------
 
-const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, loading, units, discounts = [] }) => {
+const ProductGeneralTab = ({
+  form,
+  handleChange,
+  categories = [],
+  brands = [],
+  loading,
+  units = [],
+  discounts = [],
+  refetchMeta,
+  refetchDiscounts,
+  setCategories,
+  setBrands,
+  setUnits,
+}) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
+
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = React.useState(false);
+  const [isBrandModalOpen, setIsBrandModalOpen] = React.useState(false);
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = React.useState(false);
+  const [isUnitModalOpen, setIsUnitModalOpen] = React.useState(false);
+
+  const handleCategoryCreated = async (newCategory) => {
+    if (!newCategory) return;
+    const catId = newCategory._id || newCategory.id;
+    if (catId) {
+      if (setCategories) {
+        setCategories((prev) => {
+          if (prev.some((c) => String(c._id) === String(catId))) return prev;
+          return [...prev, newCategory];
+        });
+      }
+      const currentIds = Array.isArray(form.categoryId)
+        ? form.categoryId.map((id) => (typeof id === "object" ? id._id : id))
+        : [];
+      if (!currentIds.includes(catId)) {
+        handleChange("categoryId", [...currentIds, catId]);
+      }
+    }
+    if (refetchMeta) {
+      await refetchMeta();
+    }
+  };
+
+  const handleBrandCreated = async (newBrand) => {
+    if (!newBrand) return;
+    const brandId = newBrand._id || newBrand.id;
+    if (brandId) {
+      if (setBrands) {
+        setBrands((prev) => {
+          if (prev.some((b) => String(b._id) === String(brandId))) return prev;
+          return [...prev, newBrand];
+        });
+      }
+      handleChange("brandId", brandId);
+    }
+    if (refetchMeta) {
+      await refetchMeta();
+    }
+  };
+
+  const handleDiscountCreated = async (newDiscount) => {
+    if (!newDiscount) return;
+    const discountId = newDiscount._id || newDiscount.id;
+    if (discountId) {
+      handleChange("discountId", discountId);
+    }
+    if (refetchDiscounts) {
+      await refetchDiscounts();
+    }
+  };
+
+  const handleUnitCreated = async (newUnit) => {
+    if (!newUnit) return;
+    const unitId = newUnit._id || newUnit.id;
+    if (unitId) {
+      if (setUnits) {
+        setUnits((prev) => {
+          if (prev.some((u) => String(u._id) === String(unitId))) return prev;
+          return [...prev, newUnit];
+        });
+      }
+      // إضافة الوحدة في الثلاثة حقول مباشرة
+      handleChange("product_unit", unitId);
+      handleChange("purchase_unit", unitId);
+      handleChange("sale_unit", unitId);
+    }
+    if (refetchMeta) {
+      await refetchMeta();
+    }
+  };
+
   if (loading) {
     return <Loader />;
   }
@@ -241,22 +334,42 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
         {/* Category Multi-Select */}
-        <CategoryMultiSelect
-          label={t("productss.category")}
-          value={form.categoryId || []}
-          options={categories}
-          onChange={(newIds) => handleChange("categoryId", newIds)}
-          required={true}
-        />
+        <div className="flex flex-col">
+          <CategoryMultiSelect
+            label={t("productss.category")}
+            value={form.categoryId || []}
+            options={categories}
+            onChange={(newIds) => handleChange("categoryId", newIds)}
+            required={true}
+          />
+          <button
+            type="button"
+            onClick={() => setIsCategoryModalOpen(true)}
+            className="mt-1.5 self-start inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors cursor-pointer py-0.5 px-1 rounded hover:bg-blue-50"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>{isRTL ? "إضافة فئة جديدة" : "Add Category"}</span>
+          </button>
+        </div>
 
         {/* Brand Single Select */}
-        <BrandSelect
-          label={t("productss.brand")}
-          value={form.brandId}
-          options={brands}
-          onChange={(newId) => handleChange("brandId", newId)}
-          t={t}
-        />
+        <div className="flex flex-col">
+          <BrandSelect
+            label={t("productss.brand")}
+            value={form.brandId}
+            options={brands}
+            onChange={(newId) => handleChange("brandId", newId)}
+            t={t}
+          />
+          <button
+            type="button"
+            onClick={() => setIsBrandModalOpen(true)}
+            className="mt-1.5 self-start inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors cursor-pointer py-0.5 px-1 rounded hover:bg-blue-50"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>{isRTL ? "إضافة علامة تجارية جديدة" : "Add Brand"}</span>
+          </button>
+        </div>
 
         {/* ✅ Tax Single Select */}
         {/* <div>
@@ -279,85 +392,108 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-        <div>
+        <div className="flex flex-col">
           <Label className="text-sm font-medium text-gray-700 mb-2 block">
             {t("productss.discount")}
           </Label>
-          <select
-            className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none"
-            value={form.discountId || ""}
-            onChange={(e) => handleChange("discountId", e.target.value)}
+          <div className="flex items-center gap-2">
+            <select
+              className="flex-1 h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none bg-white"
+              value={form.discountId || ""}
+              onChange={(e) => handleChange("discountId", e.target.value)}
+            >
+              <option value="">{t("productss.select_discount")}</option>
+              {discounts.map((discount) => (
+                <option key={discount._id} value={discount._id}>
+                  {discount.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsDiscountModalOpen(true)}
+            className="mt-1.5 self-start inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors cursor-pointer py-0.5 px-1 rounded hover:bg-blue-50"
           >
-            <option value="">{t("productss.select_discount")}</option>
-            {discounts.map((discount) => (
-              <option key={discount._id} value={discount._id}>
-                {discount.name}
-              </option>
-            ))}
-          </select>
+            <Plus className="w-3.5 h-3.5" />
+            <span>{isRTL ? "إضافة خصم جديد" : "Add Discount"}</span>
+          </button>
         </div>
       </div>
 
       {/* Unit & Min Purchase */}
 
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Product Unit */}
-        <div>
-          <Label className="text-sm font-medium text-gray-700 mb-2 block">
-            {t("productss.product_unit")} <span className="text-red-500">*</span>
-          </Label>
-          <select
-            className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none"
-            value={form.product_unit}
-            onChange={(e) => handleChange("product_unit", e.target.value)}
-          >
-            <option value="">{t("select unit")}</option>
-            {units?.map((u) => (
-              <option key={u._id} value={u._id}>
-                {isRTL ? u.ar_name : u.name} ({u.code})
-              </option>
-            ))}
-          </select>
+      {/* Unit & Min Purchase */}
+      <div className="flex flex-col">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Product Unit */}
+          <div>
+            <Label className="text-sm font-medium text-gray-700 mb-2 block">
+              {t("productss.product_unit")} <span className="text-red-500">*</span>
+            </Label>
+            <select
+              className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none bg-white"
+              value={form.product_unit}
+              onChange={(e) => handleChange("product_unit", e.target.value)}
+            >
+              <option value="">{t("select unit")}</option>
+              {units?.map((u) => (
+                <option key={u._id} value={u._id}>
+                  {isRTL ? u.ar_name : u.name} ({u.code})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Purchase Unit */}
+          <div>
+            <Label className="text-sm font-medium text-gray-700 mb-2 block">
+              {t("productss.purchase_unit")} <span className="text-red-500">*</span>
+            </Label>
+            <select
+              className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none bg-white"
+              value={form.purchase_unit}
+              onChange={(e) => handleChange("purchase_unit", e.target.value)}
+            >
+              <option value="">{t("select unit")}</option>
+              {units?.map((u) => (
+                <option key={u._id} value={u._id}>
+                  {isRTL ? u.ar_name : u.name} ({u.code})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sale Unit */}
+          <div>
+            <Label className="text-sm font-medium text-gray-700 mb-2 block">
+              {t("productss.sale_unit")} <span className="text-red-500">*</span>
+            </Label>
+            <select
+              className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none bg-white"
+              value={form.sale_unit}
+              onChange={(e) => handleChange("sale_unit", e.target.value)}
+            >
+              <option value="">{t("select unit")}</option>
+              {units?.map((u) => (
+                <option key={u._id} value={u._id}>
+                  {isRTL ? u.ar_name : u.name} ({u.code})
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        {/* Purchase Unit */}
-        <div>
-          <Label className="text-sm font-medium text-gray-700 mb-2 block">
-            {t("productss.purchase_unit")} <span className="text-red-500">*</span>
-          </Label>
-          <select
-            className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none"
-            value={form.purchase_unit}
-            onChange={(e) => handleChange("purchase_unit", e.target.value)}
-          >
-            <option value="">{t("select unit")}</option>
-            {units?.map((u) => (
-              <option key={u._id} value={u._id}>
-                {isRTL ? u.ar_name : u.name} ({u.code})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Sale Unit */}
-        <div>
-          <Label className="text-sm font-medium text-gray-700 mb-2 block">
-            {t("productss.sale_unit")} <span className="text-red-500">*</span>
-          </Label>
-          <select
-            className="w-full h-11 border border-gray-300 rounded-md px-3 focus:ring-2 focus:ring-secondary outline-none"
-            value={form.sale_unit}
-            onChange={(e) => handleChange("sale_unit", e.target.value)}
-          >
-            <option value="">{t("select unit")}</option>
-            {units?.map((u) => (
-              <option key={u._id} value={u._id}>
-                {isRTL ? u.ar_name : u.name} ({u.code})
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* زر واحد لإضافة الوحدة يضيف في الثلاثة مباشرة */}
+        <button
+          type="button"
+          onClick={() => setIsUnitModalOpen(true)}
+          className="mt-2 self-start inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors cursor-pointer py-0.5 px-1 rounded hover:bg-blue-50"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>{isRTL ? "إضافة وحدة جديدة" : "Add Unit"}</span>
+        </button>
       </div>
 
       {/* Description (English) */}
@@ -491,6 +627,32 @@ const ProductGeneralTab = ({ form, handleChange, categories, brands, taxes, load
           />
         </div>
       )}
+
+      {/* Quick Add Modals */}
+      <QuickAddCategoryModal
+        open={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
+        onSuccess={handleCategoryCreated}
+      />
+
+      <QuickAddBrandModal
+        open={isBrandModalOpen}
+        onClose={() => setIsBrandModalOpen(false)}
+        onSuccess={handleBrandCreated}
+      />
+
+      <QuickAddDiscountModal
+        open={isDiscountModalOpen}
+        onClose={() => setIsDiscountModalOpen(false)}
+        onSuccess={handleDiscountCreated}
+      />
+
+      <QuickAddUnitModal
+        open={isUnitModalOpen}
+        onClose={() => setIsUnitModalOpen(false)}
+        onSuccess={handleUnitCreated}
+        existingUnits={units}
+      />
     </div>
   );
 };
