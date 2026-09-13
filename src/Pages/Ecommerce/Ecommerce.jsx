@@ -59,6 +59,17 @@ const EMPTY_FORM = {
     sections: []
 };
 
+/* Fallback colors used when a theme's defaultConfig has no `colors` key
+   (e.g. default/main templates, or themes like the one in the screenshots
+   that only define { fontStyle: "default" }) */
+const DEFAULT_COLORS = {
+    primary: "#405463",
+    secondary: "#8cb7c9",
+    background: "#ffffff",
+    textPrimary: "#111827",
+    textSecondary: "#6b7280"
+};
+
 /* Helper to merge API sections with the full master list */
 const normalizeSections = (apiSections = [], templateSlug = "") => {
     const sectionMap = new Map();
@@ -159,6 +170,74 @@ function SectionRow({ section, onToggle }) {
     );
 }
 
+function ThemePreviewModal({ theme, loading, onClose, onApply }) {
+    if (!theme && !loading) return null;
+    const colors = theme?.defaultConfig?.colors || theme?.colors || DEFAULT_COLORS;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+            <div className="bg-white rounded-2xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+                {loading || !theme ? (
+                    <div className="flex items-center justify-center py-10">
+                        <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+                    </div>
+                ) : (
+                    <>
+                        <div className="aspect-video bg-gray-100 rounded-xl overflow-hidden mb-4">
+                            {theme.thumbnailUrl ? (
+                                <img src={theme.thumbnailUrl} alt={theme.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <LayoutTemplate className="w-10 h-10 text-gray-300" />
+                                </div>
+                            )}
+                        </div>
+
+                        <h3 className="text-lg font-bold text-gray-900 mb-1">{theme.name}</h3>
+                        <p className="text-xs text-gray-400 mb-4">{theme.slug}</p>
+
+                        {theme.sections?.length > 0 && (
+                            <div className="mb-4">
+                                <p className="text-xs font-semibold text-gray-500 mb-2">Sections</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {theme.sections.map(sec => (
+                                        <span key={sec} className="text-[11px] px-2 py-1 bg-gray-100 rounded-full text-gray-600 capitalize">
+                                            {sec}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {colors && (
+                            <div className="mb-4">
+                                <p className="text-xs font-semibold text-gray-500 mb-2">Colors</p>
+                                <div className="flex flex-wrap gap-3">
+                                    {Object.entries(colors).map(([key, val]) => (
+                                        <div key={key} className="flex items-center gap-1.5">
+                                            <span className="w-4 h-4 rounded-full border border-gray-200" style={{ backgroundColor: val }} />
+                                            <span className="text-[11px] text-gray-500">{key}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex items-center gap-2 mt-5">
+                            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-gray-200 text-gray-600">
+                                Close
+                            </button>
+                            <button onClick={onApply} className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 text-white">
+                                Apply Theme
+                            </button>
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+}
+
 /* ─────────────────── Main Component ─────────────────── */
 
 export default function Ecommerce() {
@@ -170,6 +249,7 @@ export default function Ecommerce() {
     const [dragOver, setDragOver] = useState(false);
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
     const [pendingSlug, setPendingSlug] = useState(null);
+    const [viewSlug, setViewSlug] = useState(null);
 
     const fileInputRef = useRef(null);
 
@@ -208,9 +288,10 @@ export default function Ecommerce() {
         : null;
 
     const { data: themesRes, loading: isLoadingThemes } = useGet(themesUrl);
-    const rawThemes = themesRes?.data?.themes?.data 
-        ?? themesRes?.data?.themes 
-        ?? themesRes?.themes 
+    const rawThemes = themesRes?.data?.themes?.data
+        ?? themesRes?.themes?.data
+        ?? themesRes?.data?.themes
+        ?? themesRes?.themes
         ?? themesRes?.data;
     const themes = Array.isArray(rawThemes) ? rawThemes : [];
 
@@ -219,7 +300,12 @@ export default function Ecommerce() {
 
     useEffect(() => {
         if (!pendingSlug || !themeDetailsRes) return;
-        const theme = themeDetailsRes?.data?.theme || themeDetailsRes?.theme || themeDetailsRes?.data || themeDetailsRes;
+        const theme = themeDetailsRes?.data?.template?.data
+            ?? themeDetailsRes?.template?.data
+            ?? themeDetailsRes?.data?.theme
+            ?? themeDetailsRes?.theme
+            ?? themeDetailsRes?.data
+            ?? themeDetailsRes;
         if (!theme) return;
 
         applyThemeToForm(theme);
@@ -227,6 +313,17 @@ export default function Ecommerce() {
         toast.success("Template selected! Customize it below.");
         setActiveTab("customize");
     }, [themeDetailsRes, pendingSlug]);
+
+    const viewDetailsUrl = viewSlug ? `/api/admin/store-settings/themes/${viewSlug}` : null;
+    const { data: viewDetailsRes, loading: isLoadingViewDetails } = useGet(viewDetailsUrl);
+    const viewingTheme = viewSlug
+        ? (viewDetailsRes?.data?.template?.data
+            ?? viewDetailsRes?.template?.data
+            ?? viewDetailsRes?.data?.theme
+            ?? viewDetailsRes?.theme
+            ?? viewDetailsRes?.data
+            ?? viewDetailsRes)
+        : null;
 
     const applyThemeToForm = (theme) => {
         const slug = theme.slug || theme.templateSlug || theme.name;
@@ -240,7 +337,7 @@ export default function Ecommerce() {
             templateSlug: slug,
             templateSectionsSnapshot: mappedSections.filter(s => s.enabled).map(s => s.key),
             sections: mappedSections,
-            colors: defaultConfig.colors || prev.colors,
+            colors: defaultConfig.colors || DEFAULT_COLORS,
             fontStyle: defaultConfig.fontOptions?.[0] || prev.fontStyle || "Cairo"
         }));
     };
@@ -450,22 +547,30 @@ export default function Ecommerce() {
                                             </div>
                                             <div className="p-4">
                                                 <h3 className="text-sm font-bold text-gray-900 mb-3">{theme.name || slug}</h3>
-                                                <button
-                                                    onClick={() => {
-                                                        if (theme.sections?.length) {
-                                                            applyThemeToForm(theme);
-                                                            toast.success("Template selected successfully!");
-                                                            setActiveTab("customize");
-                                                        } else {
-                                                            setPendingSlug(slug);
-                                                        }
-                                                    }}
-                                                    disabled={isApplied}
-                                                    className={`w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 ${isApplied ? "bg-indigo-50 text-indigo-600" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}
-                                                >
-                                                    {isApplied ? <Check className="w-3.5 h-3.5" /> : null}
-                                                    {isApplied ? "Selected" : "Apply Theme"}
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => setViewSlug(slug)}
+                                                        className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-gray-200 text-gray-600 hover:bg-gray-50"
+                                                    >
+                                                        View
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (theme.sections?.length) {
+                                                                applyThemeToForm(theme);
+                                                                toast.success("Template selected successfully!");
+                                                                setActiveTab("customize");
+                                                            } else {
+                                                                setPendingSlug(slug);
+                                                            }
+                                                        }}
+                                                        disabled={isApplied}
+                                                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 ${isApplied ? "bg-indigo-50 text-indigo-600" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}
+                                                    >
+                                                        {isApplied ? <Check className="w-3.5 h-3.5" /> : null}
+                                                        {isApplied ? "Selected" : "Apply Theme"}
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     );
@@ -560,6 +665,20 @@ export default function Ecommerce() {
                     </div>
                 </div>
             )}
+
+            <ThemePreviewModal
+                theme={viewingTheme}
+                loading={isLoadingViewDetails}
+                onClose={() => setViewSlug(null)}
+                onApply={() => {
+                    if (viewingTheme) {
+                        applyThemeToForm(viewingTheme);
+                        toast.success("Template selected successfully!");
+                        setActiveTab("customize");
+                    }
+                    setViewSlug(null);
+                }}
+            />
         </div>
     );
 }
