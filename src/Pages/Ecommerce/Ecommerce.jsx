@@ -70,12 +70,20 @@ const DEFAULT_COLORS = {
     textSecondary: "#6b7280"
 };
 
+/* Some themes return legacy section keys that don't match ALL_SECTION_KEYS
+   (e.g. "header"/"banner" instead of "hero"/"promo-banner") - map them here */
+const KEY_ALIASES = {
+    header: "hero",
+    banner: "promo-banner"
+};
+
 /* Helper to merge API sections with the full master list */
 const normalizeSections = (apiSections = [], templateSlug = "") => {
     const sectionMap = new Map();
     if (Array.isArray(apiSections)) {
         apiSections.forEach(sec => {
-            const key = typeof sec === "string" ? sec : sec.key;
+            const rawKey = typeof sec === "string" ? sec : sec.key;
+            const key = KEY_ALIASES[rawKey] || rawKey;
             const enabled = typeof sec === "object" ? sec.enabled ?? true : true;
             sectionMap.set(key, enabled);
         });
