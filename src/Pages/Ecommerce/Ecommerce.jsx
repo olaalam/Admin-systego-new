@@ -427,7 +427,7 @@ export default function Ecommerce() {
                             <ShoppingBag className="w-7 h-7 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-white tracking-tight">Store Settingssssss</h1>
+                            <h1 className="text-2xl font-bold text-white tracking-tight">Store Settings</h1>
                             <p className="text-indigo-200 text-sm mt-0.5">Manage identity, choose a template & customize storefront</p>
                         </div>
                     </div>
