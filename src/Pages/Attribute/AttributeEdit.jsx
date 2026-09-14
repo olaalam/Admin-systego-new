@@ -38,6 +38,7 @@ export default function AttributeEdit() {
       key: "options",
       label: t("Options") || "Options",
       type: "array",
+      uniqueSubKey: "name",
       confirmDelete: false, // مسح فوري وسلس بدون نافذة تأكيد منبثقة
       onRemove: handleRemoveOption,
       subFields: [
@@ -89,20 +90,34 @@ export default function AttributeEdit() {
 
   const handleSubmit = async (formData) => {
     try {
-      // 1. تحديد المعرفات المتبقية في الفورم
+      // 1. تصفية الخيارات الفارغة تماماً
+      const validOptions = (formData.options || []).filter((opt) => opt.name && opt.name.trim() !== "");
+
+      // 2. التحقق من تكرار أسماء الخيارات في نفس الفاريشن
+      const rawOptions = validOptions.map((opt) => opt.name.trim());
+      const lowerOptions = rawOptions.map((n) => n.toLowerCase());
+      const duplicateIndex = lowerOptions.findIndex((name, idx) => lowerOptions.indexOf(name) !== idx);
+
+      if (duplicateIndex !== -1) {
+        const duplicateName = rawOptions[duplicateIndex];
+        toast.error(`مينفعش، خيار "${duplicateName}" متسجل وموجود قبل كده في نفس الفاريشن!`);
+        return;
+      }
+
+      // 3. تحديد المعرفات المتبقية في الفورم
       const currentOptionIds = new Set(
-        (formData.options || [])
+        validOptions
           .map((o) => (o.id || o._id ? String(o.id || o._id) : null))
           .filter(Boolean)
       );
 
-      // 2. تجميع كل المعرفات المطلوب حذفها (التي كانت في الأصل ومستبعدة الآن + التي تم مسحها يدوياً)
+      // 4. تجميع كل المعرفات المطلوب حذفها (التي كانت في الأصل ومستبعدة الآن + التي تم مسحها يدوياً)
       const allDeletedIds = new Set([
         ...deletedOptionIdsRef.current,
         ...Array.from(initialOptionIdsRef.current).filter((optId) => !currentOptionIds.has(optId)),
       ]);
 
-      // 3. حذف الخيارات المستبعدة من السيرفر
+      // 5. حذف الخيارات المستبعدة من السيرفر
       for (const optId of allDeletedIds) {
         try {
           await api.delete(`/api/admin/variation/option/${optId}`);
@@ -111,13 +126,13 @@ export default function AttributeEdit() {
         }
       }
 
-      // 4. إعداد الـ payload بالخيارات المتبقية دائماً لحفظ الحالة الجديدة
+      // 6. إعداد الـ payload بالخيارات الصالحة المتبقية
       const payload = {
         name: formData.name,
         ar_name: formData.ar_name,
-        options: (formData.options || []).map((opt) => {
+        options: validOptions.map((opt) => {
           const optPayload = {
-            name: opt.name,
+            name: opt.name.trim(),
             status: opt.status ?? false,
           };
           const optId = opt.id || opt._id;

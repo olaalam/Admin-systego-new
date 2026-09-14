@@ -169,15 +169,46 @@ const AddPage = ({
   };
 
   const handleSubmit = () => {
+    // 1. تصفية العناصر الفارغة والتحقق من التكرار في الحقول من نوع array
+    const cleanedFormData = { ...formData };
+
     for (let field of fields) {
-      if (field.required && !formData[field.key]?.length && field.type === "multiselect") {
+      if (field.type === "array") {
+        const uniqueKey = field.uniqueSubKey || "name";
+        const rawArray = formData[field.key] || [];
+
+        // تصفية الخيارات الفارغة تماماً (سيف واكني مضفتش الفاضي ده)
+        const validItems = rawArray.filter(
+          (item) => item[uniqueKey] && item[uniqueKey].trim() !== ""
+        );
+
+        // فحص التكرار بين الخيارات الصالحة
+        const rawNames = validItems.map((item) => item[uniqueKey].trim());
+        const lowerNames = rawNames.map((n) => n.toLowerCase());
+        const dupIdx = lowerNames.findIndex((val, idx) => lowerNames.indexOf(val) !== idx);
+
+        if (dupIdx !== -1) {
+          toast.error(
+            isArabic
+              ? `مينفعش، خيار "${rawNames[dupIdx]}" متسجل وموجود قبل كده في نفس الفاريشن!`
+              : `Option "${rawNames[dupIdx]}" already exists in this variation!`
+          );
+          return;
+        }
+
+        cleanedFormData[field.key] = validItems;
+      }
+    }
+
+    for (let field of fields) {
+      if (field.required && !cleanedFormData[field.key]?.length && field.type === "multiselect") {
         toast.error(`Please select at least one ${field.label}`);
         return;
       }
       if (
         field.required &&
         field.type === "image" &&
-        (!formData[field.key] || typeof formData[field.key] !== "string")
+        (!cleanedFormData[field.key] || typeof cleanedFormData[field.key] !== "string")
       ) {
         toast.error(`Please upload ${field.label}`);
         return;
@@ -188,23 +219,24 @@ const AddPage = ({
         field.type !== "checkbox" &&
         field.type !== "switch" &&
         field.type !== "custom" &&
-        !formData[field.key]
+        field.type !== "array" &&
+        !cleanedFormData[field.key]
       ) {
         toast.error(`${t("Please fill in")} ${field.label}`);
         return;
       }
     }
 
-    if (formData.from && formData.to) {
-      const fromDate = new Date(formData.from);
-      const toDate = new Date(formData.to);
+    if (cleanedFormData.from && cleanedFormData.to) {
+      const fromDate = new Date(cleanedFormData.from);
+      const toDate = new Date(cleanedFormData.to);
       if (fromDate > toDate) {
         toast.error("Valid From date cannot be later than Valid To date");
         return;
       }
     }
 
-    onSubmit(formData);
+    onSubmit(cleanedFormData);
   };
 
   return (

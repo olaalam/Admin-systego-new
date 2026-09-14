@@ -152,6 +152,9 @@ import Porfile from "./Pages/Porfile/Porfile";
 import CashierShiftDetails from "./Pages/CashierShift/CashierShiftDetails";
 import AllReturn from "./Pages/AllReturn/AllReturn";
 import Ecommerce from "./Pages/Ecommerce/Ecommerce";
+import EcommerceUsers from "./Pages/EcommerceUsers/EcommerceUsers";
+import EcommerceUsersAdd from "./Pages/EcommerceUsers/EcommerceUsersAdd";
+import EcommerceUsersEdit from "./Pages/EcommerceUsers/EcommerceUsersEdit";
 
 
 export default function AppRoutes() {
@@ -1563,6 +1566,34 @@ export default function AppRoutes() {
           }
         />
       </Route>
+      {/* ✅ Ecommerce Users */}
+      <Route path="ecommerce-user">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.VIEW}>
+              <EcommerceUsers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.ADD}>
+              <EcommerceUsersAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.EDIT}>
+              <EcommerceUsersEdit />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
       <Route path="ecommerce">
         <Route
           index
