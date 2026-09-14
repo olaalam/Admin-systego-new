@@ -13,20 +13,87 @@ import {
     Check,
     RotateCcw,
     ShoppingBag,
-    ChevronRight,
     Layers
 } from "lucide-react";
 
-/* ─────────────────── Initial Form Shape ─────────────────── */
+/* ─────────────────── Constants ─────────────────── */
+const POPULAR_FONTS = [
+    { name: "Cairo", arPreview: "القاهرة خط حديث وواضح", enPreview: "Modern & Clean Sans" },
+    { name: "Tajawal", arPreview: "تجول خط عربي أنيق", enPreview: "Elegant Arabic Design" },
+    { name: "Almarai", arPreview: "المراعي خط عصري للمتاجر", enPreview: "Perfect for E-commerce" },
+    { name: "Amiri", arPreview: "أميري خط نسخ أصيل ورائع", enPreview: "Classic Naskh Style" },
+    { name: "Inter", arPreview: "خط انتر الممتاز للواجهات", enPreview: "UI Standard Font" },
+    { name: "Roboto", arPreview: "روبوتو الخط الرسمي والتطبيقات", enPreview: "Google Standard Sans" },
+    { name: "Poppins", arPreview: "بوبينز خط هادي ومميز", enPreview: "Geometric & Modern" },
+    { name: "Montserrat", arPreview: "مونتسيرات خط احترافي وعريض", enPreview: "Bold & Distinctive" },
+    { name: "Playfair Display", arPreview: "بلايفير خط فخم للعناوين", enPreview: "Luxury Serif Font" }
+];
+
+/* Master list of all possible section types based on your switch cases */
+const ALL_SECTION_KEYS = [
+    "hero",
+    "features",
+    "categories",
+    "products",
+    "best-sellers",
+    "new-arrivals",
+    "promo-banner",
+    "promotional-banners",
+    "brands",
+    "testimonials",
+    "instagram-feed",
+    "shopping-guides",
+    "faq",
+    "newsletter",
+    "footer"
+];
+
 const EMPTY_FORM = {
     key: "main",
     templateSlug: "",
     templateSectionsSnapshot: [],
     storeName: "",
     logoUrl: "",
-    fontStyle: "classic",
+    fontStyle: "Cairo",
     colors: {},
     sections: []
+};
+
+/* Fallback colors used when a theme's defaultConfig has no `colors` key
+   (e.g. default/main templates, or themes like the one in the screenshots
+   that only define { fontStyle: "default" }) */
+const DEFAULT_COLORS = {
+    primary: "#405463",
+    secondary: "#8cb7c9",
+    background: "#ffffff",
+    textPrimary: "#111827",
+    textSecondary: "#6b7280"
+};
+
+/* Some themes return legacy section keys that don't match ALL_SECTION_KEYS
+   (e.g. "header"/"banner" instead of "hero"/"promo-banner") - map them here */
+const KEY_ALIASES = {
+    header: "hero",
+    banner: "promo-banner"
+};
+
+/* Helper to merge API sections with the full master list */
+const normalizeSections = (apiSections = [], templateSlug = "") => {
+    const sectionMap = new Map();
+    if (Array.isArray(apiSections)) {
+        apiSections.forEach(sec => {
+            const rawKey = typeof sec === "string" ? sec : sec.key;
+            const key = KEY_ALIASES[rawKey] || rawKey;
+            const enabled = typeof sec === "object" ? sec.enabled ?? true : true;
+            sectionMap.set(key, enabled);
+        });
+    }
+
+    return ALL_SECTION_KEYS.map(key => ({
+        key,
+        enabled: sectionMap.has(key) ? sectionMap.get(key) : false,
+        templateSlug: templateSlug
+    }));
 };
 
 /* ─────────────────── Sub-components ─────────────────── */
@@ -111,10 +178,77 @@ function SectionRow({ section, onToggle }) {
     );
 }
 
+function ThemePreviewModal({ theme, loading, onClose, onApply }) {
+    if (!theme && !loading) return null;
+    const colors = theme?.defaultConfig?.colors || theme?.colors || DEFAULT_COLORS;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+            <div className="bg-white rounded-2xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+                {loading || !theme ? (
+                    <div className="flex items-center justify-center py-10">
+                        <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+                    </div>
+                ) : (
+                    <>
+                        <div className="aspect-video bg-gray-100 rounded-xl overflow-hidden mb-4">
+                            {theme.thumbnailUrl ? (
+                                <img src={theme.thumbnailUrl} alt={theme.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <LayoutTemplate className="w-10 h-10 text-gray-300" />
+                                </div>
+                            )}
+                        </div>
+
+                        <h3 className="text-lg font-bold text-gray-900 mb-1">{theme.name}</h3>
+                        <p className="text-xs text-gray-400 mb-4">{theme.slug}</p>
+
+                        {theme.sections?.length > 0 && (
+                            <div className="mb-4">
+                                <p className="text-xs font-semibold text-gray-500 mb-2">Sections</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {theme.sections.map(sec => (
+                                        <span key={sec} className="text-[11px] px-2 py-1 bg-gray-100 rounded-full text-gray-600 capitalize">
+                                            {sec}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {colors && (
+                            <div className="mb-4">
+                                <p className="text-xs font-semibold text-gray-500 mb-2">Colors</p>
+                                <div className="flex flex-wrap gap-3">
+                                    {Object.entries(colors).map(([key, val]) => (
+                                        <div key={key} className="flex items-center gap-1.5">
+                                            <span className="w-4 h-4 rounded-full border border-gray-200" style={{ backgroundColor: val }} />
+                                            <span className="text-[11px] text-gray-500">{key}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex items-center gap-2 mt-5">
+                            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-gray-200 text-gray-600">
+                                Close
+                            </button>
+                            <button onClick={onApply} className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 text-white">
+                                Apply Theme
+                            </button>
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+}
+
 /* ─────────────────── Main Component ─────────────────── */
 
 export default function Ecommerce() {
-    /* 1. GET Current Store Settings */
     const { data: settingsRes, loading: isFetching, refetch } = useGet("/api/admin/store-settings");
     const { putData, loading: isSaving } = usePut("/api/admin/store-settings");
 
@@ -123,36 +257,32 @@ export default function Ecommerce() {
     const [dragOver, setDragOver] = useState(false);
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
     const [pendingSlug, setPendingSlug] = useState(null);
+    const [viewSlug, setViewSlug] = useState(null);
 
     const fileInputRef = useRef(null);
 
-    /* Fill Form Data based on response: response.data.settings */
     useEffect(() => {
         const s = settingsRes?.data?.settings || settingsRes?.settings;
         if (!s) return;
 
+        const slug = s.templateSlug || "";
         setFormData({
             key: s.key || "main",
-            templateSlug: s.templateSlug || "",
+            templateSlug: slug,
             templateSectionsSnapshot: Array.isArray(s.templateSectionsSnapshot) ? s.templateSectionsSnapshot : [],
             storeName: s.storeName || "",
             logoUrl: s.logoUrl || "",
-            fontStyle: s.fontStyle || "classic",
+            fontStyle: s.fontStyle || "Cairo",
             colors: s.colors || {},
-            sections: Array.isArray(s.sections) ? s.sections : []
+            sections: normalizeSections(s.sections, slug)
         });
     }, [settingsRes]);
 
-    /* 2. GET Categories: response.data.categories.categories */
-    const { data: categoriesRes, loading: isLoadingCategories } = useGet(
-        "/api/admin/store-settings/themes/categories"
-    );
-
+    const { data: categoriesRes } = useGet("/api/admin/store-settings/themes/categories");
     const rawCategories = categoriesRes?.data?.categories?.categories 
         ?? categoriesRes?.data?.categories 
         ?? categoriesRes?.categories?.categories 
         ?? categoriesRes?.categories;
-
     const categories = Array.isArray(rawCategories) ? rawCategories : [];
 
     useEffect(() => {
@@ -161,31 +291,29 @@ export default function Ecommerce() {
         }
     }, [categories, selectedCategoryId]);
 
-    /* 3. GET Themes in Category: response.data.themes.data */
     const themesUrl = activeTab === "template" && selectedCategoryId
         ? `/api/admin/store-settings/themes/categories/${selectedCategoryId}`
         : null;
 
     const { data: themesRes, loading: isLoadingThemes } = useGet(themesUrl);
-
-    const rawThemes = themesRes?.data?.themes?.data 
-        ?? themesRes?.data?.themes 
-        ?? themesRes?.themes 
+    const rawThemes = themesRes?.data?.themes?.data
+        ?? themesRes?.themes?.data
+        ?? themesRes?.data?.themes
+        ?? themesRes?.themes
         ?? themesRes?.data;
-
     const themes = Array.isArray(rawThemes) ? rawThemes : [];
 
-    /* 4. GET Single Theme Details by Slug */
-    const themeDetailsUrl = pendingSlug 
-        ? `/api/admin/store-settings/themes/${pendingSlug}` 
-        : null;
-
+    const themeDetailsUrl = pendingSlug ? `/api/admin/store-settings/themes/${pendingSlug}` : null;
     const { data: themeDetailsRes, loading: isLoadingThemeDetails } = useGet(themeDetailsUrl);
 
     useEffect(() => {
         if (!pendingSlug || !themeDetailsRes) return;
-
-        const theme = themeDetailsRes?.data?.theme || themeDetailsRes?.theme || themeDetailsRes?.data || themeDetailsRes;
+        const theme = themeDetailsRes?.data?.template?.data
+            ?? themeDetailsRes?.template?.data
+            ?? themeDetailsRes?.data?.theme
+            ?? themeDetailsRes?.theme
+            ?? themeDetailsRes?.data
+            ?? themeDetailsRes;
         if (!theme) return;
 
         applyThemeToForm(theme);
@@ -194,34 +322,34 @@ export default function Ecommerce() {
         setActiveTab("customize");
     }, [themeDetailsRes, pendingSlug]);
 
-    /* Helper function to map selected theme to local state */
+    const viewDetailsUrl = viewSlug ? `/api/admin/store-settings/themes/${viewSlug}` : null;
+    const { data: viewDetailsRes, loading: isLoadingViewDetails } = useGet(viewDetailsUrl);
+    const viewingTheme = viewSlug
+        ? (viewDetailsRes?.data?.template?.data
+            ?? viewDetailsRes?.template?.data
+            ?? viewDetailsRes?.data?.theme
+            ?? viewDetailsRes?.theme
+            ?? viewDetailsRes?.data
+            ?? viewDetailsRes)
+        : null;
+
     const applyThemeToForm = (theme) => {
         const slug = theme.slug || theme.templateSlug || theme.name;
         const defaultConfig = theme.defaultConfig || {};
         const rawSections = theme.sections || theme.sectionsSnapshot || [];
 
-        const mappedSections = (Array.isArray(rawSections) ? rawSections : []).map(sec => ({
-            key: typeof sec === "string" ? sec : sec.key,
-            enabled: typeof sec === "object" && sec.enabled !== undefined ? sec.enabled : true,
-            templateSlug: slug
-        }));
-
-        const sectionSnapshotKeys = mappedSections.map(s => s.key);
-        const themeColors = defaultConfig.colors && Object.keys(defaultConfig.colors).length > 0
-            ? defaultConfig.colors
-            : (Object.keys(formData.colors).length > 0 ? formData.colors : { primary: "#3498db", secondary: "#2ecc71", background: "#ffffff" });
+        const mappedSections = normalizeSections(rawSections, slug);
 
         setFormData(prev => ({
             ...prev,
             templateSlug: slug,
-            templateSectionsSnapshot: sectionSnapshotKeys,
+            templateSectionsSnapshot: mappedSections.filter(s => s.enabled).map(s => s.key),
             sections: mappedSections,
-            colors: themeColors,
-            fontStyle: defaultConfig.fontOptions?.[0] || prev.fontStyle || "classic"
+            colors: defaultConfig.colors || DEFAULT_COLORS,
+            fontStyle: defaultConfig.fontOptions?.[0] || prev.fontStyle || "Cairo"
         }));
     };
 
-    /* Logo Handlers */
     const processFile = (file) => {
         if (!file) return;
         if (file.size > 2 * 1024 * 1024) { toast.error("Image size must be less than 2 MB"); return; }
@@ -241,7 +369,6 @@ export default function Ecommerce() {
         }));
     };
 
-    /* 5. PUT Save Settings */
     const handleSave = async () => {
         try {
             await putData(formData);
@@ -255,15 +382,16 @@ export default function Ecommerce() {
     const handleReset = () => {
         const s = settingsRes?.data?.settings || settingsRes?.settings;
         if (!s) return;
+        const slug = s.templateSlug || "";
         setFormData({
             key: s.key || "main",
-            templateSlug: s.templateSlug || "",
+            templateSlug: slug,
             templateSectionsSnapshot: Array.isArray(s.templateSectionsSnapshot) ? s.templateSectionsSnapshot : [],
             storeName: s.storeName || "",
             logoUrl: s.logoUrl || "",
-            fontStyle: s.fontStyle || "classic",
+            fontStyle: s.fontStyle || "Cairo",
             colors: s.colors || {},
-            sections: Array.isArray(s.sections) ? s.sections : []
+            sections: normalizeSections(s.sections, slug)
         });
         toast.info("Changes reset to last saved state.");
     };
@@ -274,9 +402,7 @@ export default function Ecommerce() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-xl shadow-indigo-200 animate-pulse">
                     <Store className="w-8 h-8 text-white" />
                 </div>
-                <div className="text-center">
-                    <p className="text-base font-semibold text-gray-700">Loading Store Settings...</p>
-                </div>
+                <p className="text-base font-semibold text-gray-700">Loading Store Settings...</p>
             </div>
         );
     }
@@ -289,8 +415,6 @@ export default function Ecommerce() {
 
     const enabledCount = (formData.sections || []).filter(s => s.enabled).length;
     const sectionsTotal = (formData.sections || []).length;
-    
-    // Safely extract color keys from formData.colors
     const colorKeys = Object.keys(formData.colors || {});
 
     return (
@@ -325,21 +449,6 @@ export default function Ecommerce() {
                             {isSaving ? "Saving..." : "Save Changes"}
                         </button>
                     </div>
-                </div>
-
-                {/* Quick stats */}
-                <div className="relative mt-6 flex flex-wrap gap-3">
-                    {[
-                        { label: "Store Name", value: formData.storeName || "Not set" },
-                        { label: "Template", value: formData.templateSlug || "None" },
-                        { label: "Sections", value: sectionsTotal ? `${enabledCount}/${sectionsTotal} active` : "None" },
-                        { label: "Font", value: formData.fontStyle || "classic" },
-                    ].map(stat => (
-                        <div key={stat.label} className="flex items-center gap-2 bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-2">
-                            <span className="text-indigo-200 text-xs">{stat.label}:</span>
-                            <span className="text-white text-xs font-semibold truncate max-w-[120px]">{stat.value}</span>
-                        </div>
-                    ))}
                 </div>
             </div>
 
@@ -398,170 +507,159 @@ export default function Ecommerce() {
                 </div>
             )}
 
-            {/* TAB 2: Templates & Categories */}
+            {/* TAB 2: Templates */}
             {activeTab === "template" && (
                 <div className="space-y-5">
-                    {/* Categories Filter */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                         <h2 className="text-base font-bold text-gray-900 mb-4">Categories</h2>
-                        {isLoadingCategories ? (
-                            <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
-                        ) : categories.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                                {categories.map(cat => {
-                                    const isActive = selectedCategoryId === cat._id;
-                                    return (
-                                        <button
-                                            key={cat._id}
-                                            onClick={() => setSelectedCategoryId(cat._id)}
-                                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
-                                                isActive
-                                                    ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white border-transparent shadow-md"
-                                                    : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
-                                            }`}
-                                        >
-                                            {isActive && <Check className="w-3.5 h-3.5" />}
-                                            {cat.ar_name || cat.name}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <p className="text-xs text-gray-400">No categories found.</p>
-                        )}
+                        <div className="flex flex-wrap gap-2">
+                            {categories.map(cat => {
+                                const isActive = selectedCategoryId === cat._id;
+                                return (
+                                    <button
+                                        key={cat._id}
+                                        onClick={() => setSelectedCategoryId(cat._id)}
+                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+                                            isActive
+                                                ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white border-transparent shadow-md"
+                                                : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
+                                        }`}
+                                    >
+                                        {isActive && <Check className="w-3.5 h-3.5" />}
+                                        {cat.name || cat.ar_name}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    {/* Themes Grid */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                         <h2 className="text-base font-bold text-gray-900 mb-5">Available Themes</h2>
                         {isLoadingThemes ? (
                             <div className="flex items-center justify-center py-10">
                                 <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
                             </div>
-                        ) : themes.length > 0 ? (
+                        ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                                 {themes.map(theme => {
                                     const slug = theme.slug || theme.templateSlug || theme.name;
                                     const isApplied = formData.templateSlug === slug;
-                                    const isPending = pendingSlug === slug && isLoadingThemeDetails;
-
                                     return (
-                                        <div
-                                            key={theme._id || slug}
-                                            className={`relative rounded-2xl border-2 overflow-hidden transition-all ${
-                                                isApplied ? "border-indigo-500 shadow-lg" : "border-gray-100 hover:border-indigo-300"
-                                            }`}
-                                        >
+                                        <div key={theme._id || slug} className={`relative rounded-2xl border-2 overflow-hidden transition-all ${isApplied ? "border-indigo-500 shadow-lg" : "border-gray-100"}`}>
                                             <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                                                {theme.thumbnailUrl || theme.imageUrl || theme.image ? (
-                                                    <img 
-                                                        src={theme.thumbnailUrl || theme.imageUrl || theme.image} 
-                                                        alt={theme.name} 
-                                                        className="w-full h-full object-cover" 
-                                                    />
+                                                {theme.thumbnailUrl || theme.imageUrl ? (
+                                                    <img src={theme.thumbnailUrl || theme.imageUrl} alt={theme.name} className="w-full h-full object-cover" />
                                                 ) : (
                                                     <LayoutTemplate className="w-10 h-10 text-gray-300" />
                                                 )}
                                             </div>
                                             <div className="p-4">
                                                 <h3 className="text-sm font-bold text-gray-900 mb-3">{theme.name || slug}</h3>
-                                                <button
-                                                    onClick={() => {
-                                                        // Apply locally directly from theme object, or fetch details if slug needed
-                                                        if (theme.sections && theme.sections.length) {
-                                                            applyThemeToForm(theme);
-                                                            toast.success("Template selected!");
-                                                            setActiveTab("customize");
-                                                        } else {
-                                                            setPendingSlug(slug);
-                                                        }
-                                                    }}
-                                                    disabled={isApplied || isPending}
-                                                    className={`w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 ${
-                                                        isApplied
-                                                            ? "bg-indigo-50 text-indigo-600 cursor-default"
-                                                            : "bg-indigo-600 text-white hover:bg-indigo-700"
-                                                    }`}
-                                                >
-                                                    {isPending ? (
-                                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                                    ) : isApplied ? (
-                                                        <Check className="w-3.5 h-3.5" />
-                                                    ) : (
-                                                        <ChevronRight className="w-3.5 h-3.5" />
-                                                    )}
-                                                    {isApplied ? "Selected" : "Apply Theme"}
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => setViewSlug(slug)}
+                                                        className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-gray-200 text-gray-600 hover:bg-gray-50"
+                                                    >
+                                                        View
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (theme.sections?.length) {
+                                                                applyThemeToForm(theme);
+                                                                toast.success("Template selected successfully!");
+                                                                setActiveTab("customize");
+                                                            } else {
+                                                                setPendingSlug(slug);
+                                                            }
+                                                        }}
+                                                        disabled={isApplied}
+                                                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 ${isApplied ? "bg-indigo-50 text-indigo-600" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}
+                                                    >
+                                                        {isApplied ? <Check className="w-3.5 h-3.5" /> : null}
+                                                        {isApplied ? "Selected" : "Apply Theme"}
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     );
                                 })}
                             </div>
-                        ) : (
-                            <p className="text-sm text-gray-400 text-center py-8">No themes available in this category.</p>
                         )}
                     </div>
                 </div>
             )}
 
-            {/* TAB 3: Customize Options */}
+            {/* TAB 3: Customize Options with POPULAR_FONTS */}
             {activeTab === "customize" && (
                 <div className="space-y-5">
-                    {/* Colors Options */}
+                    {/* Colors Configuration */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                         <div className="flex items-center gap-2 mb-5">
                             <Palette className="w-5 h-5 text-indigo-600" />
                             <h2 className="text-base font-bold text-gray-900">Colors Configuration</h2>
                         </div>
-                        {colorKeys.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                {colorKeys.map(key => (
-                                    <div key={key} className="p-4 rounded-xl border border-gray-100 flex items-center gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            {colorKeys.map(key => (
+                                <div key={key} className="p-4 rounded-xl border border-gray-100 flex items-center gap-3">
+                                    <input
+                                        type="color"
+                                        value={formData.colors[key] || "#000000"}
+                                        onChange={(e) => handleColorChange(key, e.target.value)}
+                                        className="w-10 h-10 rounded-lg cursor-pointer border-0"
+                                    />
+                                    <div>
+                                        <p className="text-xs font-semibold text-gray-500 capitalize">{key}</p>
                                         <input
-                                            type="color"
-                                            value={formData.colors[key] || "#000000"}
+                                            type="text"
+                                            value={formData.colors[key] || ""}
                                             onChange={(e) => handleColorChange(key, e.target.value)}
-                                            className="w-10 h-10 rounded-lg cursor-pointer border-0"
+                                            className="w-24 text-xs font-mono bg-gray-50 border border-gray-200 rounded px-2 py-1 mt-1"
                                         />
-                                        <div>
-                                            <p className="text-xs font-semibold text-gray-500 capitalize">{key}</p>
-                                            <input
-                                                type="text"
-                                                value={formData.colors[key] || ""}
-                                                onChange={(e) => handleColorChange(key, e.target.value)}
-                                                className="w-24 text-xs font-mono bg-gray-50 border border-gray-200 rounded px-2 py-1 mt-1"
-                                            />
-                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-xs text-gray-400">No color options defined.</p>
-                        )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
-                    {/* Font Style Input */}
+                    {/* Font Style selection using POPULAR_FONTS */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                         <div className="flex items-center gap-2 mb-4">
                             <Type className="w-5 h-5 text-indigo-600" />
                             <h2 className="text-base font-bold text-gray-900">Font Style</h2>
                         </div>
-                        <input
-                            type="text"
-                            value={formData.fontStyle}
-                            onChange={(e) => setFormData(prev => ({ ...prev, fontStyle: e.target.value }))}
-                            className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm w-full max-w-xs"
-                            placeholder="Font style (e.g. classic, modern)..."
-                        />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            {POPULAR_FONTS.map(font => {
+                                const isSelected = formData.fontStyle === font.name;
+                                return (
+                                    <div
+                                        key={font.name}
+                                        onClick={() => setFormData(prev => ({ ...prev, fontStyle: font.name }))}
+                                        className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${
+                                            isSelected ? "border-indigo-500 bg-indigo-50/50 shadow-sm" : "border-gray-100 hover:border-indigo-200 bg-gray-50/50"
+                                        }`}
+                                    >
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-sm font-bold text-gray-900">{font.name}</span>
+                                            {isSelected && <Check className="w-4 h-4 text-indigo-600" />}
+                                        </div>
+                                        <p className="text-xs text-gray-600 mb-0.5">{font.arPreview}</p>
+                                        <p className="text-[11px] text-gray-400">{font.enPreview}</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    {/* Store Sections */}
+                    {/* Storefront Sections Configuration */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                         <div className="flex items-center justify-between mb-5">
                             <div className="flex items-center gap-2">
                                 <Layers className="w-5 h-5 text-indigo-600" />
                                 <h2 className="text-base font-bold text-gray-900">Storefront Sections</h2>
                             </div>
+                            <span className="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-semibold">
+                                Active: {enabledCount} of {sectionsTotal}
+                            </span>
                         </div>
                         {formData.sections && formData.sections.length > 0 ? (
                             <div className="rounded-xl border border-gray-100 divide-y divide-gray-100">
@@ -575,6 +673,20 @@ export default function Ecommerce() {
                     </div>
                 </div>
             )}
+
+            <ThemePreviewModal
+                theme={viewingTheme}
+                loading={isLoadingViewDetails}
+                onClose={() => setViewSlug(null)}
+                onApply={() => {
+                    if (viewingTheme) {
+                        applyThemeToForm(viewingTheme);
+                        toast.success("Template selected successfully!");
+                        setActiveTab("customize");
+                    }
+                    setViewSlug(null);
+                }}
+            />
         </div>
     );
 }
