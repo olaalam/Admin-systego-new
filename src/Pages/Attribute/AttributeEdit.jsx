@@ -1,6 +1,6 @@
 // src/pages/VariationEdit.jsx
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import usePut from "@/hooks/usePut";
 import api from "@/api/api";
 import { toast } from "react-toastify";
@@ -16,46 +16,66 @@ export default function AttributeEdit() {
   const { putData, loading: updating } = usePut(`/api/admin/variation/${id}`);
 
   const [variationData, setVariationData] = useState(null);
-  const [originalData, setOriginalData] = useState(null);
   const [fetching, setFetching] = useState(true);
 
-  const fields = useMemo(
-    () => [
-    { key: "ar_name", label: t("NameArabic"), required: true },
-  { key: "name", label: t("NameEnglish"), required: false },
+  // الاحتفاظ بالمعرفات الأصلية للخيارات المحملة من السيرفر
+  const initialOptionIdsRef = useRef(new Set());
+  // الاحتفاظ بالمعرفات التي قام المستخدم بمسحها يدوياً
+  const deletedOptionIdsRef = useRef(new Set());
 
-      {
-        key: "options",
-        label: "Options",
-        type: "array",
-        subFields: [
-      { key: "name", label: t("OptionName"), required: true },
-          { key: "status", label: t("Status"), type: "checkbox" },
-        ],
-      },
-    ],
-    []
-  );
+  const handleRemoveOption = (option) => {
+    const optionId = option?.id || option?._id;
+    if (optionId) {
+      deletedOptionIdsRef.current.add(String(optionId));
+    }
+    return true;
+  };
+
+  const fields = [
+    { key: "ar_name", label: t("NameArabic"), required: true },
+    { key: "name", label: t("NameEnglish"), required: false },
+    {
+      key: "options",
+      label: t("Options") || "Options",
+      type: "array",
+      confirmDelete: false, // مسح فوري وسلس بدون نافذة تأكيد منبثقة
+      onRemove: handleRemoveOption,
+      subFields: [
+        { key: "name", label: t("OptionName"), required: true },
+        { key: "status", label: t("Status"), type: "switch", initialValue: true },
+      ],
+    },
+  ];
 
   useEffect(() => {
     const fetchVariation = async () => {
       try {
         const res = await api.get(`/api/admin/variation/${id}`);
-        const variation = res.data.data.variation;
+        const variation = res.data?.data?.variation;
 
-        const formatted = {
+        if (!variation) {
+          throw new Error("Variation not found");
+        }
+
+        const initialIds = new Set();
+        const formattedOptions = (variation.options || []).map((opt) => {
+          const optId = String(opt._id);
+          initialIds.add(optId);
+          return {
+            id: optId,
+            name: opt.name,
+            status: opt.status ?? true,
+          };
+        });
+
+        initialOptionIdsRef.current = initialIds;
+        deletedOptionIdsRef.current = new Set();
+
+        setVariationData({
           name: variation.name || "",
-          ar_name:variation.ar_name||"",
-          options:
-            variation.options?.map((opt) => ({
-              id: opt._id,
-              name: opt.name,
-              status: opt.status ?? false,
-            })) || [],
-        };
-
-        setVariationData(formatted);
-        setOriginalData(formatted);
+          ar_name: variation.ar_name || "",
+          options: formattedOptions,
+        });
       } catch (err) {
         toast.error(t("Failedtofetchvariationdata"));
         console.error("❌ Error fetching variation:", err);
@@ -65,56 +85,53 @@ export default function AttributeEdit() {
     };
 
     fetchVariation();
-  }, [id]);
+  }, [id, t]);
 
   const handleSubmit = async (formData) => {
     try {
-      const payload = {};
+      // 1. تحديد المعرفات المتبقية في الفورم
+      const currentOptionIds = new Set(
+        (formData.options || [])
+          .map((o) => (o.id || o._id ? String(o.id || o._id) : null))
+          .filter(Boolean)
+      );
 
-      // ✅ لو الاسم اتغير
-      if (formData.name !== originalData.name) {
-        payload.name = formData.name;
+      // 2. تجميع كل المعرفات المطلوب حذفها (التي كانت في الأصل ومستبعدة الآن + التي تم مسحها يدوياً)
+      const allDeletedIds = new Set([
+        ...deletedOptionIdsRef.current,
+        ...Array.from(initialOptionIdsRef.current).filter((optId) => !currentOptionIds.has(optId)),
+      ]);
+
+      // 3. حذف الخيارات المستبعدة من السيرفر
+      for (const optId of allDeletedIds) {
+        try {
+          await api.delete(`/api/admin/variation/option/${optId}`);
+        } catch (delErr) {
+          console.warn(`Option ${optId} deletion via DELETE endpoint:`, delErr);
+        }
       }
-if (formData.ar_name !== originalData.ar_name) {
-  payload.ar_name = formData.ar_name;
-}
-      // ✅ شيك لو في أي option اتغير (name أو status)
-      const hasOptionsChanged = formData.options.some((opt, idx) => {
-        const original = originalData.options[idx];
-        return (
-          !original ||
-          opt.name !== original.name ||
-          opt.status !== original.status
-        );
-      });
 
-      // ✅ لو في تغيير في الـ options، ابعت **كل الـ options** مش بس المتغيرة
-      if (hasOptionsChanged) {
-        payload.options = formData.options.map((opt) => {
-          const optionPayload = {
+      // 4. إعداد الـ payload بالخيارات المتبقية دائماً لحفظ الحالة الجديدة
+      const payload = {
+        name: formData.name,
+        ar_name: formData.ar_name,
+        options: (formData.options || []).map((opt) => {
+          const optPayload = {
             name: opt.name,
-            status: opt.status,
+            status: opt.status ?? false,
           };
-
-          // 👈 لو في id، ضيفه (عشان الباك يعرف ده update مش insert)
-          if (opt.id) {
-            optionPayload._id = opt.id;
+          const optId = opt.id || opt._id;
+          if (optId) {
+            optPayload._id = optId;
           }
+          return optPayload;
+        }),
+      };
 
-          return optionPayload;
-        });
-      }
-
-      // ✅ لو مفيش تغيير خالص
-      if (Object.keys(payload).length === 0) {
-        toast.info(t("Nochangesdetected"));
-        return;
-      }
-
-      console.log("🚀 Sending payload:", payload);
-
+      console.log("🚀 Saving variation with options:", payload);
       await putData(payload);
-      toast.success(t("Variationupdatedsuccessfully"));
+
+      toast.success(t("Variationupdatedsuccessfully") || "Variation updated successfully! 🎉");
       navigate("/attribute");
     } catch (err) {
       const errorMessage =
@@ -130,7 +147,7 @@ if (formData.ar_name !== originalData.ar_name) {
         toast.error(errorMessage);
       }
 
-      console.error("❌ Error:", err.response?.data);
+      console.error("❌ Error updating variation:", err.response?.data || err);
     }
   };
 
@@ -144,8 +161,8 @@ if (formData.ar_name !== originalData.ar_name) {
     <div className="p-6 bg-gray-100 min-h-screen">
       {variationData && (
         <AddPage
-       title={t("EditVariationTitle", { name: variationData?.name || "..." })}
-  description={t("EditVariationDescription")}
+          title={t("EditVariationTitle", { name: variationData?.name || "..." })}
+          description={t("EditVariationDescription")}
           fields={fields}
           initialData={variationData}
           onSubmit={handleSubmit}

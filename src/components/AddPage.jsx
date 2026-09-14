@@ -5,6 +5,7 @@ import { UserPlus } from "lucide-react";
 import { ComboboxMultiSelect } from "@/components/ui/combobox-multi-select";
 import { Switch } from "@/components/ui/switch";
 import { useTranslation } from "react-i18next";
+import DeleteDialog from "@/components/DeleteForm";
 
 const AddPage = ({
   title = "Add Item",
@@ -18,6 +19,8 @@ const AddPage = ({
   submitButtonText = "Save"
 }) => {
   const [formData, setFormData] = useState({});
+  const [deletingArrayItem, setDeletingArrayItem] = useState(null);
+  const [isDeletingArrayItem, setIsDeletingArrayItem] = useState(false);
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
   useEffect(() => {
@@ -25,7 +28,9 @@ const AddPage = ({
       const filteredData = fields.reduce((acc, field) => {
         if (field.type === "array" || field.type === "multiselect") {
           acc[field.key] = Array.isArray(initialData[field.key])
-            ? initialData[field.key]
+            ? initialData[field.key].map((item) =>
+                typeof item === "object" && item !== null ? { ...item } : item
+              )
             : [];
         } else {
           acc[field.key] =
@@ -79,10 +84,50 @@ const AddPage = ({
     }));
   };
 
-  const removeArrayItem = (key, index) => {
+  const removeArrayItem = async (key, index) => {
+    const item = (formData[key] || [])[index];
+    const fieldDef = fields.find((f) => f.key === key);
+
+    const isPersisted = Boolean(item?.id || item?._id);
+    const shouldConfirm = isPersisted && fieldDef?.confirmDelete === true;
+
+    if (shouldConfirm) {
+      setDeletingArrayItem({ key, index, item, fieldDef });
+      return;
+    }
+
+    if (fieldDef && typeof fieldDef.onRemove === "function") {
+      const proceed = await fieldDef.onRemove(item, index, formData, setFormData);
+      if (proceed === false) return;
+    }
+
     const newArray = [...(formData[key] || [])];
     newArray.splice(index, 1);
     setFormData((prev) => ({ ...prev, [key]: newArray }));
+  };
+
+  const handleConfirmDeleteArrayItem = async () => {
+    if (!deletingArrayItem) return;
+    const { key, index, item, fieldDef } = deletingArrayItem;
+
+    setIsDeletingArrayItem(true);
+    try {
+      let proceed = true;
+      if (fieldDef && typeof fieldDef.onRemove === "function") {
+        proceed = await fieldDef.onRemove(item, index, formData, setFormData);
+      }
+
+      if (proceed !== false) {
+        const newArray = [...(formData[key] || [])];
+        newArray.splice(index, 1);
+        setFormData((prev) => ({ ...prev, [key]: newArray }));
+      }
+    } catch (error) {
+      console.error("Error during array item deletion:", error);
+    } finally {
+      setIsDeletingArrayItem(false);
+      setDeletingArrayItem(null);
+    }
   };
 
   const handleImageChange = async (key, files, isMultiple) => {
@@ -236,7 +281,8 @@ const AddPage = ({
                       <button
                         type="button"
                         onClick={() => removeArrayItem(field.key, idx)}
-                        className="text-red-500 text-sm"
+                        className="text-red-500 hover:text-red-700 text-sm font-bold p-1 rounded transition-colors"
+                        title={t("Delete") || "Delete"}
                       >
                         ✕
                       </button>
@@ -383,6 +429,29 @@ const AddPage = ({
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog for Array Items */}
+      {deletingArrayItem && (
+        <DeleteDialog
+          title={
+            deletingArrayItem.fieldDef?.deleteDialogTitle ||
+            t("DeleteOption") ||
+            "Delete Option"
+          }
+          message={
+            typeof deletingArrayItem.fieldDef?.deleteDialogMessage === "function"
+              ? deletingArrayItem.fieldDef.deleteDialogMessage(deletingArrayItem.item)
+              : deletingArrayItem.fieldDef?.deleteDialogMessage ||
+                t("DeleteOptionConfirm", {
+                  name: deletingArrayItem.item?.name || "",
+                }) ||
+                `Are you sure you want to delete "${deletingArrayItem.item?.name || "this item"}"? This action cannot be undone.`
+          }
+          onConfirm={handleConfirmDeleteArrayItem}
+          onCancel={() => setDeletingArrayItem(null)}
+          loading={isDeletingArrayItem}
+        />
+      )}
     </div>
   );
 };
