@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { X, Upload, ChevronDown, RotateCw, Copy } from "lucide-react";
+import { X, Upload, ChevronDown, RotateCw, Copy, Search } from "lucide-react";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import api from "@/api/api";
@@ -21,6 +21,15 @@ const ProductPriceTab = ({
   const [showVariationDropdown, setShowVariationDropdown] =
     React.useState(false);
   const [generatingCode, setGeneratingCode] = useState(false);
+  const [variationSearch, setVariationSearch] = useState("");
+  const [optionSearchMap, setOptionSearchMap] = useState({});
+
+  const handleOptionSearch = (variationId, query) => {
+    setOptionSearchMap((prev) => ({
+      ...prev,
+      [variationId]: query,
+    }));
+  };
 
   const generateCode = async () => {
     try {
@@ -32,7 +41,7 @@ const ProductPriceTab = ({
       } else {
         toast.error("Failed to generate code");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to generate code");
     } finally {
       setGeneratingCode(false);
@@ -103,7 +112,7 @@ const ProductPriceTab = ({
       } else {
         toast.error("Failed to generate code");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to generate code");
     } finally {
       setGeneratingCode(false);
@@ -136,9 +145,9 @@ const ProductPriceTab = ({
               </span>
               <Input
                 type="number"
-                value={form.price}
+                value={form.price === 0 ? "" : (form.price ?? "")}
                 onChange={(e) =>
-                  handleChange("price", parseFloat(e.target.value) || 0)
+                  handleChange("price", e.target.value)
                 }
                 placeholder="0.00"
                 className={`h-11 ${isRTL ? "pr-14" : "pl-14"}`}
@@ -154,9 +163,9 @@ const ProductPriceTab = ({
           </Label>
           <Input
             type="number"
-            value={form.low_stock}
+            value={form.low_stock === 0 ? "" : (form.low_stock ?? "")}
             onChange={(e) =>
-              handleChange("low_stock", parseInt(e.target.value) || 0)
+              handleChange("low_stock", e.target.value)
             }
             placeholder="0"
             className="h-11"
@@ -267,23 +276,66 @@ const ProductPriceTab = ({
 
                 {showVariationDropdown && (
                   <div className="absolute z-10 w-full mt-2 mb-4 bg-white border border-gray-300 rounded-lg shadow-lg max-h-96 overflow-y-auto">
-                    {uniqueVariations.map((variation) => (
-                      <label
-                        key={variation._id}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={selectedVariationIds.includes(variation._id)}
-                          onCheckedChange={() => toggleVariation(variation._id)}
+                    <div className="p-2 border-b border-gray-100 sticky top-0 bg-white z-10">
+                      <div className="relative">
+                        <Search
+                          className={`absolute ${
+                            isRTL ? "right-3" : "left-3"
+                          } top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none`}
                         />
-                        <span className="text-sm text-gray-700">
-                          {variation.name}
-                        </span>
-                      </label>
-                    ))}
-                    {uniqueVariations.length === 0 && (
-                      <div className="px-4 py-3 text-sm text-gray-500">
-                        {t("No variations available")}
+                        <Input
+                          type="text"
+                          placeholder={isRTL ? "بحث في الفاريشن..." : "Search variations..."}
+                          value={variationSearch}
+                          onChange={(e) => setVariationSearch(e.target.value)}
+                          className={`h-8 text-sm ${isRTL ? "pr-9 pl-7" : "pl-9 pr-7"}`}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        {variationSearch && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setVariationSearch("");
+                            }}
+                            className={`absolute ${
+                              isRTL ? "left-2" : "right-2"
+                            } top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600`}
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {uniqueVariations
+                      .filter((variation) =>
+                        variation.name
+                          ?.toLowerCase()
+                          .includes(variationSearch.toLowerCase().trim())
+                      )
+                      .map((variation) => (
+                        <label
+                          key={variation._id}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                        >
+                          <Checkbox
+                            checked={selectedVariationIds.includes(variation._id)}
+                            onCheckedChange={() => toggleVariation(variation._id)}
+                          />
+                          <span className="text-sm text-gray-700">
+                            {variation.name}
+                          </span>
+                        </label>
+                      ))}
+                    {uniqueVariations.filter((variation) =>
+                      variation.name
+                        ?.toLowerCase()
+                        .includes(variationSearch.toLowerCase().trim())
+                    ).length === 0 && (
+                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                        {variationSearch
+                          ? (isRTL ? "لا توجد فاريشن مطابقة" : "No variations match your search")
+                          : t("No variations available")}
                       </div>
                     )}
                   </div>
@@ -311,70 +363,139 @@ const ProductPriceTab = ({
               </div>
             )}
 
-            {selectedVariations.map((variation) => (
-              <div
-                key={variation._id}
-                className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm space-y-4"
-              >
-                <h4 className="font-semibold text-gray-800">
-                  {variation.name} {t("Options")}
-                </h4>
+            {selectedVariations.map((variation) => {
+              const searchQuery = (optionSearchMap[variation._id] || "").trim().toLowerCase();
+              const filteredOptions = (variation.options || []).filter((option) =>
+                option.name?.toLowerCase().includes(searchQuery)
+              );
+              const selectedCount = selectedOptionsMap[variation._id]?.length || 0;
+              const totalCount = variation.options?.length || 0;
 
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                    {t("variations.selectOptions", { name: variation.name })}
-                  </Label>
-                  <div className="flex flex-wrap gap-4 p-3 border border-gray-300 rounded-lg bg-gray-50">
-                    {variation.options?.length > 0 ? (
-                      variation.options.map((option) => (
-                        <label
-                          key={`${variation._id}-${option._id}`}
-                          className="flex items-center gap-2 cursor-pointer"
-                        >
-                          <Checkbox
-                            checked={
-                              selectedOptionsMap[variation._id]?.includes(
-                                option.name
-                              ) || false
-                            }
-                            onCheckedChange={() =>
-                              toggleOption(variation._id, option.name)
-                            }
-                          />
-                          <span className="text-sm text-gray-700">
-                            {option.name}
-                          </span>
-                        </label>
-                      ))
-                    ) : (
-                      <div className="text-sm text-gray-500">
-                        {t("No options available for this variation")}
+              return (
+                <div
+                  key={variation._id}
+                  className="p-5 border border-gray-200 rounded-xl bg-white shadow-sm space-y-4"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-gray-800 text-base">
+                          {variation.name} {t("Options")}
+                        </h4>
+                        <span className="text-xs px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">
+                          {selectedCount} / {totalCount} {isRTL ? "محدد" : "selected"}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {t("variations.selectOptions", { name: variation.name })}
+                      </p>
+                    </div>
 
-                {selectedOptionsMap[variation._id]?.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {selectedOptionsMap[variation._id].map((option) => (
-                      <div
-                        key={`${variation._id}-${option}`}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm"
-                      >
-                        <span>{option}</span>
+                    {/* Search input for this variation's options */}
+                    <div className="relative w-full sm:w-64">
+                      <Search
+                        className={`absolute ${
+                          isRTL ? "right-3" : "left-3"
+                        } top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none`}
+                      />
+                      <Input
+                        type="text"
+                        placeholder={
+                          isRTL
+                            ? `بحث في خيارات ${variation.name}...`
+                            : `Search ${variation.name} options...`
+                        }
+                        value={optionSearchMap[variation._id] || ""}
+                        onChange={(e) =>
+                          handleOptionSearch(variation._id, e.target.value)
+                        }
+                        className={`h-9 text-sm ${
+                          isRTL ? "pr-9 pl-8" : "pl-9 pr-8"
+                        } border-gray-200 focus:border-primary`}
+                      />
+                      {optionSearchMap[variation._id] && (
                         <button
                           type="button"
-                          onClick={() => toggleOption(variation._id, option)}
-                          className="hover:bg-gray-200 rounded-full p-0.5"
+                          onClick={() => handleOptionSearch(variation._id, "")}
+                          className={`absolute ${
+                            isRTL ? "left-2.5" : "right-2.5"
+                          } top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600`}
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-3.5 w-3.5" />
                         </button>
-                      </div>
-                    ))}
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-            ))}
+
+                  {/* Options List */}
+                  <div>
+                    <div className="flex flex-wrap gap-2.5 p-3.5 border border-gray-200 rounded-lg bg-gray-50/60 max-h-56 overflow-y-auto">
+                      {filteredOptions.length > 0 ? (
+                        filteredOptions.map((option) => {
+                          const isSelected =
+                            selectedOptionsMap[variation._id]?.includes(
+                              option.name
+                            ) || false;
+                          return (
+                            <label
+                              key={`${variation._id}-${option._id}`}
+                              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm cursor-pointer transition-all select-none ${
+                                isSelected
+                                  ? "bg-primary/10 border-primary/40 text-primary font-medium shadow-xs"
+                                  : "bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-100"
+                              }`}
+                            >
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() =>
+                                  toggleOption(variation._id, option.name)
+                                }
+                              />
+                              <span>{option.name}</span>
+                            </label>
+                          );
+                        })
+                      ) : (
+                        <div className="text-sm text-gray-500 py-4 w-full text-center">
+                          {searchQuery
+                            ? (isRTL
+                                ? "لا توجد خيارات مطابقة للبحث"
+                                : "No matching options found")
+                            : t("No options available for this variation")}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Selected Options Pills */}
+                  {selectedOptionsMap[variation._id]?.length > 0 && (
+                    <div className="pt-1">
+                      <div className="text-xs text-gray-500 mb-1.5 font-medium">
+                        {isRTL ? "الخيارات المحددة:" : "Selected options:"}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedOptionsMap[variation._id].map((option) => (
+                          <div
+                            key={`${variation._id}-${option}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs font-medium"
+                          >
+                            <span>{option}</span>
+                            <button
+                              type="button"
+                              onClick={() => toggleOption(variation._id, option)}
+                              className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                              title={isRTL ? "إلغاء التحديد" : "Deselect"}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Variants Table */}
@@ -414,14 +535,15 @@ const ProductPriceTab = ({
                           <td className="px-4 py-3">
                             <Input
                               type="number"
-                              value={variant.price || 0}
+                              value={variant.price === 0 ? "" : (variant.price ?? "")}
                               onChange={(e) =>
                                 handleVariantFieldChange(
                                   index,
                                   "price",
-                                  parseFloat(e.target.value) || 0
+                                  e.target.value
                                 )
                               }
+                              placeholder="0.00"
                               className="h-9 w-32"
                               step="0.01"
                               min="0"

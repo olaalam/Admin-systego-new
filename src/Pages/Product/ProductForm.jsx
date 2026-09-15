@@ -49,12 +49,12 @@ const ProductForm = ({
     minimum_quantity_sale: 1,
     image: "",
     gallery_product: [],
-    price: 0,
+    price: "",
     different_price: false,
     prices: [],
     // discount: 0,
     quantity: 0,
-    low_stock: 0,
+    low_stock: "",
     exp_ability: false,
     whole_price: 0,
     start_quantaty: 0,
@@ -73,7 +73,7 @@ const ProductForm = ({
   // helper: generateCombinations (same logic you used)
   const generateCombinations = (optionsMap, allVariationsLocal) => {
     const activeOptions = Object.entries(optionsMap)
-      .filter(([id, options]) => options && options.length > 0)
+      .filter(([, options]) => options && options.length > 0)
       .map(([id, options]) => {
         const variation = allVariationsLocal.find((v) => v._id == id);
         return {
@@ -121,7 +121,7 @@ const ProductForm = ({
     return finalCombinations.map((combo) => ({
       name: combo.name,
       options: combo.options_ids,
-      price: 0,
+      price: "",
       low_stock: 0,
       code: "",
       image: "",
@@ -442,7 +442,7 @@ const ProductForm = ({
         product_unit: form.product_unit,
         purchase_unit: form.purchase_unit,
         sale_unit: form.sale_unit,
-        price: form.price,
+        price: form.price === "" ? 0 : (Number(form.price) || 0),
         description: form.description,
         image: isNewImage(form.image) ? cleanBase64(form.image) : undefined,
         gallery_product: form.gallery_product
@@ -450,7 +450,7 @@ const ProductForm = ({
           .map((img) => cleanBase64(img)),
         different_price: form.different_price,
         is_featured: form.is_featured,
-        low_stock: form.low_stock || 0,
+        low_stock: form.low_stock === "" ? 0 : (Number(form.low_stock) || 0),
         code: form.code,
       };
       if (finalForm.image === undefined) delete finalForm.image;
