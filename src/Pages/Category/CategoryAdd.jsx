@@ -61,6 +61,7 @@ placeholder: fetchingParents
       { key: "image", label: t("Image"), type: "image", required: true },
       { key: "banner", label: isRTL ? "البانر" : "Banner", type: "image", required: false },
       { key: "order", label: isRTL ? "رقم الاوردر " : "Order Number", type: "number", min: 0, required: false, placeholder: isRTL ? "أدخل رقم الاوردر (اختياري)" : "Enter order number (optional)" },
+      { key: "is_featured", label: isRTL ? "قسم مميز (Featured)" : "Featured Category", type: "switch", required: false },
       parentCategoryField,
     ];
   }, [parentOptions, fetchingParents, isRTL, t]); // يعتمد على البيانات وحالة التحميل

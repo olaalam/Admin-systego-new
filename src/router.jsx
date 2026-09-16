@@ -152,9 +152,9 @@ import Porfile from "./Pages/Porfile/Porfile";
 import CashierShiftDetails from "./Pages/CashierShift/CashierShiftDetails";
 import AllReturn from "./Pages/AllReturn/AllReturn";
 import Ecommerce from "./Pages/Ecommerce/Ecommerce";
-import EcommerceUsers from "./Pages/EcommerceUsers/EcommerceUsers";
-import EcommerceUsersAdd from "./Pages/EcommerceUsers/EcommerceUsersAdd";
-import EcommerceUsersEdit from "./Pages/EcommerceUsers/EcommerceUsersEdit";
+import EcommerceData from "./Pages/EcommerceData/EcommerceData";
+import EcommerceDataAdd from "./Pages/EcommerceData/EcommerceDataAdd";
+import EcommerceDataEdit from "./Pages/EcommerceData/EcommerceDataEdit";
 
 
 export default function AppRoutes() {
@@ -1566,13 +1566,13 @@ export default function AppRoutes() {
           }
         />
       </Route>
-      {/* ✅ Ecommerce Users */}
-      <Route path="ecommerce-user">
+      {/* ✅ Ecommerce Data */}
+      <Route path="ecommerce-data">
         <Route
           index
           element={
             <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.VIEW}>
-              <EcommerceUsers />
+              <EcommerceData />
             </ProtectedRoute>
           }
         />
@@ -1580,7 +1580,7 @@ export default function AppRoutes() {
           path="add"
           element={
             <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.ADD}>
-              <EcommerceUsersAdd />
+              <EcommerceDataAdd />
             </ProtectedRoute>
           }
         />
@@ -1588,7 +1588,35 @@ export default function AppRoutes() {
           path="edit/:id"
           element={
             <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.EDIT}>
-              <EcommerceUsersEdit />
+              <EcommerceDataEdit />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      {/* Fallback for legacy ecommerce-user */}
+      <Route path="ecommerce-user">
+        <Route
+          index
+          element={
+            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.VIEW}>
+              <EcommerceData />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.ADD}>
+              <EcommerceDataAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.EDIT}>
+              <EcommerceDataEdit />
             </ProtectedRoute>
           }
         />

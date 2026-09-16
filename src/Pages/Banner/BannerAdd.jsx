@@ -60,7 +60,14 @@ export default function BannerAdd() {
             key: "description",
             label: t("Description"),
             type: "text",
-            required: true,
+            required: false,
+        },
+        {
+            key: "link",
+            label: t("Link / Video URL", "رابط البانر (فيديو / رابط)"),
+            type: "text",
+            required: false,
+            placeholder: "https://...",
         },
         {
             key: "isActive",
@@ -72,10 +79,11 @@ export default function BannerAdd() {
 
     const handleSubmit = async (data) => {
         try {
-
-
             const finalBody = {
                 name: data.name,
+                title: data.title || "",
+                description: data.description || "",
+                link: data.link || "",
                 isActive: data.isActive,
                 images: Array.isArray(data.images) ? data.images : [data.images],
             };

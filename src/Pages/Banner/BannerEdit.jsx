@@ -29,12 +29,15 @@ export default function BannerEdit() {
         const fetchData = async () => {
             try {
                 const res = await api.get(`/api/admin/banner/${id}`);
-                const banner = res.data?.data?.banner || {};
+                const banner = res.data?.data?.banner || res.data?.banner || res.data?.data || {};
 
                 setBannerData({
-                    name: banner.name || "",
-                    images: banner.images || [], // هيفضل روابط URLs لحد ما المستخدم يغيرهم
-                    isActive: banner.isActive ?? false,
+                    name: banner.name || [],
+                    title: banner.title || "",
+                    description: banner.description || "",
+                    link: banner.link || "",
+                    images: banner.images || [],
+                    isActive: banner.isActive ?? true,
                 });
 
             } catch (err) {
@@ -69,22 +72,29 @@ export default function BannerEdit() {
             key: "title",
             label: t("Title"),
             type: "text",
-            required: true,
+            required: false,
         },
         {
             key: "description",
             label: t("Description"),
             type: "text",
-            required: true,
+            required: false,
         },
-        { key: "images", label: t("Images"), type: "file", required: true, multiple: true }, // تأكد من دعم الصور المتعددة
+        {
+            key: "link",
+            label: t("Link / Video URL", "رابط البانر (فيديو / رابط)"),
+            type: "text",
+            required: false,
+            placeholder: "https://...",
+        },
+        { key: "images", label: t("Images"), type: "file", required: false, multiple: true },
         {
             key: "isActive",
             label: t("IsActive"),
             type: "switch",
             required: true,
         },
-    ], [t]);
+    ], [t, moduleOptions]);
 
     const handleSubmit = async (formData) => {
         try {
@@ -95,7 +105,6 @@ export default function BannerEdit() {
                     formData.images.map((img) => fileToBase64(img))
                 );
             } else if (formData.images) {
-                // لو صورة واحدة فقط
                 const singleBase64 = await fileToBase64(formData.images);
                 base64Images = [singleBase64];
             }
@@ -103,10 +112,11 @@ export default function BannerEdit() {
             // 2. تجهيز الـ Body النهائي كـ JSON
             const finalBody = {
                 name: formData.name,
-                isActive: formData.isActive, // التأكد أنها Boolean
+                title: formData.title || "",
+                description: formData.description || "",
+                link: formData.link || "",
+                isActive: formData.isActive,
                 images: base64Images,
-                title: formData.title,
-                description: formData.description,
             };
 
             // 3. إرسال البيانات

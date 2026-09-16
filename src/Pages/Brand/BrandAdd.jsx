@@ -11,11 +11,11 @@ const BrandAdd = () => {
   const navigate = useNavigate();
 const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
-  const fields = [
-{ key: "ar_name", label: t("Name(Arabic)"), required: true },
-{ key: "name", label: t("Name(English)"), required: false },
+   const fields = [
+    { key: "ar_name", label: t("Name(Arabic)"), required: true },
+    { key: "name", label: t("Name(English)"), required: false },
     { key: "logo", label: t("Logo"), type: "image", required: true },
-    // يمكن إضافة حقل الحالة لتفعيل/تعطيل العلامة التجارية عند الإضافة
+    { key: "is_featured", label: isRTL ? "مميز (Featured)" : "Featured", type: "switch", required: false },
   ];
 
   // ⭐️ استخدام usePost: تحديد المسار وجلب postData وحالة التحميل loading
