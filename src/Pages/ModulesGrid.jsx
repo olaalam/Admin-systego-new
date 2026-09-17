@@ -22,7 +22,9 @@ import { toast } from "react-toastify";
 const modules = [
   {
     name: "Dashboard",
-    items: ["Dashboard"],
+    items: [
+      { name: "Dashboard", path: "/analytics" },
+    ],
     icon: LayoutDashboard,
     path: "/analytics",
     color: "bg-blue-500",
@@ -30,7 +32,14 @@ const modules = [
   },
   {
     name: "Product Management",
-    items: ["Product", "Category", "Brand", "Attribute", "Units", "Expiring"],
+    items: [
+      { name: "Product", path: "/product" },
+      { name: "Category", path: "/category" },
+      { name: "Brand", path: "/brand" },
+      { name: "Attribute", path: "/attribute" },
+      { name: "Units", path: "/unit" },
+      { name: "Expiring", path: "/expiring" },
+    ],
     icon: Layers,
     path: "/product",
     color: "bg-rose-500",
@@ -38,7 +47,19 @@ const modules = [
   },
   {
     name: "Financial",
-    items: ["Financial", "Taxes", "Expenses", "Expense Categories", "Revenue", "Payment Methods", "Payments", "Payment Ecommerce", "Payable", "Recevible", "Ledger"],
+    items: [
+      { name: "Financial", path: "/accounting" },
+      { name: "Taxes", path: "/taxes" },
+      { name: "Expenses", path: "/expense" },
+      { name: "Expense Categories", path: "/expense-category" },
+      { name: "Revenue", path: "/revenue" },
+      { name: "Payment Methods", path: "/payment_method" },
+      { name: "Payments", path: "/payments" },
+      { name: "Payment Ecommerce", path: "/payment-eco" },
+      { name: "Payable", path: "/payable" },
+      { name: "Recevible", path: "/recevible" },
+      { name: "Ledger", path: "/ledger" },
+    ],
     icon: CreditCard,
     path: "/accounting",
     color: "bg-emerald-500",
@@ -46,7 +67,18 @@ const modules = [
   },
   {
     name: "Marketing",
-    items: ["Popups", "Points", "Redeem Points", "Bundles", "Coupon", "Banner", "Discounts", "Shipping", "Free Shipping Products"],
+    items: [
+      { name: "Popups", path: "/popup" },
+      { name: "Points", path: "/point" },
+      { name: "Redeem Points", path: "/redeem-point" },
+      { name: "Bundles", path: "/pandel" },
+      { name: "Coupon", path: "/coupon" },
+      { name: "Banner", path: "/banner" },
+      { name: "Discounts", path: "/discount" },
+      { name: "Shipping", path: "/shipping" },
+      { name: "Free Shipping Products", path: "/free-shipping-products" },
+      { name: "E-commerce", path: "/ecommerce" },
+    ],
     icon: Megaphone,
     path: "/popup",
     color: "bg-amber-500",
@@ -54,7 +86,9 @@ const modules = [
   },
   // {
   //   name: "Ecommerce",
-  //   items: ["Online Store"],
+  //   items: [
+  //     { name: "Online Store", path: "/ecommerce" },
+  //   ],
   //   icon: ShoppingCart,
   //   path: "/ecommerce",
   //   color: "bg-indigo-500",
@@ -62,7 +96,14 @@ const modules = [
   // },
   {
     name: "Inventory",
-    items: ["Branch", "Transfers", "Purchase", "Returns", "Stock Take"],
+    items: [
+      { name: "Branch", path: "/warehouse" },
+      { name: "Transfers", path: "/transfer" },
+      { name: "Purchase", path: "/purchase" },
+      { name: "Returns", path: "/purchase-return" },
+      { name: "Stock Take", path: "/stocktake" },
+      { name: "Wasted", path: "/wasted" },
+    ],
     icon: Warehouse,
     path: "/warehouse",
     color: "bg-orange-500",
@@ -70,7 +111,10 @@ const modules = [
   },
   {
     name: "POS",
-    items: ["Cashier", "Reserve"],
+    items: [
+      { name: "Cashier", path: "/cashier" },
+      { name: "Reserve", path: "/reserve" },
+    ],
     icon: MonitorPlay,
     path: "/cashier",
     color: "bg-cyan-500",
@@ -78,7 +122,11 @@ const modules = [
   },
   {
     name: "CRM",
-    items: ["Suppliers", "Customers", "Customer Groups"],
+    items: [
+      { name: "Suppliers", path: "/supplier" },
+      { name: "Customers", path: "/customer" },
+      { name: "Customer Groups", path: "/customer-group" },
+    ],
     icon: Contact2,
     path: "/supplier",
     color: "bg-violet-500",
@@ -86,7 +134,10 @@ const modules = [
   },
   {
     name: "HRM",
-    items: ["Admin", "Profile"],
+    items: [
+      { name: "Admin", path: "/admin" },
+      { name: "Profile", path: "/profile" },
+    ],
     icon: Users,
     path: "/admin",
     color: "bg-pink-500",
@@ -94,7 +145,14 @@ const modules = [
   },
   {
     name: "Reports",
-    items: ["Cashier Shifts", "Orders Report", "Product Report", "Financial Report", "Product Movement Report"],
+    items: [
+      { name: "Cashier Shifts", path: "/cashier-shift" },
+      { name: "Orders Report", path: "/orders-reports" },
+      { name: "Product Report", path: "/product-reports" },
+      { name: "Financial Report", path: "/financial-reports" },
+      { name: "Product Movement Report", path: "/product-movement-report" },
+      { name: "All Returns", path: "/all-returns" },
+    ],
     icon: BarChart3,
     path: "/orders-reports",
     color: "bg-slate-700",
@@ -102,7 +160,17 @@ const modules = [
   },
   {
     name: "Settings",
-    items: ["Barcode", "Cities", "Country", "Zones", "Permissions", "Currencies", "Decimal", "Service Fees", "Couriers"],
+    items: [
+      { name: "Barcode", path: "/barcode" },
+      { name: "Cities", path: "/city" },
+      { name: "Country", path: "/country" },
+      { name: "Zones", path: "/zone" },
+      { name: "Permissions", path: "/permission" },
+      { name: "Currencies", path: "/currency" },
+      { name: "Decimal", path: "/decimal-setting" },
+      { name: "Service Fees", path: "/service-fees" },
+      { name: "Couriers", path: "/courier" },
+    ],
     icon: Settings,
     path: "/barcode",
     color: "bg-gray-600",
@@ -126,7 +194,10 @@ export default function ModulesGrid() {
     if (moduleName.includes(searchQuery)) return true;
 
     // Check sub-items
-    return module.items.some(item => t(item).toLowerCase().includes(searchQuery));
+    return module.items.some((item) => {
+      const itemName = typeof item === "string" ? item : item.name;
+      return t(itemName).toLowerCase().includes(searchQuery);
+    });
   });
 
   const handleModuleClick = (module) => {
@@ -135,6 +206,17 @@ export default function ModulesGrid() {
       return;
     }
     navigate(module.path);
+  };
+
+  const handleItemClick = (e, item, isSubItemLocked) => {
+    e.stopPropagation();
+    if (isSubItemLocked) {
+      return;
+    }
+    const path = typeof item === "string" ? null : item.path;
+    if (path) {
+      navigate(path);
+    }
   };
 
   return (
@@ -209,25 +291,41 @@ export default function ModulesGrid() {
                       </h3>
 
                       {/* Distribution in 2 cols */}
-                      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                         {module.items.map((item, i) => {
+                          const itemName = typeof item === "string" ? item : item.name;
                           const isSubItemLocked =
-                            (module.name === "Inventory" && item === "Stock Take" && !tenantLoading && !features.haveStockTake) ||
+                            (module.name === "Inventory" && itemName === "Stock Take" && !tenantLoading && !features.haveStockTake) ||
                             isLocked;
 
                           return (
-                            <div key={i} className={`flex items-center gap-1.5 group/item ${isSubItemLocked ? "opacity-60" : ""}`}>
+                            <div
+                              key={i}
+                              onClick={(e) => handleItemClick(e, item, isSubItemLocked)}
+                              className={`flex items-center gap-1.5 group/item py-0.5 px-1.5 -mx-1.5 rounded-md transition-all ${
+                                isSubItemLocked
+                                  ? "opacity-60 cursor-not-allowed"
+                                  : "cursor-pointer hover:bg-slate-100/70 active:scale-95"
+                              }`}
+                              title={
+                                isSubItemLocked
+                                  ? (i18n.language === "ar"
+                                      ? `${t(itemName)} (معطّل في باقتك الحالية)`
+                                      : `${t(itemName)} (Disabled in your plan)`)
+                                  : t(itemName)
+                              }
+                            >
                               {isSubItemLocked ? (
                                 <Lock className="w-2.5 h-2.5 text-amber-500 flex-shrink-0" />
                               ) : (
-                                <div className="min-w-[4px] h-[4px] rounded-full bg-slate-300 group-hover/item:bg-red-400 transition-colors" />
+                                <div className="min-w-[4px] h-[4px] rounded-full bg-slate-300 group-hover/item:bg-red-500 group-hover/item:scale-125 transition-all flex-shrink-0" />
                               )}
                               <span className={`text-[9px] font-bold uppercase tracking-wider truncate transition-colors ${
                                 isSubItemLocked
                                   ? "text-slate-400 line-through decoration-amber-400"
-                                  : "text-slate-400 group-hover/item:text-slate-600"
+                                  : "text-slate-400 group-hover/item:text-slate-800"
                               }`}>
-                                {t(item)}
+                                {t(itemName)}
                               </span>
                             </div>
                           );
