@@ -21,27 +21,35 @@ const ProductForm = ({
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
-  // fetch categories / brands / variations / taxes
-  const { data, loading: metaLoading, refetch: refetchMeta } = useGet("/api/admin/product/select");
-  const { data: discountData, loading: discountsLoading, refetch: refetchDiscounts } = useGet("/api/admin/discount");
+
+  const {
+    data,
+    loading: metaLoading,
+    refetch: refetchMeta,
+  } = useGet("/api/admin/product/select");
+  const {
+    data: discountData,
+    loading: discountsLoading,
+    refetch: refetchDiscounts,
+  } = useGet("/api/admin/discount");
   const discounts = discountData?.discounts || [];
 
-  // local states
   const [activeTab, setActiveTab] = useState("general");
   const [allVariations, setAllVariations] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
-  const [taxes, setTaxes] = useState([]); // ✅ إضافة taxes
+  const [taxes, setTaxes] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [units, setUnits] = useState([]);
   const initialFormStateRef = React.useRef(null);
+
   const [form, setForm] = useState({
     name: "",
-    ar_name: "", // ✅ إضافة ar_name
-    ar_description: "", // ✅ إضافة ar_description
+    ar_name: "",
+    ar_description: "",
     categoryId: [],
     brandId: "",
-    taxesId: "", // ✅ إضافة taxesId
+    taxesId: "",
     product_unit: "",
     purchase_unit: "",
     sale_unit: "",
@@ -52,7 +60,6 @@ const ProductForm = ({
     price: "",
     different_price: false,
     prices: [],
-    // discount: 0,
     quantity: 0,
     low_stock: "",
     exp_ability: false,
@@ -70,7 +77,6 @@ const ProductForm = ({
   const [selectedOptionsMap, setSelectedOptionsMap] = useState({});
   const [deletedVariantKeys, setDeletedVariantKeys] = useState(new Set());
 
-  // helper: generateCombinations (same logic you used)
   const generateCombinations = (optionsMap, allVariationsLocal) => {
     const activeOptions = Object.entries(optionsMap)
       .filter(([, options]) => options && options.length > 0)
@@ -81,10 +87,10 @@ const ProductForm = ({
           variationName: variation ? variation.name : `ID ${id}`,
           options: options.map((optionName) => {
             const originalVariation = allVariationsLocal.find(
-              (v) => v._id == id
+              (v) => v._id == id,
             );
             const originalOption = originalVariation?.options.find(
-              (opt) => opt.name === optionName
+              (opt) => opt.name === optionName,
             );
             return {
               name: optionName,
@@ -128,7 +134,6 @@ const ProductForm = ({
     }));
   };
 
-  // fill meta data (categories, brands, variations, taxes)
   useEffect(() => {
     if (data) {
       setCategories(data.categories || []);
@@ -164,67 +169,73 @@ const ProductForm = ({
         const newForm = {
           ...prev,
           name: initialData.name || "",
-          ar_name: initialData.ar_name || "", // ✅ إضافة ar_name
-          ar_description: initialData.ar_description || "", // ✅ إضافة ar_description
+          ar_name: initialData.ar_name || "",
+          ar_description: initialData.ar_description || "",
           categoryId: initialData.categoryId
             ? initialData.categoryId.map((c) => (c._id ? c._id : c))
             : initialData.categoryId || [],
           brandId: initialData.brandId?._id || initialData.brandId || "",
-          taxesId: initialData.taxesId?._id || initialData.taxesId || "", // ✅ إضافة taxesId
-          product_unit: initialData.product_unit?._id || initialData.product_unit || "",
-          purchase_unit: initialData.purchase_unit?._id || initialData.purchase_unit || "",
+          taxesId: initialData.taxesId?._id || initialData.taxesId || "",
+          product_unit:
+            initialData.product_unit?._id || initialData.product_unit || "",
+          purchase_unit:
+            initialData.purchase_unit?._id || initialData.purchase_unit || "",
           sale_unit: initialData.sale_unit?._id || initialData.sale_unit || "",
           description: initialData.description || "",
           image: initialData.image || "",
           code: initialData.code || prev.code || "",
           discountId: getDiscountId(initialData) || prev.discountId || "",
-          gallery_product: initialData.gallery_product || initialData.gallery || [],
+          gallery_product:
+            initialData.gallery_product || initialData.gallery || [],
           minimum_quantity_sale:
             initialData.minimum_quantity_sale || prev.minimum_quantity_sale,
           price: initialData.price ?? prev.price,
           different_price: initialData.different_price ?? prev.different_price,
-          prices: initialData.prices?.map((p) => {
-            const optionIds = [];
-            p.variations?.forEach((variation) => {
-              variation.options?.forEach((opt) => optionIds.push(opt._id));
-            });
-            if (p.options && Array.isArray(p.options) && p.options.length) {
-              optionIds.push(...p.options);
-            }
+          prices:
+            initialData.prices?.map((p) => {
+              const optionIds = [];
+              p.variations?.forEach((variation) => {
+                variation.options?.forEach((opt) => optionIds.push(opt._id));
+              });
+              if (p.options && Array.isArray(p.options) && p.options.length) {
+                optionIds.push(...p.options);
+              }
 
-            const optionNames = optionIds
-              .map((optionId) => {
-                const variation = allVariations.find((v) =>
-                  v.options.some((opt) => opt._id === optionId)
-                );
-                const option = variation?.options.find(
-                  (opt) => opt._id === optionId
-                );
-                return option ? option.name : null;
-              })
-              .filter((name) => name !== null);
+              const optionNames = optionIds
+                .map((optionId) => {
+                  const variation = allVariations.find((v) =>
+                    v.options.some((opt) => opt._id === optionId),
+                  );
+                  const option = variation?.options.find(
+                    (opt) => opt._id === optionId,
+                  );
+                  return option ? option.name : null;
+                })
+                .filter((name) => name !== null);
 
-            return {
-              _id: p._id,
-              price: p.price,
-              code: p.code || "",
-              image: p.gallery?.[0] || p.image || "",
-              options: optionIds.length ? optionIds : p.options || [],
-              name: optionNames.length ? optionNames.join(" / ") : p.name || "Unnamed Variant",
-            };
-          }) || [],
+              return {
+                _id: p._id,
+                price: p.price,
+                code: p.code || "",
+                image: p.gallery?.[0] || p.image || "",
+                options: optionIds.length ? optionIds : p.options || [],
+                name: optionNames.length
+                  ? optionNames.join(" / ")
+                  : p.name || "Unnamed Variant",
+              };
+            }) || [],
           quantity: initialData.quantity || 0,
           low_stock: initialData.low_stock || 0,
           exp_ability: initialData.exp_ability || false,
           whole_price: initialData.whole_price || 0,
-          start_quantaty: initialData.start_quantaty ?? initialData.start_quantity ?? 0,
+          start_quantaty:
+            initialData.start_quantaty ?? initialData.start_quantity ?? 0,
           product_has_imei: initialData.product_has_imei || false,
           show_quantity: initialData.show_quantity || false,
           maximum_to_show: initialData.maximum_to_show || 0,
           is_featured: initialData.is_featured || false,
         };
 
-        console.log("Initial prices:", newForm.prices);
         initialFormStateRef.current = JSON.parse(JSON.stringify(newForm));
         return newForm;
       });
@@ -242,7 +253,7 @@ const ProductForm = ({
             variation.options?.forEach((opt) => {
               allOptionIds.add(opt._id);
               optIds.push(String(opt._id));
-            })
+            }),
           );
           if (p.options && Array.isArray(p.options)) {
             p.options.forEach((opt) => {
@@ -325,8 +336,48 @@ const ProductForm = ({
     });
   };
 
-  const handleOptionsChange = useCallback((variationId, options) => {
-    setSelectedOptionsMap((prev) => ({ ...prev, [variationId]: options }));
+  // ✅ تعديل دالة handleOptionsChange لتفريغ مفاتيح الحظر للخيار المُعاد اختياره
+  const handleOptionsChange = useCallback(
+    (variationId, newOptions) => {
+      setSelectedOptionsMap((prevMap) => {
+        const oldOptions = prevMap[variationId] || [];
+        // تحديد الخيارات التي تم تفعيلها حديثاً
+        const addedOptions = newOptions.filter(
+          (opt) => !oldOptions.includes(opt),
+        );
+
+        if (addedOptions.length > 0) {
+          const variation = allVariations.find(
+            (v) => String(v._id) === String(variationId),
+          );
+          if (variation) {
+            const addedOptionIds = variation.options
+              .filter((opt) => addedOptions.includes(opt.name))
+              .map((opt) => String(opt._id));
+
+            // إزالة أي بصمة محذوفة تحتوي على الخيارات التي تم إعادة إضافتها
+            setDeletedVariantKeys((prevDeleted) => {
+              const nextDeleted = new Set(prevDeleted);
+              for (const sig of nextDeleted) {
+                const sigOptionIds = sig.split(",");
+                if (addedOptionIds.some((id) => sigOptionIds.includes(id))) {
+                  nextDeleted.delete(sig);
+                }
+              }
+              return nextDeleted;
+            });
+          }
+        }
+
+        return { ...prevMap, [variationId]: newOptions };
+      });
+    },
+    [allVariations],
+  );
+
+  // ✅ دالة لإعادة إظهار كافة العناصر المحذوفة في حال رغب المستخدم بذلك
+  const handleRestoreVariants = useCallback(() => {
+    setDeletedVariantKeys(new Set());
   }, []);
 
   const handleVariantFieldChange = useCallback((index, key, value) => {
@@ -341,7 +392,11 @@ const ProductForm = ({
     setForm((prevForm) => {
       const targetVariant = prevForm.prices[index];
       if (targetVariant && targetVariant.options) {
-        const sig = (targetVariant.options || []).slice().map(String).sort().join(",");
+        const sig = (targetVariant.options || [])
+          .slice()
+          .map(String)
+          .sort()
+          .join(",");
         setDeletedVariantKeys((prev) => new Set(prev).add(sig));
       }
       const newPrices = prevForm.prices.filter((_, i) => i !== index);
@@ -351,7 +406,10 @@ const ProductForm = ({
 
   useEffect(() => {
     if (form.different_price) {
-      const allCombinations = generateCombinations(selectedOptionsMap, allVariations);
+      const allCombinations = generateCombinations(
+        selectedOptionsMap,
+        allVariations,
+      );
       const newVariants = allCombinations.filter((combo) => {
         const sig = (combo.options || []).slice().map(String).sort().join(",");
         return !deletedVariantKeys.has(sig);
@@ -359,19 +417,27 @@ const ProductForm = ({
 
       setForm((prevForm) => {
         const updatedPrices = newVariants.map((newVariant) => {
-          const newOptionsStr = (newVariant.options || []).slice().map(String).sort().join(",");
+          const newOptionsStr = (newVariant.options || [])
+            .slice()
+            .map(String)
+            .sort()
+            .join(",");
           const oldVariant = prevForm.prices.find((p) => {
             if (!p.options) return false;
-            const oldOptionsStr = (p.options || []).slice().map(String).sort().join(",");
+            const oldOptionsStr = (p.options || [])
+              .slice()
+              .map(String)
+              .sort()
+              .join(",");
             return oldOptionsStr === newOptionsStr;
           });
           const optionNames = newVariant.options
             .map((optionId) => {
               const variation = allVariations.find((v) =>
-                v.options.some((opt) => opt._id === optionId)
+                v.options.some((opt) => opt._id === optionId),
               );
               const option = variation?.options.find(
-                (opt) => opt._id === optionId
+                (opt) => opt._id === optionId,
               );
               return option ? option.name : null;
             })
@@ -381,7 +447,11 @@ const ProductForm = ({
             : "Unnamed Variant";
 
           return oldVariant
-            ? { ...newVariant, ...oldVariant, name: oldVariant.name || derivedName }
+            ? {
+                ...newVariant,
+                ...oldVariant,
+                name: oldVariant.name || derivedName,
+              }
             : { ...newVariant, name: derivedName };
         });
         return { ...prevForm, prices: updatedPrices };
@@ -389,8 +459,12 @@ const ProductForm = ({
     } else {
       setForm((prevForm) => ({ ...prevForm, prices: [] }));
     }
-  }, [selectedOptionsMap, form.different_price, allVariations, deletedVariantKeys]);
-
+  }, [
+    selectedOptionsMap,
+    form.different_price,
+    allVariations,
+    deletedVariantKeys,
+  ]);
 
   const cleanBase64 = (dataUri) => {
     if (typeof dataUri === "string" && dataUri.startsWith("data:")) {
@@ -398,21 +472,25 @@ const ProductForm = ({
     }
     return dataUri;
   };
+
   const isFormValid = () => {
     if (!form.name || form.name.trim() === "") return false;
     if (!form.categoryId || form.categoryId.length === 0) return false;
-    if (!form.product_unit || !form.purchase_unit || !form.sale_unit) return false;
-    if (!form.different_price && (!form.price || Number(form.price) <= 0)) return false;
+    if (!form.product_unit || !form.purchase_unit || !form.sale_unit)
+      return false;
+    if (!form.different_price && (!form.price || Number(form.price) <= 0))
+      return false;
     if (!form.image) return false;
-    if (!form.different_price && (!form.code || form.code.trim() === "")) return false;
+    if (!form.different_price && (!form.code || form.code.trim() === ""))
+      return false;
     if (form.different_price) {
       if (!form.prices || form.prices.length === 0) return false;
       const allVariantsValid = form.prices.every(
-        (variant) => Number(variant.price) > 0
+        (variant) => Number(variant.price) > 0,
       );
       if (!allVariantsValid) return false;
       const allOptionsSelected = selectedVariationIds.every(
-        (id) => selectedOptionsMap[id] && selectedOptionsMap[id].length > 0
+        (id) => selectedOptionsMap[id] && selectedOptionsMap[id].length > 0,
       );
       if (!allOptionsSelected) return false;
     } else {
@@ -424,33 +502,36 @@ const ProductForm = ({
 
   const handleSubmit = async () => {
     if (!isFormValid()) {
-      toast.error(t("Please fill in all required fields and correct the errors"));
+      toast.error(
+        t("Please fill in all required fields and correct the errors"),
+      );
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const isNewImage = (img) => typeof img === "string" && img.startsWith("data:");
+      const isNewImage = (img) =>
+        typeof img === "string" && img.startsWith("data:");
       let finalForm = {
         name: form.name,
-        ar_name: form.ar_name, // ✅ إضافة ar_name
-        ar_description: form.ar_description, // ✅ إضافة ar_description
+        ar_name: form.ar_name,
+        ar_description: form.ar_description,
         categoryId: form.categoryId,
         brandId: form.brandId || "",
-        taxesId: form.taxesId || "", // ✅ إضافة taxesId
+        taxesId: form.taxesId || "",
         product_unit: form.product_unit,
         purchase_unit: form.purchase_unit,
         sale_unit: form.sale_unit,
-        price: form.price === "" ? 0 : (Number(form.price) || 0),
+        price: form.price === "" ? 0 : Number(form.price) || 0,
         description: form.description,
         image: isNewImage(form.image) ? cleanBase64(form.image) : undefined,
         gallery_product: form.gallery_product
-          .filter(img => isNewImage(img)) // نرسل الصور الجديدة فقط للرفع
+          .filter((img) => isNewImage(img))
           .map((img) => cleanBase64(img)),
         different_price: form.different_price,
         is_featured: form.is_featured,
-        low_stock: form.low_stock === "" ? 0 : (Number(form.low_stock) || 0),
+        low_stock: form.low_stock === "" ? 0 : Number(form.low_stock) || 0,
         code: form.code,
       };
       if (finalForm.image === undefined) delete finalForm.image;
@@ -463,7 +544,6 @@ const ProductForm = ({
       }
 
       finalForm.exp_ability = form.exp_ability;
-      // if (form.exp_ability) finalForm.date_of_expiery = form.date_of_expiery;
       finalForm.whole_price = form.whole_price || 0;
       finalForm.start_quantaty = form.start_quantaty || 0;
       finalForm.product_has_imei = form.product_has_imei;
@@ -492,7 +572,6 @@ const ProductForm = ({
           quantity: form.quantity || 0,
           low_stock: form.low_stock || 0,
           minimum_quantity_sale: form.minimum_quantity_sale,
-          // discount: form.discount,
         };
         delete finalForm.different_price;
         delete finalForm.prices;
@@ -501,7 +580,7 @@ const ProductForm = ({
       if (!finalForm.categoryId || finalForm.categoryId.length === 0)
         delete finalForm.categoryId;
       if (!finalForm.brandId) delete finalForm.brandId;
-      if (!finalForm.taxesId) delete finalForm.taxesId; // ✅ حذف taxesId إذا كان فارغ
+      if (!finalForm.taxesId) delete finalForm.taxesId;
 
       let payload = finalForm;
 
@@ -510,53 +589,61 @@ const ProductForm = ({
         const didPricesChange = () => {
           if (!form.different_price) return false;
           if (!form.prices || !initialFormStateRef.current.prices) return true;
-          // Length differs
-          if (form.prices.length !== initialFormStateRef.current.prices.length) return true;
-          
+          if (form.prices.length !== initialFormStateRef.current.prices.length)
+            return true;
+
           for (let i = 0; i < form.prices.length; i++) {
-             const curr = form.prices[i];
-             const currOptions = (curr.options || []).slice().sort().join(",");
-             const init = initialFormStateRef.current.prices.find(p =>
-               (p._id && curr._id && p._id === curr._id) ||
-               ((p.options || []).slice().sort().join(",") === currOptions)
-             );
-             
-             if (!init) return true; // new variant added
-             if (Number(curr.price || 0) !== Number(init.price || 0)) return true;
-             if ((curr.code || "") !== (init.code || "")) return true;
-             if (curr.image && curr.image.startsWith("data:")) return true;
+            const curr = form.prices[i];
+            const currOptions = (curr.options || []).slice().sort().join(",");
+            const init = initialFormStateRef.current.prices.find(
+              (p) =>
+                (p._id && curr._id && p._id === curr._id) ||
+                (p.options || []).slice().sort().join(",") === currOptions,
+            );
+
+            if (!init) return true;
+            if (Number(curr.price || 0) !== Number(init.price || 0))
+              return true;
+            if ((curr.code || "") !== (init.code || "")) return true;
+            if (curr.image && curr.image.startsWith("data:")) return true;
           }
           return false;
         };
 
-        Object.keys(finalForm).forEach(key => {
+        Object.keys(finalForm).forEach((key) => {
           if (key === "prices") {
-             if (form.different_price && didPricesChange()) {
-                payload.prices = finalForm.prices;
-             }
+            if (form.different_price && didPricesChange()) {
+              payload.prices = finalForm.prices;
+            }
           } else if (key === "image" && finalForm.image !== undefined) {
-             payload.image = finalForm.image;
-          } else if (key === "gallery_product" && finalForm.gallery_product?.length > 0) {
-             payload.gallery_product = finalForm.gallery_product;
-          } else if (JSON.stringify(form[key]) !== JSON.stringify(initialFormStateRef.current[key])) {
-             payload[key] = finalForm[key];
+            payload.image = finalForm.image;
+          } else if (
+            key === "gallery_product" &&
+            finalForm.gallery_product?.length > 0
+          ) {
+            payload.gallery_product = finalForm.gallery_product;
+          } else if (
+            JSON.stringify(form[key]) !==
+            JSON.stringify(initialFormStateRef.current[key])
+          ) {
+            payload[key] = finalForm[key];
           }
         });
-        // Handle different_price explicitly in case it was deleted from finalForm
-        if (form.different_price !== initialFormStateRef.current.different_price) {
-           payload.different_price = form.different_price;
-           if (!form.different_price) {
-             payload.prices = [];
-           }
+
+        if (
+          form.different_price !== initialFormStateRef.current.different_price
+        ) {
+          payload.different_price = form.different_price;
+          if (!form.different_price) {
+            payload.prices = [];
+          }
         }
 
-        // Always ensure category/brand logic applies if they are in payload
         if (payload.categoryId?.length === 0) delete payload.categoryId;
         if (!payload.brandId) delete payload.brandId;
         if (!payload.taxesId) delete payload.taxesId;
       }
 
-      console.log("📦 Final form submitted:", payload);
       await onSubmit(payload);
     } catch (err) {
       console.error(err);
@@ -584,6 +671,7 @@ const ProductForm = ({
     handleOptionsChange,
     handleVariantFieldChange,
     handleRemoveVariant,
+    handleRestoreVariants, // ✅ تمرير الدالة للتبويب
     refetchMeta,
     refetchDiscounts,
     setCategories,
@@ -615,9 +703,7 @@ const ProductForm = ({
           </div>
         </div>
 
-        <div
-
-          className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-24">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-24">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="border-b border-gray-200 bg-gray-50">
               <TabsList className="w-full bg-transparent border-0 p-0 h-auto">
@@ -702,7 +788,13 @@ const ProductForm = ({
         <div className="mt-6 flex items-center justify-end gap-3">
           <Button
             variant="outline"
-            onClick={() => navigateToListWithHighlight(navigate, "/product", mode === "edit" ? initialData?._id : null)}
+            onClick={() =>
+              navigateToListWithHighlight(
+                navigate,
+                "/product",
+                mode === "edit" ? initialData?._id : null,
+              )
+            }
             className="px-6"
           >
             {t("Cancel")}
