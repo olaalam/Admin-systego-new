@@ -1,11 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import useGet from '@/hooks/useGet';
-import usePost from '@/hooks/usePost';
-import { useTranslation } from 'react-i18next';
-import { Warehouse, Package, ArrowRight, Trash2, Plus, Send, ArrowLeft, FileText, Search } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { ComboboxMultiSelect } from '@/components/ui/combobox-multi-select';
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import useGet from "@/hooks/useGet";
+import usePost from "@/hooks/usePost";
+import { useTranslation } from "react-i18next";
+import {
+  Warehouse,
+  Package,
+  Trash2,
+  Send,
+  ArrowLeft,
+  FileText,
+  Search,
+} from "lucide-react";
+import { toast } from "react-toastify";
+import { ComboboxMultiSelect } from "@/components/ui/combobox-multi-select";
 import {
   Select,
   SelectContent,
@@ -15,69 +23,157 @@ import {
 } from "@/components/ui/select";
 
 export default function TransferAdd() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isArabic = i18n.language === "ar";
   const navigate = useNavigate();
-  const { postData, loading } = usePost('/api/admin/transfer');
-  const { data: warehousesData } = useGet('/api/admin/warehouse');
+  const { postData, loading } = usePost("/api/admin/transfer");
+  const { data: warehousesData } = useGet("/api/admin/warehouse");
 
   const [formData, setFormData] = useState({
-    fromWarehouseId: '',
-    toWarehouseId: '',
-    reason: '',
-    products: []
+    fromWarehouseId: "",
+    toWarehouseId: "",
+    reason: "",
+    products: [],
   });
 
-  // Fetch products when "from warehouse" is selected using useGet hook
   const productUrl = formData.fromWarehouseId
     ? `/api/admin/product_warehouse/${formData.fromWarehouseId}`
     : null;
 
   const { data: productsData, loading: loadingProducts } = useGet(productUrl);
 
+  // =========================================================
+  // فلطحة المنتجات: كل product في الـ array = variant منفصل
+  // (الـ API بيرجع نفس المنتج مكرر لكل variant)
+  // =========================================================
+  const flattenedProducts = useMemo(() => {
+    if (!productsData?.products) return [];
+
+    const seen = new Set();
+    const flat = [];
+
+    productsData.products.forEach((product) => {
+      // =====================================================
+      // منتج له variants (different_price = true)
+      // =====================================================
+      if (product.different_price && product.productPriceId) {
+        const variantId = product.productPriceId._id;
+
+        // منع التكرار
+        if (seen.has(variantId)) return;
+        seen.add(variantId);
+
+        // ✅ بناء اسم الـ variation من variationOptions
+        const variationName = (product.variationOptions || [])
+          .map((opt) => {
+            const varName = isArabic
+              ? opt.variationId?.ar_name || opt.variationId?.name
+              : opt.variationId?.name;
+
+            return varName ? `${varName}: ${opt.name}` : opt.name;
+          })
+          .filter(Boolean)
+          .join(" | ");
+
+        const displayName = variationName
+          ? `${isArabic ? product.ar_name || product.name : product.name} - ${variationName}`
+          : isArabic
+            ? product.ar_name || product.name
+            : product.name;
+
+        flat.push({
+          // ✅ للـ UI
+          id: variantId,
+
+          // ✅ للـ backend
+          productId: product._id,
+          productPriceId: variantId,
+
+          // الاسم
+          name: displayName,
+
+          // ✅ الكمية الفعلية في المخزن ده (من product.quantity)
+          // مش من product.productPriceId.quantity (اللي هي الإجمالي)
+          quantity: Number(product.quantity ?? 0),
+
+          price: Number(product.productPriceId.price || 0),
+        });
+      } else {
+        // =====================================================
+        // منتج عادي بدون variants
+        // =====================================================
+        if (seen.has(product._id)) return;
+        seen.add(product._id);
+
+        flat.push({
+          // ✅ للـ UI
+          id: product._id,
+
+          // ✅ للـ backend
+          productId: product._id,
+          productPriceId: null,
+
+          name: isArabic ? product.ar_name || product.name : product.name,
+
+          // ✅ الكمية الفعلية
+          quantity: Number(product.quantity ?? 0),
+
+          price: Number(product.price || 0),
+        });
+      }
+    });
+
+    return flat;
+  }, [productsData, isArabic]);
+
   // Clear selected products when warehouse changes
   useEffect(() => {
-    setFormData(prev => ({ ...prev, products: [] }));
+    setFormData((prev) => ({ ...prev, products: [] }));
   }, [formData.fromWarehouseId]);
 
-  // Handle product selection from combobox (Reactive)
+  // =========================================================
+  // Handle product selection from combobox
+  // =========================================================
   const handleProductSelectionChange = (newSelectedIds) => {
     const currentProducts = formData.products;
-    const currentIds = currentProducts.map(p => p.productId);
+    const currentIds = currentProducts.map((p) => p.id);
 
-    // Identify products to add
-    const idsToAdd = newSelectedIds.filter(id => !currentIds.includes(id));
-
-    // Identify products to remove
-    const idsToRemove = currentIds.filter(id => !newSelectedIds.includes(id));
+    const idsToAdd = newSelectedIds.filter((id) => !currentIds.includes(id));
+    const idsToRemove = currentIds.filter((id) => !newSelectedIds.includes(id));
 
     let updatedProducts = [...currentProducts];
 
-    // Add new products
     if (idsToAdd.length > 0) {
-      const productsToAdd = (productsData?.products || [])
-        .filter(p => idsToAdd.includes(p._id))
-        .map(product => ({
-          productId: product._id,
-          name: product.name,
-          availableQuantity: product.quantity || 0,
-          quantity: 1
+      const productsToAdd = flattenedProducts
+        .filter((p) => idsToAdd.includes(p.id))
+        .map((p) => ({
+          // ✅ للـ UI
+          id: p.id,
+          name: p.name,
+          availableQuantity: p.quantity,
+          quantity: 1,
+
+          // ✅ للـ backend
+          productId: p.productId,
+          productPriceId: p.productPriceId,
         }));
+
       updatedProducts = [...updatedProducts, ...productsToAdd];
     }
 
-    // Remove products
     if (idsToRemove.length > 0) {
-      updatedProducts = updatedProducts.filter(p => !idsToRemove.includes(p.productId));
+      updatedProducts = updatedProducts.filter(
+        (p) => !idsToRemove.includes(p.id),
+      );
     }
 
-    setFormData(prev => ({ ...prev, products: updatedProducts }));
+    setFormData((prev) => ({ ...prev, products: updatedProducts }));
   };
 
-
   const removeProduct = (index) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      products: prev.products.filter((_, i) => i !== index)
+      products: prev.products.filter((_, i) => i !== index),
     }));
   };
 
@@ -86,76 +182,90 @@ export default function TransferAdd() {
     const numQuantity = Number(quantity);
 
     if (numQuantity > product.availableQuantity) {
-      toast.error(t('Quantity exceeds available stock'));
+      toast.error(t("Quantity exceeds available stock"));
       return;
     }
 
     if (numQuantity < 0) {
-      toast.error(t('Quantity cannot be negative'));
+      toast.error(t("Quantity cannot be negative"));
       return;
     }
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       products: prev.products.map((p, i) =>
-        i === index ? { ...p, quantity: numQuantity } : p
-      )
+        i === index ? { ...p, quantity: numQuantity } : p,
+      ),
     }));
   };
 
+  // =========================================================
+  // Submit
+  // =========================================================
   const handleSubmit = async () => {
+    // =========================================================
     // Validation
+    // =========================================================
     if (!formData.fromWarehouseId) {
-      toast.error(t('Please select source warehouse'));
+      toast.error(t("Please select source warehouse"));
       return;
     }
 
     if (!formData.toWarehouseId) {
-      toast.error(t('Please select destination warehouse'));
+      toast.error(t("Please select destination warehouse"));
       return;
     }
 
     if (formData.fromWarehouseId === formData.toWarehouseId) {
-      toast.error(t('Source and destination warehouses must be different'));
+      toast.error(t("Source and destination warehouses must be different"));
       return;
     }
 
-    if (!formData.reason || formData.reason.trim() === '') {
-      toast.error(t('Please provide a reason for the transfer'));
+    if (!formData.reason || formData.reason.trim() === "") {
+      toast.error(t("Please provide a reason for the transfer"));
       return;
     }
 
     if (formData.products.length === 0) {
-      toast.error(t('Please add at least one product'));
+      toast.error(t("Please add at least one product"));
       return;
     }
 
-    // Check for invalid quantities
-    const invalidProduct = formData.products.find(p => p.quantity <= 0 || p.quantity > p.availableQuantity);
+    const invalidProduct = formData.products.find(
+      (p) => p.quantity <= 0 || p.quantity > p.availableQuantity,
+    );
+
     if (invalidProduct) {
-      toast.error(t('Please check product quantities'));
+      toast.error(t("Please check product quantities"));
       return;
     }
 
-    // Prepare payload
+    // =========================================================
+    // Payload: مطابق للـ backend (productId, productPriceId, quantity)
+    // =========================================================
     const payload = {
       fromWarehouseId: formData.fromWarehouseId,
+
       toWarehouseId: formData.toWarehouseId,
+
       reason: formData.reason,
-      products: formData.products.map(p => ({
+
+      products: formData.products.map((p) => ({
         productId: p.productId,
-        quantity: p.quantity
-      }))
+        productPriceId: p.productPriceId || null,
+        quantity: p.quantity,
+      })),
     };
 
     try {
       const response = await postData(payload, null);
+
       if (response) {
-        toast.success(t('Transfer created successfully'));
-        navigate('/transfer');
+        toast.success(t("Transfer created successfully"));
+        navigate("/transfer");
       }
     } catch (error) {
-      console.error('Transfer error:', error);
+      console.error("Transfer error:", error);
     }
   };
 
@@ -168,7 +278,9 @@ export default function TransferAdd() {
           <div className="bg-red-100 p-3 rounded-xl">
             <ArrowLeft className="text-red-600" size={28} />
           </div>
-          <h1 className="text-3xl font-black text-gray-800">{t('Create Warehouse Transfer')}</h1>
+          <h1 className="text-3xl font-black text-gray-800">
+            {t("Create Warehouse Transfer")}
+          </h1>
         </div>
 
         {/* Warehouse Selection */}
@@ -176,19 +288,21 @@ export default function TransferAdd() {
           <div className="space-y-2">
             <label className="text-sm font-bold flex items-center gap-2">
               <Warehouse size={16} className="text-blue-600" />
-              {t('From Warehouse')}
+              {t("From Warehouse")}
             </label>
             <Select
               value={formData.fromWarehouseId}
-              onValueChange={(value) => setFormData({ ...formData, fromWarehouseId: value })}
+              onValueChange={(value) =>
+                setFormData({ ...formData, fromWarehouseId: value })
+              }
             >
               <SelectTrigger className="w-full h-12 rounded-xl focus:ring-2 focus:ring-blue-500">
-                <SelectValue placeholder={t('Select Source Warehouse')} />
+                <SelectValue placeholder={t("Select Source Warehouse")} />
               </SelectTrigger>
               <SelectContent>
-                {warehouses.map(w => (
+                {warehouses.map((w) => (
                   <SelectItem key={w._id} value={w._id}>
-                    {w.name} ({t('Stock')}: {w.stock_Quantity})
+                    {w.name} ({t("Stock")}: {w.stock_Quantity})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -198,21 +312,23 @@ export default function TransferAdd() {
           <div className="space-y-2">
             <label className="text-sm font-bold flex items-center gap-2">
               <Warehouse size={16} className="text-green-600" />
-              {t('To Warehouse')}
+              {t("To Warehouse")}
             </label>
             <Select
               value={formData.toWarehouseId}
-              onValueChange={(value) => setFormData({ ...formData, toWarehouseId: value })}
+              onValueChange={(value) =>
+                setFormData({ ...formData, toWarehouseId: value })
+              }
             >
               <SelectTrigger className="w-full h-12 rounded-xl focus:ring-2 focus:ring-green-500">
-                <SelectValue placeholder={t('Select Destination Warehouse')} />
+                <SelectValue placeholder={t("Select Destination Warehouse")} />
               </SelectTrigger>
               <SelectContent>
                 {warehouses
-                  .filter(w => w._id !== formData.fromWarehouseId)
-                  .map(w => (
+                  .filter((w) => w._id !== formData.fromWarehouseId)
+                  .map((w) => (
                     <SelectItem key={w._id} value={w._id}>
-                      {w.name} ({t('Stock')}: {w.stock_Quantity})
+                      {w.name} ({t("Stock")}: {w.stock_Quantity})
                     </SelectItem>
                   ))}
               </SelectContent>
@@ -224,50 +340,57 @@ export default function TransferAdd() {
         <div className="mb-8">
           <label className="text-sm font-bold flex items-center gap-2 mb-2">
             <FileText size={16} className="text-orange-600" />
-            {t('Transfer Reason')} <span className="text-red-500">*</span>
+            {t("Transfer Reason")} <span className="text-red-500">*</span>
           </label>
           <textarea
             className="w-full border rounded-xl p-3 bg-white focus:ring-2 focus:ring-orange-500 outline-none resize-none"
             rows="3"
-            placeholder={t('Enter reason for this transfer...')}
+            placeholder={t("Enter reason for this transfer...")}
             value={formData.reason}
-            onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, reason: e.target.value })
+            }
           />
         </div>
-        {/* Available Products - Combobox Selection */}
+
+        {/* Available Products - Combobox */}
         {formData.fromWarehouseId && (
           <div className="mb-8 p-6 bg-gray-50/30 rounded-2xl border border-gray-100/50 outline outline-1 outline-gray-100/30">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <label className="text-sm font-bold flex items-center gap-2">
                 <Package size={20} className="text-gray-600" />
-                <span className="text-lg text-gray-900">{t('Select Products to Transfer')}</span>
+                <span className="text-lg text-gray-900">
+                  {t("Select Products to Transfer")}
+                </span>
               </label>
             </div>
 
             {loadingProducts ? (
               <div className="flex flex-col items-center justify-center py-10 text-gray-400 bg-white/50 rounded-xl border border-gray-50">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 mb-2"></div>
-                {t('Loading products...')}
+                {t("Loading products...")}
               </div>
-            ) : !productsData?.products || productsData.products.length === 0 ? (
+            ) : flattenedProducts.length === 0 ? (
               <div className="text-center py-10 text-gray-400 bg-white/50 rounded-xl border-2 border-dashed border-gray-100">
-                {t('No products available in this warehouse')}
+                {t("No products available in this warehouse")}
               </div>
             ) : (
               <div className="w-full">
                 <ComboboxMultiSelect
-                  options={productsData.products.map(p => ({
-                    label: `${p.name} (${t('Stock')}: ${p.quantity || 0})${(p.quantity || 0) === 0 ? ` - ${t('Out of Stock')}` : ''}`,
-                    value: p._id,
-                    disabled: (p.quantity || 0) === 0
+                  options={flattenedProducts.map((p) => ({
+                    label: `${p.name} (${t("Stock")}: ${p.quantity || 0})${
+                      (p.quantity || 0) === 0 ? ` - ${t("Out of Stock")}` : ""
+                    }`,
+                    value: p.id,
+                    disabled: (p.quantity || 0) === 0,
                   }))}
-                  selected={formData.products.map(p => p.productId)}
+                  selected={formData.products.map((p) => p.id)}
                   onChange={handleProductSelectionChange}
-                  placeholder={t('Search and select products...')}
+                  placeholder={t("Search and select products...")}
                 />
                 <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
                   <Search size={12} />
-                  {t('Quick search by product name')}
+                  {t("Quick search by product name")}
                 </p>
               </div>
             )}
@@ -279,22 +402,28 @@ export default function TransferAdd() {
           <div className="mb-8">
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Send size={20} className="text-orange-600" />
-              {t('Products to Transfer')}
+              {t("Products to Transfer")}
             </h3>
             <div className="overflow-x-auto border rounded-2xl">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-gray-600">
                   <tr>
-                    <th className="p-4 text-left">{t('Product Name')}</th>
-                    <th className="p-4 text-center">{t('Available Quantity')}</th>
-                    <th className="p-4 text-center">{t('Transfer Quantity')}</th>
+                    <th className="p-4 text-left">{t("Product Name")}</th>
+                    <th className="p-4 text-center">
+                      {t("Available Quantity")}
+                    </th>
+                    <th className="p-4 text-center">
+                      {t("Transfer Quantity")}
+                    </th>
                     <th className="p-4 w-10"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {formData.products.map((product, index) => (
-                    <tr key={index} className="hover:bg-gray-50/50">
-                      <td className="p-4 font-bold text-gray-700">{product.name}</td>
+                    <tr key={product.id} className="hover:bg-gray-50/50">
+                      <td className="p-4 font-bold text-gray-700">
+                        {product.name}
+                      </td>
                       <td className="p-4 text-center">
                         <span className="inline-block bg-red-50 text-red-700 px-3 py-1 rounded-lg font-bold">
                           {product.availableQuantity}
@@ -307,7 +436,9 @@ export default function TransferAdd() {
                           max={product.availableQuantity}
                           className="w-full border rounded-xl p-2 text-center font-bold focus:ring-2 focus:ring-orange-500 outline-none"
                           value={product.quantity}
-                          onChange={(e) => updateProductQuantity(index, e.target.value)}
+                          onChange={(e) =>
+                            updateProductQuantity(index, e.target.value)
+                          }
                         />
                       </td>
                       <td className="p-4 text-center">
@@ -333,11 +464,11 @@ export default function TransferAdd() {
           className="w-full mt-8 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-black text-xl transition-all shadow-2xl shadow-red-100/50 flex items-center justify-center gap-3"
         >
           {loading ? (
-            t('Processing...')
+            t("Processing...")
           ) : (
             <>
               <Send size={24} />
-              {t('Create Transfer')}
+              {t("Create Transfer")}
             </>
           )}
         </button>

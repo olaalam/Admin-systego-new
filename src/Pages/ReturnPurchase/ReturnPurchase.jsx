@@ -2,43 +2,49 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
-import { Eye } from "lucide-react"; // أيقونة العين
+import { Eye } from "lucide-react";
 import DataTable from "@/components/DataTable";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useGet from "@/hooks/useGet";
 import usePost from "@/hooks/usePost";
-import ReturnDetailsModal from "./ReturnDetailsModal"; // استيراد المكون الجديد
+import ReturnDetailsModal from "./ReturnDetailsModal";
 
 export default function PurchaseReturnList() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  // States للمودال الخاص بإضافة مرجع
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reference, setReference] = useState("");
 
-  // States للمودال الخاص بعرض التفاصيل
   const [selectedId, setSelectedId] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  // جلب قائمة المرتجعات
-  const { data: response, loading: getLoading } = useGet("api/admin/return-purchase/all-returns");
+  const { data: response, loading: getLoading } = useGet(
+    "api/admin/return-purchase/all-returns",
+  );
+
   const { postData, loading: postLoading } = usePost();
 
   const columns = [
     {
       header: t("Date"),
       key: "date",
-      render: (val) => new Date(val).toLocaleDateString()
+      render: (val) => new Date(val).toLocaleDateString(),
     },
     { header: t("Reference"), key: "reference" },
     { header: t("Purchase Reference"), key: "purchase_reference" },
     {
       header: t("Supplier"),
       key: "supplier_id",
-      render: (val) => val?.company_name || t("N/A")
+      render: (val) => val?.company_name || t("N/A"),
     },
     { header: t("Total Amount"), key: "total_amount" },
     {
@@ -57,7 +63,7 @@ export default function PurchaseReturnList() {
           <Eye size={14} />
           {t("View")}
         </Button>
-      )
+      ),
     },
   ];
 
@@ -67,7 +73,7 @@ export default function PurchaseReturnList() {
 
     const res = await postData(
       { reference: reference },
-      "api/admin/return-purchase/purchase-for-return"
+      "api/admin/return-purchase/purchase-for-return",
     );
 
     if (res?.success) {
@@ -89,18 +95,22 @@ export default function PurchaseReturnList() {
         moduleName={AppModules.PURCHASE_RETURN}
       />
 
-      {/* مودال إضافة مرتجع جديد بالـ Reference */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("Add Purchase Return")}</DialogTitle>
           </DialogHeader>
+
           <form onSubmit={handleGoToCreate} className="space-y-4">
             <p className="text-sm text-gray-500 italic">
               {t("The field labels marked with * are required input fields.")}
             </p>
+
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t("Purchase Reference *")}</label>
+              <label className="text-sm font-medium">
+                {t("Purchase Reference *")}
+              </label>
+
               <Input
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
@@ -108,8 +118,13 @@ export default function PurchaseReturnList() {
                 required
               />
             </div>
+
             <DialogFooter>
-              <Button type="submit" className="bg-gray-600 w-full text-white" disabled={postLoading}>
+              <Button
+                type="submit"
+                className="bg-gray-600 w-full text-white"
+                disabled={postLoading}
+              >
                 {postLoading ? t("Checking...") : t("Submit")}
               </Button>
             </DialogFooter>
@@ -117,7 +132,6 @@ export default function PurchaseReturnList() {
         </DialogContent>
       </Dialog>
 
-      {/* مودال عرض التفاصيل (يستدعى فقط عند الحاجة) */}
       {isDetailsOpen && (
         <ReturnDetailsModal
           id={selectedId}

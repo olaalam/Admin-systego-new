@@ -66,13 +66,13 @@ const PurchaseEdit = () => {
 
         purchase_items: (p.items || []).flatMap((item) => {
           // =====================================================
-          // المنتج يحتوي على Variations
+          // المنتج يحتوي على Options (Variations)
           // =====================================================
-          if (item.variations && item.variations.length > 0) {
-            return item.variations.map((variant) => {
+          if (item.options && item.options.length > 0) {
+            return item.options.map((option) => {
               const matchingProd = selection?.products?.find(
-                (p) =>
-                  String(p._id) ===
+                (prod) =>
+                  String(prod._id) ===
                   String(item.product_id?._id || item.product_id),
               );
 
@@ -80,14 +80,18 @@ const PurchaseEdit = () => {
                 (pr) =>
                   String(pr._id) ===
                   String(
-                    variant.product_price_id?._id || variant.product_price_id,
+                    option.product_price_id?._id || option.product_price_id,
                   ),
               );
 
               const varCost = Number(matchingVar?.cost || 0);
+              const variationName =
+                matchingVar?.variation_name ||
+                option.product_price_id?.variation_name ||
+                "";
 
               const validCosts = (matchingProd?.prices || [])
-                .map((p) => Number(p.cost || 0))
+                .map((pr) => Number(pr.cost || 0))
                 .filter((c) => c > 0);
 
               const overallAvg =
@@ -104,13 +108,15 @@ const PurchaseEdit = () => {
                 product_id: item.product_id?._id || item.product_id,
 
                 variant_id:
-                  variant.product_price_id?._id || variant.product_price_id,
+                  option.product_price_id?._id || option.product_price_id,
 
-                name: `${item.product_id?.name || item.name} - Variation`,
+                name: `${item.product_id?.name || item.name}${
+                  variationName ? ` - ${variationName}` : ""
+                }`,
 
-                quantity: Number(variant.quantity) || 0,
+                quantity: Number(option.quantity) || 0,
 
-                unit_cost: Number(item.unit_cost) || 0,
+                unit_cost: varCost || Number(item.unit_cost) || 0,
 
                 avg_cost: avgCost,
 
@@ -130,11 +136,12 @@ const PurchaseEdit = () => {
           }
 
           // =====================================================
-          // منتج عادي بدون Variations
+          // منتج عادي بدون Options
           // =====================================================
           const matchingProd = selection?.products?.find(
-            (p) =>
-              String(p._id) === String(item.product_id?._id || item.product_id),
+            (prod) =>
+              String(prod._id) ===
+              String(item.product_id?._id || item.product_id),
           );
 
           const avgCost = Number(matchingProd?.cost || item.unit_cost || 0);
@@ -198,14 +205,8 @@ const PurchaseEdit = () => {
       // =====================================================
       if (product.different_price && product.prices?.length > 0) {
         product.prices.forEach((variant) => {
-          const variantDetails =
-            variant.variations
-              ?.map((v) => {
-                const optionName = v.options?.[0]?.name;
-
-                return optionName ? `${v.name}: ${optionName}` : v.name;
-              })
-              .join(" | ") || t("Variation");
+          // الـ API بيرجع variation_name مباشرة
+          const variantName = variant.variation_name || t("Variation");
 
           const variantCost = Number(variant.cost || 0);
 
@@ -218,7 +219,7 @@ const PurchaseEdit = () => {
             // المنتج الأصلي
             original_product_id: product._id,
 
-            displayName: `${product.name} - ${variantDetails}`,
+            displayName: `${product.name} - ${variantName}`,
 
             price: variant.price,
 
@@ -251,53 +252,6 @@ const PurchaseEdit = () => {
   }, [selection?.products, t]);
 
   const currencyCode = selection?.currency?.code || "EGP";
-
-  // =========================================================
-  // منطق تغيير حالة الدفع
-  // =========================================================
-  useEffect(() => {
-    if (formData.payment_status === "full") {
-      setFormData((prev) => ({
-        ...prev,
-
-        installments: [],
-
-        financials:
-          prev.financials.length > 0
-            ? prev.financials.map((f, i) =>
-                i === 0
-                  ? {
-                      ...f,
-                      payment_amount: totals.grandTotal,
-                    }
-                  : f,
-              )
-            : [
-                {
-                  financial_id: "",
-                  payment_amount: totals.grandTotal,
-                },
-              ],
-      }));
-    } else if (formData.payment_status === "later") {
-      setFormData((prev) => ({
-        ...prev,
-        financials: [],
-      }));
-    } else if (formData.payment_status === "partial") {
-      if (formData.financials.length === 0) {
-        setFormData((prev) => ({
-          ...prev,
-          financials: [
-            {
-              financial_id: "",
-              payment_amount: 0,
-            },
-          ],
-        }));
-      }
-    }
-  }, [formData.payment_status]);
 
   // =========================================================
   // حساب الإجماليات
@@ -384,6 +338,53 @@ const PurchaseEdit = () => {
   }, [formData, selection]);
 
   // =========================================================
+  // منطق تغيير حالة الدفع
+  // =========================================================
+  useEffect(() => {
+    if (formData.payment_status === "full") {
+      setFormData((prev) => ({
+        ...prev,
+
+        installments: [],
+
+        financials:
+          prev.financials.length > 0
+            ? prev.financials.map((f, i) =>
+                i === 0
+                  ? {
+                      ...f,
+                      payment_amount: totals.grandTotal,
+                    }
+                  : f,
+              )
+            : [
+                {
+                  financial_id: "",
+                  payment_amount: totals.grandTotal,
+                },
+              ],
+      }));
+    } else if (formData.payment_status === "later") {
+      setFormData((prev) => ({
+        ...prev,
+        financials: [],
+      }));
+    } else if (formData.payment_status === "partial") {
+      if (formData.financials.length === 0) {
+        setFormData((prev) => ({
+          ...prev,
+          financials: [
+            {
+              financial_id: "",
+              payment_amount: 0,
+            },
+          ],
+        }));
+      }
+    }
+  }, [formData.payment_status]);
+
+  // =========================================================
   // Search Suggestions
   // =========================================================
   const suggestions = useMemo(() => {
@@ -424,13 +425,8 @@ const PurchaseEdit = () => {
   // إضافة كل المنتجات المحددة مرة واحدة
   // =========================================================
   const addSelectedProducts = () => {
-    if (selectedProductIds.length === 0) {
-      return;
-    }
+    if (selectedProductIds.length === 0) return;
 
-    // نستخدم processedProducts وليس suggestions
-    // حتى لو تغير الـ search بعد الاختيار تظل المنتجات
-    // المحددة موجودة.
     const selectedItems = processedProducts.filter((item) =>
       selectedProductIds.includes(getProductKey(item)),
     );
@@ -438,18 +434,13 @@ const PurchaseEdit = () => {
     const newItems = [];
 
     selectedItems.forEach((item) => {
-      // =====================================================
-      // منع التكرار
-      // =====================================================
       const isDuplicate = formData.purchase_items.some((p) =>
         item.original_product_id
           ? String(p.variant_id) === String(item.id)
           : String(p.product_id) === String(item.id),
       );
 
-      if (isDuplicate) {
-        return;
-      }
+      if (isDuplicate) return;
 
       const itemCost = Number(item.cost || 0);
 
@@ -476,29 +467,17 @@ const PurchaseEdit = () => {
       });
     });
 
-    // =====================================================
-    // كل المنتجات التي اخترتها موجودة بالفعل
-    // =====================================================
     if (newItems.length === 0) {
       toast.warning(t("ProductAlreadyAdded"));
-
       return;
     }
 
-    // =====================================================
-    // إضافة المنتجات الجديدة للمنتجات الموجودة
-    // =====================================================
     setFormData((prev) => ({
       ...prev,
-
       purchase_items: [...prev.purchase_items, ...newItems],
     }));
 
-    // =====================================================
-    // Reset Selection
-    // =====================================================
     setSelectedProductIds([]);
-
     setSearchProduct("");
   };
 
@@ -508,7 +487,6 @@ const PurchaseEdit = () => {
   const addFinancialRow = () => {
     setFormData((prev) => ({
       ...prev,
-
       financials: [
         ...prev.financials,
         {
@@ -527,16 +505,10 @@ const PurchaseEdit = () => {
 
     setFormData({
       ...formData,
-
       financials:
         newFins.length > 0
           ? newFins
-          : [
-              {
-                financial_id: "",
-                payment_amount: 0,
-              },
-            ],
+          : [{ financial_id: "", payment_amount: 0 }],
     });
   };
 
@@ -563,9 +535,7 @@ const PurchaseEdit = () => {
 
       purchase_items: totals.itemsWithNetCost.map(
         ({ name, netUnitCost, exp_ability, ...rest }) => {
-          const item = {
-            ...rest,
-          };
+          const item = { ...rest };
 
           if (!exp_ability) {
             delete item.expiry_date;
@@ -583,23 +553,14 @@ const PurchaseEdit = () => {
     };
 
     const qDate = document.getElementById("q_date")?.value;
-
     const qAmt = document.getElementById("q_amt")?.value;
 
     if (qDate && qAmt) {
-      payload.installments.push({
-        date: qDate,
-        amount: qAmt,
-      });
+      payload.installments.push({ date: qDate, amount: qAmt });
     }
 
-    if (!payload.tax_id) {
-      delete payload.tax_id;
-    }
-
-    if (!payload.supplier_id) {
-      delete payload.supplier_id;
-    }
+    if (!payload.tax_id) delete payload.tax_id;
+    if (!payload.supplier_id) delete payload.supplier_id;
 
     if (!payload.warehouse_id || payload.purchase_items.length === 0) {
       return toast.error(t("PleaseCompleteRequiredFields"));
@@ -610,7 +571,6 @@ const PurchaseEdit = () => {
 
       if (response) {
         toast.success(t("Updated successfully"));
-
         navigate("/purchase");
       }
     } catch (error) {
@@ -632,9 +592,7 @@ const PurchaseEdit = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-sm p-8 border">
-        {/* ===================================================
-            Header
-        =================================================== */}
+        {/* Header */}
         <div className="flex justify-between items-center mb-8 border-b pb-6">
           <h1 className="text-2xl font-black text-gray-900">
             {t("Edit Purchase Order")}
@@ -645,11 +603,8 @@ const PurchaseEdit = () => {
           </span>
         </div>
 
-        {/* ===================================================
-            Warehouse / Supplier / Date
-        =================================================== */}
+        {/* Warehouse / Supplier / Date */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Warehouse */}
           <div className="space-y-2">
             <label className="text-sm font-bold flex items-center gap-2">
               <Warehouse size={16} />
@@ -660,14 +615,10 @@ const PurchaseEdit = () => {
               className="w-full border rounded-xl p-3 bg-white"
               value={formData.warehouse_id}
               onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  warehouse_id: e.target.value,
-                })
+                setFormData({ ...formData, warehouse_id: e.target.value })
               }
             >
               <option value="">{t("Select Warehouse")}</option>
-
               {selection?.warehouse?.map((w) => (
                 <option key={w._id} value={w._id}>
                   {w.name}
@@ -676,7 +627,6 @@ const PurchaseEdit = () => {
             </select>
           </div>
 
-          {/* Supplier */}
           <div className="space-y-2">
             <label className="text-sm font-bold flex items-center gap-2">
               <User size={16} />
@@ -687,14 +637,10 @@ const PurchaseEdit = () => {
               className="w-full border rounded-xl p-3 bg-white"
               value={formData.supplier_id}
               onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  supplier_id: e.target.value,
-                })
+                setFormData({ ...formData, supplier_id: e.target.value })
               }
             >
               <option value="">{t("Select Supplier")}</option>
-
               {selection?.supplier?.map((s) => (
                 <option key={s._id} value={s._id}>
                   {s.name || s.username}
@@ -703,7 +649,6 @@ const PurchaseEdit = () => {
             </select>
           </div>
 
-          {/* Date */}
           <div className="space-y-2">
             <label className="text-sm font-bold flex items-center gap-2">
               <Calendar size={16} />
@@ -715,24 +660,18 @@ const PurchaseEdit = () => {
               className="w-full border rounded-xl p-3 bg-white"
               value={formData.date}
               onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  date: e.target.value,
-                })
+                setFormData({ ...formData, date: e.target.value })
               }
             />
           </div>
         </div>
 
-        {/* ===================================================
-            Multi Select Search Products
-        =================================================== */}
+        {/* Multi Select Search Products */}
         <div className="relative z-40 mb-6">
           <label className="block text-sm font-bold text-gray-700 mb-2">
             {t("Search Products")}
           </label>
 
-          {/* Search Input */}
           <input
             type="text"
             value={searchProduct}
@@ -741,17 +680,12 @@ const PurchaseEdit = () => {
             className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100"
           />
 
-          {/* =================================================
-              Suggestions
-          ================================================= */}
           {suggestions.length > 0 && (
             <div className="absolute w-full bg-white border shadow-2xl rounded-xl mt-1 overflow-hidden z-50">
               {suggestions.map((p) => {
                 const key = getProductKey(p);
-
                 const isSelected = selectedProductIds.includes(key);
 
-                // هل المنتج موجود أصلًا في الفاتورة؟
                 const alreadyAdded = formData.purchase_items.some((item) =>
                   p.original_product_id
                     ? String(item.variant_id) === String(p.id)
@@ -762,14 +696,11 @@ const PurchaseEdit = () => {
                   <div
                     key={key}
                     onClick={() => {
-                      if (!alreadyAdded) {
-                        toggleProductSelection(p);
-                      }
+                      if (!alreadyAdded) toggleProductSelection(p);
                     }}
                     className={`
                       p-4 flex justify-between items-center
-                      border-b last:border-0
-                      transition-colors
+                      border-b last:border-0 transition-colors
                       ${
                         alreadyAdded
                           ? "bg-gray-50 opacity-50 cursor-not-allowed"
@@ -779,9 +710,7 @@ const PurchaseEdit = () => {
                       }
                     `}
                   >
-                    {/* Left Side */}
                     <div className="flex items-center gap-3">
-                      {/* Checkbox */}
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -790,7 +719,6 @@ const PurchaseEdit = () => {
                         className="w-5 h-5 accent-red-600"
                       />
 
-                      {/* Product Info */}
                       <div className="flex flex-col">
                         <span
                           className={`font-bold ${
@@ -801,23 +729,19 @@ const PurchaseEdit = () => {
                         </span>
 
                         <div className="flex items-center gap-2 mt-1">
-                          {/* Code */}
                           {p.code && (
                             <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-mono">
                               #{p.code}
                             </span>
                           )}
 
-                          {/* Expiry */}
                           {p.exp_ability && (
                             <span className="text-[10px] text-orange-500 font-black tracking-tighter uppercase flex items-center gap-1">
                               <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
-
                               {t("Requires Expiry")}
                             </span>
                           )}
 
-                          {/* Already Added */}
                           {alreadyAdded && (
                             <span className="text-[10px] text-gray-400 font-bold">
                               {t("Already Added")}
@@ -827,12 +751,10 @@ const PurchaseEdit = () => {
                       </div>
                     </div>
 
-                    {/* Price */}
                     <div className="text-right">
                       <span className="font-black text-red-600 text-lg">
                         {p.price}
                       </span>
-
                       <span className="text-red-400 text-xs ml-1 font-bold">
                         {currencyCode}
                       </span>
@@ -841,9 +763,6 @@ const PurchaseEdit = () => {
                 );
               })}
 
-              {/* =================================================
-                  Add Selected Products
-              ================================================= */}
               {selectedProductIds.length > 0 && (
                 <div className="p-3 bg-gray-50 border-t">
                   <button
@@ -859,37 +778,26 @@ const PurchaseEdit = () => {
           )}
         </div>
 
-        {/* ===================================================
-            Purchase Items Table
-        =================================================== */}
+        {/* Purchase Items Table */}
         <div className="overflow-x-auto border rounded-2xl mb-8">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-600">
               <tr>
                 <th className="p-4 text-left">{t("Product")}</th>
-
                 <th className="p-4 w-32 text-center text-orange-600">
                   {t("Expiry Date")}
                 </th>
-
                 <th className="p-4 w-20 text-center">{t("Qty")}</th>
-
                 <th className="p-4 w-28 text-center text-indigo-700 bg-indigo-50/50">
                   {t("Average Cost")}
                 </th>
-
                 <th className="p-4 w-28 text-center">{t("Cost")}</th>
-
                 <th className="p-4 w-24 text-orange-600">{t("Disc/Item")}</th>
-
                 <th className="p-4 w-24 text-blue-600">{t("Tax/Item")}</th>
-
                 <th className="p-4 text-red-700 bg-red-50 font-bold">
                   {t("Net Cost")}
                 </th>
-
                 <th className="p-4 text-right">{t("Subtotal")}</th>
-
                 <th className="p-4 w-10"></th>
               </tr>
             </thead>
@@ -897,10 +805,8 @@ const PurchaseEdit = () => {
             <tbody className="divide-y divide-gray-100">
               {totals.itemsWithNetCost.map((item, idx) => (
                 <tr key={idx} className="hover:bg-gray-50/50">
-                  {/* Product */}
                   <td className="p-4 font-bold">{item.name}</td>
 
-                  {/* Expiry */}
                   <td className="p-4">
                     {item.exp_ability ? (
                       <input
@@ -909,9 +815,7 @@ const PurchaseEdit = () => {
                         value={item.expiry_date || ""}
                         onChange={(e) => {
                           const newItems = [...formData.purchase_items];
-
                           newItems[idx].expiry_date = e.target.value;
-
                           setFormData({
                             ...formData,
                             purchase_items: newItems,
@@ -923,7 +827,6 @@ const PurchaseEdit = () => {
                     )}
                   </td>
 
-                  {/* Quantity */}
                   <td className="p-2">
                     <input
                       type="number"
@@ -932,9 +835,7 @@ const PurchaseEdit = () => {
                       value={item.quantity}
                       onChange={(e) => {
                         const items = [...formData.purchase_items];
-
                         items[idx].quantity = e.target.value;
-
                         setFormData({
                           ...formData,
                           purchase_items: items,
@@ -943,7 +844,6 @@ const PurchaseEdit = () => {
                     />
                   </td>
 
-                  {/* Average Cost */}
                   <td className="p-3 text-center whitespace-nowrap">
                     {Number(item.avg_cost || 0) > 0 ? (
                       <span className="inline-block px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-xs">
@@ -956,7 +856,6 @@ const PurchaseEdit = () => {
                     )}
                   </td>
 
-                  {/* Cost */}
                   <td className="p-2">
                     <input
                       type="number"
@@ -966,9 +865,7 @@ const PurchaseEdit = () => {
                       value={item.unit_cost}
                       onChange={(e) => {
                         const items = [...formData.purchase_items];
-
                         items[idx].unit_cost = e.target.value;
-
                         setFormData({
                           ...formData,
                           purchase_items: items,
@@ -977,7 +874,6 @@ const PurchaseEdit = () => {
                     />
                   </td>
 
-                  {/* Discount */}
                   <td className="p-4">
                     <input
                       type="number"
@@ -985,9 +881,7 @@ const PurchaseEdit = () => {
                       value={item.discount}
                       onChange={(e) => {
                         const items = [...formData.purchase_items];
-
                         items[idx].discount = e.target.value;
-
                         setFormData({
                           ...formData,
                           purchase_items: items,
@@ -996,7 +890,6 @@ const PurchaseEdit = () => {
                     />
                   </td>
 
-                  {/* Tax */}
                   <td className="p-4">
                     <input
                       type="number"
@@ -1004,9 +897,7 @@ const PurchaseEdit = () => {
                       value={item.tax}
                       onChange={(e) => {
                         const items = [...formData.purchase_items];
-
                         items[idx].tax = e.target.value;
-
                         setFormData({
                           ...formData,
                           purchase_items: items,
@@ -1015,17 +906,14 @@ const PurchaseEdit = () => {
                     />
                   </td>
 
-                  {/* Net Cost */}
                   <td className="p-4 text-center font-black text-red-700 bg-red-50/30">
                     {item.netUnitCost.toFixed(2)}
                   </td>
 
-                  {/* Subtotal */}
                   <td className="p-4 text-right font-bold text-gray-700">
                     {item.subtotal.toFixed(2)}
                   </td>
 
-                  {/* Delete */}
                   <td className="p-4 text-center">
                     <button
                       type="button"
@@ -1048,25 +936,17 @@ const PurchaseEdit = () => {
           </table>
         </div>
 
-        {/* ===================================================
-            Payment & Totals
-        =================================================== */}
+        {/* Payment & Totals */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* =================================================
-              Payment Side
-          ================================================= */}
+          {/* Payment Side */}
           <div className="space-y-6">
-            {/* Payment Status */}
             <div className="flex gap-2 p-1.5 bg-gray-100 rounded-2xl">
               {["full", "partial", "later"].map((m) => (
                 <button
                   type="button"
                   key={m}
                   onClick={() =>
-                    setFormData({
-                      ...formData,
-                      payment_status: m,
-                    })
+                    setFormData({ ...formData, payment_status: m })
                   }
                   className={`flex-1 py-3 rounded-xl font-black transition-all ${
                     formData.payment_status === m
@@ -1079,15 +959,11 @@ const PurchaseEdit = () => {
               ))}
             </div>
 
-            {/* =================================================
-                Financials
-            ================================================= */}
             {formData.payment_status !== "later" && (
               <div className="p-6 border-2 border-dashed border-gray-100 rounded-[2rem] space-y-4 bg-white shadow-sm">
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-sm font-black text-gray-700 flex items-center gap-2">
                     <Wallet size={16} className="text-red-600" />
-
                     {t("Split Payment Methods")}
                   </label>
 
@@ -1107,17 +983,11 @@ const PurchaseEdit = () => {
                       value={f.financial_id}
                       onChange={(e) => {
                         const fins = [...formData.financials];
-
                         fins[i].financial_id = e.target.value;
-
-                        setFormData({
-                          ...formData,
-                          financials: fins,
-                        });
+                        setFormData({ ...formData, financials: fins });
                       }}
                     >
                       <option value="">{t("Select Account")}</option>
-
                       {selection?.financial?.map((fin) => (
                         <option key={fin._id} value={fin._id}>
                           {fin.name}
@@ -1133,16 +1003,10 @@ const PurchaseEdit = () => {
                         value={f.payment_amount}
                         onChange={(e) => {
                           const fins = [...formData.financials];
-
                           fins[i].payment_amount = e.target.value;
-
-                          setFormData({
-                            ...formData,
-                            financials: fins,
-                          });
+                          setFormData({ ...formData, financials: fins });
                         }}
                       />
-
                       <span className="absolute right-3 top-3.5 text-[10px] text-gray-400 font-bold">
                         {currencyCode}
                       </span>
@@ -1163,7 +1027,6 @@ const PurchaseEdit = () => {
                     <span className="text-[10px] text-red-600 font-bold uppercase tracking-wider">
                       {t("Remaining to allocate")}
                     </span>
-
                     <span className="text-sm font-black text-red-700">
                       {totals.remainingToPay} {currencyCode}
                     </span>
@@ -1172,9 +1035,6 @@ const PurchaseEdit = () => {
               </div>
             )}
 
-            {/* =================================================
-                Installments
-            ================================================= */}
             {formData.payment_status !== "full" &&
               (() => {
                 const totalInstallments = formData.installments.reduce(
@@ -1195,7 +1055,6 @@ const PurchaseEdit = () => {
                     <div className="flex justify-between items-center">
                       <label className="text-sm font-black text-orange-700 flex items-center gap-2">
                         <Calendar size={16} />
-
                         {t("Installments Schedule")}
                       </label>
 
@@ -1218,26 +1077,22 @@ const PurchaseEdit = () => {
                       )}
                     </div>
 
-                    {/* Add installment */}
                     <div className="flex gap-2">
                       <input
                         type="date"
                         id="q_date"
                         className="flex-1 border border-orange-200 rounded-xl p-2.5 text-sm"
                       />
-
                       <input
                         type="number"
                         id="q_amt"
                         className="w-32 border border-orange-200 rounded-xl p-2.5 text-sm"
                         placeholder="Amount"
                       />
-
                       <button
                         type="button"
                         onClick={() => {
                           const d = document.getElementById("q_date").value;
-
                           const a = document.getElementById("q_amt").value;
 
                           if (d && a) {
@@ -1245,15 +1100,11 @@ const PurchaseEdit = () => {
                               ...prev,
                               installments: [
                                 ...prev.installments,
-                                {
-                                  date: d,
-                                  amount: a,
-                                },
+                                { date: d, amount: a },
                               ],
                             }));
 
                             document.getElementById("q_date").value = "";
-
                             document.getElementById("q_amt").value = "";
                           }
                         }}
@@ -1263,7 +1114,6 @@ const PurchaseEdit = () => {
                       </button>
                     </div>
 
-                    {/* Progress */}
                     {totals.grandTotal > 0 &&
                       formData.installments.length > 0 && (
                         <div className="space-y-1">
@@ -1277,7 +1127,6 @@ const PurchaseEdit = () => {
                                     totals.grandTotal) *
                                     100,
                                 )}%`,
-
                                 background:
                                   remainingAfterInstallments <= 0
                                     ? "#22c55e"
@@ -1293,7 +1142,6 @@ const PurchaseEdit = () => {
                                 totalPaidFinancials + totalInstallments
                               ).toFixed(2)}
                             </span>
-
                             <span>
                               {Math.min(
                                 100,
@@ -1307,7 +1155,6 @@ const PurchaseEdit = () => {
                         </div>
                       )}
 
-                    {/* Installment List */}
                     <div className="space-y-2">
                       {formData.installments.map((item, i) => {
                         const runningTotal = formData.installments
@@ -1371,29 +1218,23 @@ const PurchaseEdit = () => {
               })()}
           </div>
 
-          {/* =================================================
-              Totals
-          ================================================= */}
+          {/* Totals */}
           <div className="bg-gray-900 text-white p-8 rounded-[2.5rem] shadow-2xl flex flex-col justify-between">
             <div className="space-y-6">
-              {/* Items Total */}
               <div className="flex justify-between items-center pb-4 border-b border-gray-800">
                 <span className="text-gray-400 text-sm">
                   {t("Items Total")}
                 </span>
-
                 <span className="font-mono text-lg">
                   {totals.itemsTotalBeforeAll.toFixed(2)}
                 </span>
               </div>
 
-              {/* General Tax */}
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-400 text-sm">
                     {t("General Tax")}
                   </span>
-
                   <Info size={14} className="text-gray-600" />
                 </div>
 
@@ -1401,14 +1242,10 @@ const PurchaseEdit = () => {
                   className="bg-gray-800 text-xs border-none rounded-lg p-2 outline-none"
                   value={formData.tax_id}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      tax_id: e.target.value,
-                    })
+                    setFormData({ ...formData, tax_id: e.target.value })
                   }
                 >
                   <option value="">{t("No General Tax")}</option>
-
                   {selection?.tax?.map((tx) => (
                     <option key={tx._id} value={tx._id}>
                       {tx.name} ({tx.amount}%)
@@ -1417,12 +1254,10 @@ const PurchaseEdit = () => {
                 </select>
               </div>
 
-              {/* Shipping */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-400 text-sm">
                   {t("Shipping Cost")}
                 </span>
-
                 <input
                   type="number"
                   className="w-24 bg-gray-800 border-none rounded-lg p-2 text-right font-bold"
@@ -1436,33 +1271,26 @@ const PurchaseEdit = () => {
                 />
               </div>
 
-              {/* Discount */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-400 text-sm">
                   {t("General Discount")}
                 </span>
-
                 <input
                   type="number"
                   className="w-24 bg-gray-800 border-none rounded-lg p-2 text-right font-bold text-orange-400"
                   value={formData.discount}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      discount: e.target.value,
-                    })
+                    setFormData({ ...formData, discount: e.target.value })
                   }
                 />
               </div>
             </div>
 
-            {/* Grand Total */}
             <div className="mt-10 pt-8 border-t border-gray-800 flex justify-between items-end">
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">
                   {t("Payable Amount")}
                 </p>
-
                 <span className="text-gray-400 font-bold">
                   {t("Grand Total")}
                 </span>
@@ -1472,7 +1300,6 @@ const PurchaseEdit = () => {
                 <span className="text-5xl font-black text-red-400 font-mono tracking-tighter">
                   {totals.grandTotal.toFixed(2)}
                 </span>
-
                 <span className="text-red-700 ml-2 font-bold">
                   {currencyCode}
                 </span>
@@ -1481,9 +1308,6 @@ const PurchaseEdit = () => {
           </div>
         </div>
 
-        {/* ===================================================
-            Save
-        =================================================== */}
         <button
           type="button"
           onClick={handleUpdate}
