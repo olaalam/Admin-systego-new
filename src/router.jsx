@@ -155,7 +155,9 @@ import Ecommerce from "./Pages/Ecommerce/Ecommerce";
 import EcommerceData from "./Pages/EcommerceData/EcommerceData";
 import EcommerceDataAdd from "./Pages/EcommerceData/EcommerceDataAdd";
 import EcommerceDataEdit from "./Pages/EcommerceData/EcommerceDataEdit";
-
+import DeliveryMan from "./Pages/DeliveryMan/DeliveryMan";
+import DeliveryManAdd from "./Pages/DeliveryMan/DeliveryManAdd";
+import DeliveryManEdit from "./Pages/DeliveryMan/DeliveryManEdit";
 
 export default function AppRoutes() {
   return (
@@ -185,7 +187,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.PRODUCT} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.PRODUCT}
+              action={ModuleActions.VIEW}
+            >
               <Product />
             </ProtectedRoute>
           }
@@ -193,7 +198,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.PRODUCT} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.PRODUCT}
+              action={ModuleActions.ADD}
+            >
               <ProductAdd />
             </ProtectedRoute>
           }
@@ -201,8 +209,47 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.PRODUCT} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.PRODUCT}
+              action={ModuleActions.EDIT}
+            >
               <ProductEdit />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+      {/* ✅ Delivery Man */}
+      <Route path="delivery-man">
+        <Route
+          index
+          element={
+            <ProtectedRoute
+              module={AppModules.DELIVERY_MAN}
+              action={ModuleActions.VIEW}
+            >
+              <DeliveryMan />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute
+              module={AppModules.DELIVERY_MAN}
+              action={ModuleActions.ADD}
+            >
+              <DeliveryManAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute
+              module={AppModules.DELIVERY_MAN}
+              action={ModuleActions.EDIT}
+            >
+              <DeliveryManEdit />
             </ProtectedRoute>
           }
         />
@@ -212,7 +259,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.BRAND} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.BRAND}
+              action={ModuleActions.VIEW}
+            >
               <Brand />
             </ProtectedRoute>
           }
@@ -220,7 +270,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.BRAND} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.BRAND}
+              action={ModuleActions.ADD}
+            >
               <BrandAdd />
             </ProtectedRoute>
           }
@@ -228,7 +281,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.BRAND} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.BRAND}
+              action={ModuleActions.EDIT}
+            >
               <BrandEdit />
             </ProtectedRoute>
           }
@@ -239,7 +295,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.CATEGORY} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.CATEGORY}
+              action={ModuleActions.VIEW}
+            >
               <Category />
             </ProtectedRoute>
           }
@@ -247,7 +306,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.CATEGORY} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.CATEGORY}
+              action={ModuleActions.ADD}
+            >
               <CategoryAdd />
             </ProtectedRoute>
           }
@@ -255,7 +317,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.CATEGORY} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.CATEGORY}
+              action={ModuleActions.EDIT}
+            >
               <CategoryEdit />
             </ProtectedRoute>
           }
@@ -266,7 +331,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.VARIATION} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.VARIATION}
+              action={ModuleActions.VIEW}
+            >
               <Attribute />
             </ProtectedRoute>
           }
@@ -274,7 +342,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.VARIATION} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.VARIATION}
+              action={ModuleActions.ADD}
+            >
               <AttributeAdd />
             </ProtectedRoute>
           }
@@ -282,7 +353,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.VARIATION} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.VARIATION}
+              action={ModuleActions.EDIT}
+            >
               <AttributeEdit />
             </ProtectedRoute>
           }
@@ -293,7 +367,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.ADMIN} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.ADMIN}
+              action={ModuleActions.VIEW}
+            >
               <Admin />
             </ProtectedRoute>
           }
@@ -301,7 +378,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.ADMIN} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.ADMIN}
+              action={ModuleActions.ADD}
+            >
               <AdminAdd />
             </ProtectedRoute>
           }
@@ -309,7 +389,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.ADMIN} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.ADMIN}
+              action={ModuleActions.EDIT}
+            >
               <AdminEdit />
             </ProtectedRoute>
           }
@@ -320,7 +403,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.CITY} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.CITY}
+              action={ModuleActions.VIEW}
+            >
               <City />
             </ProtectedRoute>
           }
@@ -336,7 +422,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.CITY} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.CITY}
+              action={ModuleActions.EDIT}
+            >
               <CityEdit />
             </ProtectedRoute>
           }
@@ -347,7 +436,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.COUNTRY} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.COUNTRY}
+              action={ModuleActions.VIEW}
+            >
               <Country />
             </ProtectedRoute>
           }
@@ -355,7 +447,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.COUNTRY} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.COUNTRY}
+              action={ModuleActions.ADD}
+            >
               <CountryAdd />
             </ProtectedRoute>
           }
@@ -363,7 +458,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.COUNTRY} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.COUNTRY}
+              action={ModuleActions.EDIT}
+            >
               <CountryEdit />
             </ProtectedRoute>
           }
@@ -374,7 +472,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.WAREHOUSE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.WAREHOUSE}
+              action={ModuleActions.VIEW}
+            >
               <WareHouse />
             </ProtectedRoute>
           }
@@ -382,7 +483,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.WAREHOUSE} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.WAREHOUSE}
+              action={ModuleActions.ADD}
+            >
               <WareHouseAdd />
             </ProtectedRoute>
           }
@@ -390,7 +494,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.WAREHOUSE} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.WAREHOUSE}
+              action={ModuleActions.EDIT}
+            >
               <WareHouseEdit />
             </ProtectedRoute>
           }
@@ -398,7 +505,10 @@ export default function AppRoutes() {
         <Route
           path="transfer/:id"
           element={
-            <ProtectedRoute module={AppModules.WAREHOUSE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.WAREHOUSE}
+              action={ModuleActions.VIEW}
+            >
               <TransferWarehouse />
             </ProtectedRoute>
           }
@@ -409,7 +519,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.FINANCIAL_ACCOUNT} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.FINANCIAL_ACCOUNT}
+              action={ModuleActions.VIEW}
+            >
               <Accounting />
             </ProtectedRoute>
           }
@@ -417,7 +530,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.FINANCIAL_ACCOUNT} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.FINANCIAL_ACCOUNT}
+              action={ModuleActions.ADD}
+            >
               <AccountingAdd />
             </ProtectedRoute>
           }
@@ -425,7 +541,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.FINANCIAL_ACCOUNT} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.FINANCIAL_ACCOUNT}
+              action={ModuleActions.EDIT}
+            >
               <AccountingEdit />
             </ProtectedRoute>
           }
@@ -436,7 +555,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.SUPPLIER} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.SUPPLIER}
+              action={ModuleActions.VIEW}
+            >
               <Supplier />
             </ProtectedRoute>
           }
@@ -444,7 +566,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.SUPPLIER} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.SUPPLIER}
+              action={ModuleActions.ADD}
+            >
               <SupplierAdd />
             </ProtectedRoute>
           }
@@ -452,7 +577,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.SUPPLIER} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.SUPPLIER}
+              action={ModuleActions.EDIT}
+            >
               <SupplierEdit />
             </ProtectedRoute>
           }
@@ -460,7 +588,10 @@ export default function AppRoutes() {
         <Route
           path="details/:id"
           element={
-            <ProtectedRoute module={AppModules.SUPPLIER} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.SUPPLIER}
+              action={ModuleActions.VIEW}
+            >
               <SupplierDetails />
             </ProtectedRoute>
           }
@@ -471,7 +602,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.PAYMENT_METHOD} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.PAYMENT_METHOD}
+              action={ModuleActions.VIEW}
+            >
               <PaymentMethod />
             </ProtectedRoute>
           }
@@ -479,7 +613,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.PAYMENT_METHOD} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.PAYMENT_METHOD}
+              action={ModuleActions.ADD}
+            >
               <PaymentMethodAdd />
             </ProtectedRoute>
           }
@@ -487,7 +624,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.PAYMENT_METHOD} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.PAYMENT_METHOD}
+              action={ModuleActions.EDIT}
+            >
               <PaymentMethodEdit />
             </ProtectedRoute>
           }
@@ -498,7 +638,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.UNITS} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.UNITS}
+              action={ModuleActions.VIEW}
+            >
               <Unit />
             </ProtectedRoute>
           }
@@ -506,7 +649,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.UNITS} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.UNITS}
+              action={ModuleActions.ADD}
+            >
               <UnitAdd />
             </ProtectedRoute>
           }
@@ -514,7 +660,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.UNITS} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.UNITS}
+              action={ModuleActions.EDIT}
+            >
               <UnitEdit />
             </ProtectedRoute>
           }
@@ -525,7 +674,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.EXPENSE_CATEGORY} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.EXPENSE_CATEGORY}
+              action={ModuleActions.VIEW}
+            >
               <ExpensesCategory />
             </ProtectedRoute>
           }
@@ -533,7 +685,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.EXPENSE_CATEGORY} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.EXPENSE_CATEGORY}
+              action={ModuleActions.ADD}
+            >
               <ExpensesCategoryAdd />
             </ProtectedRoute>
           }
@@ -541,7 +696,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.EXPENSE_CATEGORY} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.EXPENSE_CATEGORY}
+              action={ModuleActions.EDIT}
+            >
               <ExpensesCategoryEdit />
             </ProtectedRoute>
           }
@@ -552,7 +710,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.TAXES} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.TAXES}
+              action={ModuleActions.VIEW}
+            >
               <Taxes />
             </ProtectedRoute>
           }
@@ -560,7 +721,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.TAXES} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.TAXES}
+              action={ModuleActions.ADD}
+            >
               <TaxesAdd />
             </ProtectedRoute>
           }
@@ -568,7 +732,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.TAXES} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.TAXES}
+              action={ModuleActions.EDIT}
+            >
               <TaxesEdit />
             </ProtectedRoute>
           }
@@ -579,7 +746,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.PERMISSION} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.PERMISSION}
+              action={ModuleActions.VIEW}
+            >
               <Permission />
             </ProtectedRoute>
           }
@@ -587,7 +757,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.PERMISSION} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.PERMISSION}
+              action={ModuleActions.ADD}
+            >
               <PermissionAdd />
             </ProtectedRoute>
           }
@@ -595,7 +768,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.PERMISSION} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.PERMISSION}
+              action={ModuleActions.EDIT}
+            >
               <PermissionEdit />
             </ProtectedRoute>
           }
@@ -606,7 +782,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.TRANSFER} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.TRANSFER}
+              action={ModuleActions.VIEW}
+            >
               <Transfer />
             </ProtectedRoute>
           }
@@ -614,7 +793,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.TRANSFER} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.TRANSFER}
+              action={ModuleActions.ADD}
+            >
               <TransferAdd />
             </ProtectedRoute>
           }
@@ -622,7 +804,10 @@ export default function AppRoutes() {
         <Route
           path="details/:id"
           element={
-            <ProtectedRoute module={AppModules.TRANSFER} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.TRANSFER}
+              action={ModuleActions.VIEW}
+            >
               <TransferDetails />
             </ProtectedRoute>
           }
@@ -675,7 +860,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.REVENUE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.REVENUE}
+              action={ModuleActions.VIEW}
+            >
               <Revenue />
             </ProtectedRoute>
           }
@@ -683,7 +871,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.REVENUE} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.REVENUE}
+              action={ModuleActions.ADD}
+            >
               <RevenueAdd />
             </ProtectedRoute>
           }
@@ -691,7 +882,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.REVENUE} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.REVENUE}
+              action={ModuleActions.EDIT}
+            >
               <RevenueEdit />
             </ProtectedRoute>
           }
@@ -702,7 +896,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.EXPENSE_ADMIN} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.EXPENSE_ADMIN}
+              action={ModuleActions.VIEW}
+            >
               <Expenses />
             </ProtectedRoute>
           }
@@ -710,7 +907,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.EXPENSE_ADMIN} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.EXPENSE_ADMIN}
+              action={ModuleActions.ADD}
+            >
               <ExpensesAdd />
             </ProtectedRoute>
           }
@@ -718,7 +918,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.EXPENSE_ADMIN} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.EXPENSE_ADMIN}
+              action={ModuleActions.EDIT}
+            >
               <ExpensesEdit />
             </ProtectedRoute>
           }
@@ -729,7 +932,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.POPUP} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.POPUP}
+              action={ModuleActions.VIEW}
+            >
               <Popup />
             </ProtectedRoute>
           }
@@ -737,7 +943,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.POPUP} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.POPUP}
+              action={ModuleActions.ADD}
+            >
               <PopupAdd />
             </ProtectedRoute>
           }
@@ -745,7 +954,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.POPUP} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.POPUP}
+              action={ModuleActions.EDIT}
+            >
               <PopupEdit />
             </ProtectedRoute>
           }
@@ -756,7 +968,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.PANDEL} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.PANDEL}
+              action={ModuleActions.VIEW}
+            >
               <Pandel />
             </ProtectedRoute>
           }
@@ -764,7 +979,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.PANDEL} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.PANDEL}
+              action={ModuleActions.ADD}
+            >
               <PandelAdd />
             </ProtectedRoute>
           }
@@ -772,7 +990,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.PANDEL} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.PANDEL}
+              action={ModuleActions.EDIT}
+            >
               <PandelEdit />
             </ProtectedRoute>
           }
@@ -783,7 +1004,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.CUSTOMER} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.CUSTOMER}
+              action={ModuleActions.VIEW}
+            >
               <Customer />
             </ProtectedRoute>
           }
@@ -791,7 +1015,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.CUSTOMER} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.CUSTOMER}
+              action={ModuleActions.ADD}
+            >
               <CustomerAdd />
             </ProtectedRoute>
           }
@@ -799,7 +1026,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.CUSTOMER} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.CUSTOMER}
+              action={ModuleActions.EDIT}
+            >
               <CustomerEdit />
             </ProtectedRoute>
           }
@@ -807,7 +1037,10 @@ export default function AppRoutes() {
         <Route
           path="details/:id"
           element={
-            <ProtectedRoute module={AppModules.CUSTOMER} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.CUSTOMER}
+              action={ModuleActions.VIEW}
+            >
               <CustomerDetails />
             </ProtectedRoute>
           }
@@ -818,7 +1051,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.CUSTOMER_GROUP} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.CUSTOMER_GROUP}
+              action={ModuleActions.VIEW}
+            >
               <CustomerGroup />
             </ProtectedRoute>
           }
@@ -826,7 +1062,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.CUSTOMER_GROUP} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.CUSTOMER_GROUP}
+              action={ModuleActions.ADD}
+            >
               <CustomerGroupAdd />
             </ProtectedRoute>
           }
@@ -834,7 +1073,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.CUSTOMER_GROUP} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.CUSTOMER_GROUP}
+              action={ModuleActions.EDIT}
+            >
               <CustomerGroupEdit />
             </ProtectedRoute>
           }
@@ -845,7 +1087,10 @@ export default function AppRoutes() {
         <Route
           path=":id"
           element={
-            <ProtectedRoute module={AppModules.WAREHOUSE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.WAREHOUSE}
+              action={ModuleActions.VIEW}
+            >
               <ProductWarehouse />
             </ProtectedRoute>
           }
@@ -853,7 +1098,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.WAREHOUSE} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.WAREHOUSE}
+              action={ModuleActions.ADD}
+            >
               <ProductWarehouseAdd />
             </ProtectedRoute>
           }
@@ -861,7 +1109,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.WAREHOUSE} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.WAREHOUSE}
+              action={ModuleActions.EDIT}
+            >
               <ProductWarehouseEdit />
             </ProtectedRoute>
           }
@@ -871,7 +1122,10 @@ export default function AppRoutes() {
       <Route
         path="barcode"
         element={
-          <ProtectedRoute module={AppModules.PRODUCT} action={ModuleActions.VIEW}>
+          <ProtectedRoute
+            module={AppModules.PRODUCT}
+            action={ModuleActions.VIEW}
+          >
             <Barcode />
           </ProtectedRoute>
         }
@@ -881,7 +1135,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.CASHIER} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.CASHIER}
+              action={ModuleActions.VIEW}
+            >
               <Cashier />
             </ProtectedRoute>
           }
@@ -889,7 +1146,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.CASHIER} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.CASHIER}
+              action={ModuleActions.ADD}
+            >
               <CashierAdd />
             </ProtectedRoute>
           }
@@ -897,7 +1157,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.CASHIER} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.CASHIER}
+              action={ModuleActions.EDIT}
+            >
               <CashierEdit />
             </ProtectedRoute>
           }
@@ -908,7 +1171,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.DISCOUNT} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.DISCOUNT}
+              action={ModuleActions.VIEW}
+            >
               <Discount />
             </ProtectedRoute>
           }
@@ -916,7 +1182,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.DISCOUNT} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.DISCOUNT}
+              action={ModuleActions.ADD}
+            >
               <DiscountAdd />
             </ProtectedRoute>
           }
@@ -924,7 +1193,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.DISCOUNT} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.DISCOUNT}
+              action={ModuleActions.EDIT}
+            >
               <DiscountEdit />
             </ProtectedRoute>
           }
@@ -935,7 +1207,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.CURRENCY} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.CURRENCY}
+              action={ModuleActions.VIEW}
+            >
               <Currency />
             </ProtectedRoute>
           }
@@ -943,7 +1218,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.CURRENCY} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.CURRENCY}
+              action={ModuleActions.ADD}
+            >
               <CurrencyAdd />
             </ProtectedRoute>
           }
@@ -951,7 +1229,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.CURRENCY} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.CURRENCY}
+              action={ModuleActions.EDIT}
+            >
               <CurrencyEdit />
             </ProtectedRoute>
           }
@@ -962,7 +1243,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.ZONE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.ZONE}
+              action={ModuleActions.VIEW}
+            >
               <Zone />
             </ProtectedRoute>
           }
@@ -978,7 +1262,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.ZONE} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.ZONE}
+              action={ModuleActions.EDIT}
+            >
               <ZoneEdit />
             </ProtectedRoute>
           }
@@ -989,7 +1276,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.POINT} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.POINT}
+              action={ModuleActions.VIEW}
+            >
               <Point />
             </ProtectedRoute>
           }
@@ -997,7 +1287,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.POINT} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.POINT}
+              action={ModuleActions.ADD}
+            >
               <PointAdd />
             </ProtectedRoute>
           }
@@ -1005,7 +1298,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.POINT} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.POINT}
+              action={ModuleActions.EDIT}
+            >
               <PointEdit />
             </ProtectedRoute>
           }
@@ -1017,7 +1313,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.REDEEM_POINTS} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.REDEEM_POINTS}
+              action={ModuleActions.VIEW}
+            >
               <RedeemPoint />
             </ProtectedRoute>
           }
@@ -1025,7 +1324,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.REDEEM_POINTS} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.REDEEM_POINTS}
+              action={ModuleActions.ADD}
+            >
               <RedeemPointAdd />
             </ProtectedRoute>
           }
@@ -1033,7 +1335,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.REDEEM_POINTS} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.REDEEM_POINTS}
+              action={ModuleActions.EDIT}
+            >
               <RedeemPointEdit />
             </ProtectedRoute>
           }
@@ -1045,7 +1350,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.COUPON} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.COUPON}
+              action={ModuleActions.VIEW}
+            >
               <Coupon />
             </ProtectedRoute>
           }
@@ -1053,7 +1361,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.COUPON} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.COUPON}
+              action={ModuleActions.ADD}
+            >
               <CouponAdd />
             </ProtectedRoute>
           }
@@ -1061,7 +1372,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.COUPON} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.COUPON}
+              action={ModuleActions.EDIT}
+            >
               <CouponEdit />
             </ProtectedRoute>
           }
@@ -1073,7 +1387,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.PURCHASE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.PURCHASE}
+              action={ModuleActions.VIEW}
+            >
               <Purchase />
             </ProtectedRoute>
           }
@@ -1081,7 +1398,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.PURCHASE} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.PURCHASE}
+              action={ModuleActions.ADD}
+            >
               <PurchaseAdd />
             </ProtectedRoute>
           }
@@ -1089,7 +1409,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.PURCHASE} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.PURCHASE}
+              action={ModuleActions.EDIT}
+            >
               <PurchaseEdit />
             </ProtectedRoute>
           }
@@ -1100,7 +1423,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.PAYMENT} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.PAYMENT}
+              action={ModuleActions.VIEW}
+            >
               <Payments />
             </ProtectedRoute>
           }
@@ -1111,7 +1437,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.PURCHASE_RETURN} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.PURCHASE_RETURN}
+              action={ModuleActions.VIEW}
+            >
               <ReturnPurchase />
             </ProtectedRoute>
           }
@@ -1119,12 +1448,14 @@ export default function AppRoutes() {
         <Route
           path="add/:id"
           element={
-            <ProtectedRoute module={AppModules.PURCHASE_RETURN} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.PURCHASE_RETURN}
+              action={ModuleActions.ADD}
+            >
               <ReturnPurchaseAdd />
             </ProtectedRoute>
           }
         />
-
       </Route>
 
       {/* ✅ Wasted Management (Nested Routes محمية) */}
@@ -1132,7 +1463,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.WASTED} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.WASTED}
+              action={ModuleActions.VIEW}
+            >
               <Wasted />
             </ProtectedRoute>
           }
@@ -1140,7 +1474,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.WASTED} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.WASTED}
+              action={ModuleActions.ADD}
+            >
               <WastedAdd />
             </ProtectedRoute>
           }
@@ -1255,7 +1592,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.BANNER} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.BANNER}
+              action={ModuleActions.VIEW}
+            >
               <Banner />
             </ProtectedRoute>
           }
@@ -1263,7 +1603,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.BANNER} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.BANNER}
+              action={ModuleActions.ADD}
+            >
               <BannerAdd />
             </ProtectedRoute>
           }
@@ -1271,7 +1614,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.BANNER} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.BANNER}
+              action={ModuleActions.EDIT}
+            >
               <BannerEdit />
             </ProtectedRoute>
           }
@@ -1282,7 +1628,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.DECIMAL_SETTING} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.DECIMAL_SETTING}
+              action={ModuleActions.VIEW}
+            >
               <Decimal />
             </ProtectedRoute>
           }
@@ -1293,7 +1642,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.SERVICE_FEES} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.SERVICE_FEES}
+              action={ModuleActions.VIEW}
+            >
               <ServiceFees />
             </ProtectedRoute>
           }
@@ -1301,7 +1653,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.SERVICE_FEES} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.SERVICE_FEES}
+              action={ModuleActions.ADD}
+            >
               <ServiceFeesAdd />
             </ProtectedRoute>
           }
@@ -1309,7 +1664,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.SERVICE_FEES} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.SERVICE_FEES}
+              action={ModuleActions.EDIT}
+            >
               <ServiceFeesEdit />
             </ProtectedRoute>
           }
@@ -1320,7 +1678,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.COURIER} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.COURIER}
+              action={ModuleActions.VIEW}
+            >
               <Couriers />
             </ProtectedRoute>
           }
@@ -1328,7 +1689,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.COURIER} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.COURIER}
+              action={ModuleActions.ADD}
+            >
               <CouriersAdd />
             </ProtectedRoute>
           }
@@ -1336,19 +1700,24 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.COURIER} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.COURIER}
+              action={ModuleActions.EDIT}
+            >
               <CouriersEdit />
             </ProtectedRoute>
           }
         />
       </Route>
 
-
       <Route path="shipping">
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.SHIPPING} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.SHIPPING}
+              action={ModuleActions.VIEW}
+            >
               <Shipping />
             </ProtectedRoute>
           }
@@ -1357,7 +1726,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.SHIPPING} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.SHIPPING}
+              action={ModuleActions.EDIT}
+            >
               <ShippingEdit />
             </ProtectedRoute>
           }
@@ -1368,7 +1740,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.FREE_SHIPPING_PRODUCTS} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.FREE_SHIPPING_PRODUCTS}
+              action={ModuleActions.VIEW}
+            >
               <FreeShippingProducts />
             </ProtectedRoute>
           }
@@ -1377,7 +1752,10 @@ export default function AppRoutes() {
         <Route
           path="edit"
           element={
-            <ProtectedRoute module={AppModules.FREE_SHIPPING_PRODUCTS} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.FREE_SHIPPING_PRODUCTS}
+              action={ModuleActions.EDIT}
+            >
               <FreeShippingProductsEdit />
             </ProtectedRoute>
           }
@@ -1388,7 +1766,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.PAYMENT_ECO} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.PAYMENT_ECO}
+              action={ModuleActions.VIEW}
+            >
               <PaymentEco />
             </ProtectedRoute>
           }
@@ -1453,7 +1834,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.PAYABLE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.PAYABLE}
+              action={ModuleActions.VIEW}
+            >
               <Payable />
             </ProtectedRoute>
           }
@@ -1464,7 +1848,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.RECEVIBLE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.RECEVIBLE}
+              action={ModuleActions.VIEW}
+            >
               <Recevible />
             </ProtectedRoute>
           }
@@ -1475,7 +1862,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.LEDGER} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.LEDGER}
+              action={ModuleActions.VIEW}
+            >
               <Ledger />
             </ProtectedRoute>
           }
@@ -1486,7 +1876,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.RESERVE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.RESERVE}
+              action={ModuleActions.VIEW}
+            >
               <Reserve />
             </ProtectedRoute>
           }
@@ -1497,7 +1890,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.FAWRY} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.FAWRY}
+              action={ModuleActions.VIEW}
+            >
               <Fawry />
             </ProtectedRoute>
           }
@@ -1505,7 +1901,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.FAWRY} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.FAWRY}
+              action={ModuleActions.ADD}
+            >
               <FawryAdd />
             </ProtectedRoute>
           }
@@ -1513,7 +1912,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.FAWRY} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.FAWRY}
+              action={ModuleActions.EDIT}
+            >
               <FawryEdit />
             </ProtectedRoute>
           }
@@ -1524,7 +1926,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.EXPIRING} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.EXPIRING}
+              action={ModuleActions.VIEW}
+            >
               <Expiring />
             </ProtectedRoute>
           }
@@ -1535,7 +1940,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.PROFILE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.PROFILE}
+              action={ModuleActions.VIEW}
+            >
               <Porfile />
             </ProtectedRoute>
           }
@@ -1543,13 +1951,15 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.PROFILE} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.PROFILE}
+              action={ModuleActions.EDIT}
+            >
               <PorfileEdit />
             </ProtectedRoute>
           }
         />
       </Route>
-
 
       <Route path="all-returns">
         <Route
@@ -1571,7 +1981,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.ECOMMERCE}
+              action={ModuleActions.VIEW}
+            >
               <EcommerceData />
             </ProtectedRoute>
           }
@@ -1579,7 +1992,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.ECOMMERCE}
+              action={ModuleActions.ADD}
+            >
               <EcommerceDataAdd />
             </ProtectedRoute>
           }
@@ -1587,7 +2003,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.ECOMMERCE}
+              action={ModuleActions.EDIT}
+            >
               <EcommerceDataEdit />
             </ProtectedRoute>
           }
@@ -1599,7 +2018,10 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.ECOMMERCE}
+              action={ModuleActions.VIEW}
+            >
               <EcommerceData />
             </ProtectedRoute>
           }
@@ -1607,7 +2029,10 @@ export default function AppRoutes() {
         <Route
           path="add"
           element={
-            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.ADD}>
+            <ProtectedRoute
+              module={AppModules.ECOMMERCE}
+              action={ModuleActions.ADD}
+            >
               <EcommerceDataAdd />
             </ProtectedRoute>
           }
@@ -1615,7 +2040,10 @@ export default function AppRoutes() {
         <Route
           path="edit/:id"
           element={
-            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.EDIT}>
+            <ProtectedRoute
+              module={AppModules.ECOMMERCE}
+              action={ModuleActions.EDIT}
+            >
               <EcommerceDataEdit />
             </ProtectedRoute>
           }
@@ -1626,19 +2054,20 @@ export default function AppRoutes() {
         <Route
           index
           element={
-            <ProtectedRoute module={AppModules.ECOMMERCE} action={ModuleActions.VIEW}>
+            <ProtectedRoute
+              module={AppModules.ECOMMERCE}
+              action={ModuleActions.VIEW}
+            >
               <Ecommerce />
             </ProtectedRoute>
           }
         />
       </Route>
 
-
       <Route path="/unauthorized" element={<Unauthorized />} />
 
       {/* ❌ 404 - Not Found Route */}
       <Route path="*" element={<NotFoundPage />} />
-
     </Routes>
   );
 }

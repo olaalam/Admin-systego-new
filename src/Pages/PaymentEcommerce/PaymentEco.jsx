@@ -25,6 +25,7 @@ import {
   ChevronDown,
   ShoppingBag,
   MapPin,
+  User,
 } from "lucide-react";
 import {
   Dialog,
@@ -51,12 +52,55 @@ const FinancialsModal = ({
   statusOptions,
   onUpdateStatus,
   updating,
+  refetch,
 }) => {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
 
   const [selectedStatus, setSelectedStatus] = useState("");
   const [statusDescription, setStatusDescription] = useState("");
+  const [bostaActionLoading, setBostaActionLoading] = useState(false);
+
+  // ═══════════════════════════════════════════════════════════
+  // BOSTA ACTIONS
+  // ═══════════════════════════════════════════════════════════
+  const handleBostaAction = async (actionType) => {
+    try {
+      setBostaActionLoading(true);
+      let res;
+      
+      switch (actionType) {
+        case "create":
+          res = await api.post(`/api/admin/shipping/bosta/deliveries/from-order/${order._id}`);
+          toast.success(res.data?.message || t("Shipment created successfully"));
+          break;
+        case "refresh":
+          res = await api.patch(`/api/admin/shipping/bosta/tracking/${order.bostaShipment._id}/refresh`);
+          toast.success(res.data?.message || t("Tracking refreshed"));
+          break;
+        case "cancel":
+          if (!window.confirm(t("Are you sure you want to cancel this shipment?"))) return;
+          res = await api.put(`/api/admin/shipping/bosta/deliveries/${order.bostaShipment._id}/cancel`);
+          toast.success(res.data?.message || t("Shipment cancelled"));
+          break;
+        case "label":
+          res = await api.get(`/api/admin/shipping/bosta/label/${order.bostaShipment._id}`);
+          if (res.data?.labelUrl) {
+            window.open(res.data.labelUrl, "_blank");
+            return;
+          }
+          break;
+      }
+      
+      // Refresh the main table after a successful action to see the updated bostaShipment
+      if (refetch) refetch();
+      
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || t("Action failed"));
+    } finally {
+      setBostaActionLoading(false);
+    }
+  };
 
   // Reset local state whenever the order changes
   useEffect(() => {
@@ -186,8 +230,103 @@ const FinancialsModal = ({
             </div>
           </div>
 
+          {/* New Shipping Method block */}
+          {(order.shippingMethod || order.shipmentType) && (
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/60 shadow-sm mt-4">
+              <h4 className="text-sm font-black text-slate-900 mb-3 flex items-center gap-2">
+                <Truck size={15} className="text-slate-500" />
+                {t("Shipping Information")}
+              </h4>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase">{t("Method")}</span>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-black uppercase ${
+                    (order.shippingMethod || order.shipmentType) === 'bosta' 
+                      ? 'bg-orange-50 text-orange-600 border border-orange-200' 
+                      : 'bg-indigo-50 text-indigo-600 border border-indigo-200'
+                  }`}>
+                    {(order.shippingMethod || order.shipmentType) === 'bosta' ? <Truck size={13} /> : <User size={13} />}
+                    {t(order.shippingMethod || order.shipmentType)}
+                  </span>
+                </div>
+                {(order.shippingMethod || order.shipmentType) === 'bosta' && order.bostaShipment && (
+                  <>
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-2">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase">{t("AWB / Tracking")}</span>
+                      <span className="text-xs font-bold text-slate-800">{order.bostaShipment.awb || order.bostaShipment.trackingNumber || "N/A"}</span>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-2">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase">{t("Courier Status")}</span>
+                      <span className="text-xs font-bold text-slate-800">{order.bostaShipment.status || "N/A"}</span>
+                    </div>
+                    
+                    {/* Bosta Actions Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 pt-3 border-t border-slate-100">
+                      <button 
+                        onClick={() => handleBostaAction("refresh")}
+                        disabled={bostaActionLoading}
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
+                      >
+                        <RefreshCw size={12} className={bostaActionLoading ? "animate-spin" : ""} />
+                        {t("Sync Tracking")}
+                      </button>
+                      
+                      <button 
+                        onClick={() => handleBostaAction("label")}
+                        disabled={bostaActionLoading || !order.bostaShipment.trackingNumber}
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
+                      >
+                        <Package size={12} />
+                        {t("Print Label")}
+                      </button>
+                      
+                      <button 
+                        onClick={() => handleBostaAction("cancel")}
+                        disabled={bostaActionLoading || order.bostaShipment.status === "Cancelled"}
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-[10px] font-bold transition-all disabled:opacity-50 sm:col-span-1 col-span-2"
+                      >
+                        <X size={12} />
+                        {t("Cancel Shipment")}
+                      </button>
+                    </div>
+                  </>
+                )}
+                
+                {/* Create Shipment Button if Bosta method but no shipment yet */}
+                {(order.shippingMethod || order.shipmentType) === 'bosta' && !order.bostaShipment && (
+                  <div className="mt-2 pt-3 border-t border-slate-100">
+                    <button 
+                      onClick={() => handleBostaAction("create")}
+                      disabled={bostaActionLoading}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-orange-500/20 disabled:opacity-50"
+                    >
+                      {bostaActionLoading ? <Loader2 size={14} className="animate-spin" /> : <Truck size={14} />}
+                      {t("Create Shipment in Bosta")}
+                    </button>
+                  </div>
+                )}
+                {(order.shippingMethod || order.shipmentType) === 'self' && order.selfShipment && (
+                  <>
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-2">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase">{t("Delivery Man")}</span>
+                      <span className="text-xs font-bold text-slate-800">{order.selfShipment.deliveryManId?.name || "N/A"}</span>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-2">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase">{t("Phone")}</span>
+                      <span className="text-xs font-bold text-slate-800" dir="ltr">{order.selfShipment.deliveryManId?.phone_number || "N/A"}</span>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-2">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase">{t("Status")}</span>
+                      <span className="text-xs font-bold text-slate-800 capitalize">{t(order.selfShipment.status || "N/A")}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Status Update Section */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 to-white border border-indigo-100">
+          <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 to-white border border-indigo-100">
             <h4 className="text-sm font-black text-slate-900 mb-3 flex items-center gap-2">
               <RefreshCw size={15} className="text-indigo-500" />
               {t("Update Status")}
@@ -807,6 +946,49 @@ const PaymentEco = () => {
         },
       },
       {
+        key: "shippingMethod",
+        header: t("Shipping"),
+        render: (_, item) => {
+          const method = item.shippingMethod || item.shipmentType;
+          if (method === "bosta") {
+            return (
+              <div className="flex flex-col gap-1 w-fit">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase bg-orange-50 text-orange-600 border border-orange-200/60 shadow-sm">
+                  <Truck size={11} className="text-orange-500" />
+                  Bosta
+                </span>
+                {item.bostaShipment && (
+                  <span className="text-[9px] text-slate-500 font-bold tracking-tight px-1 truncate max-w-[120px]" title={item.bostaShipment.awb || item.bostaShipment.trackingNumber}>
+                    {t("AWB")}: {item.bostaShipment.awb || item.bostaShipment.trackingNumber || "N/A"}
+                  </span>
+                )}
+              </div>
+            );
+          }
+          if (method === "self") {
+            return (
+              <div className="flex flex-col gap-1 w-fit">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase bg-indigo-50 text-indigo-600 border border-indigo-200/60 shadow-sm">
+                  <User size={11} className="text-indigo-500" />
+                  Self Delivery
+                </span>
+                {item.selfShipment?.deliveryManId && (
+                  <span className="text-[9px] text-slate-500 font-bold tracking-tight px-1 truncate max-w-[120px]" title={item.selfShipment.deliveryManId.name}>
+                    {item.selfShipment.deliveryManId.name}
+                  </span>
+                )}
+              </div>
+            );
+          }
+          
+          return (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200/50 shadow-sm">
+              {t("Pending")}
+            </span>
+          );
+        },
+      },
+      {
         key: "paymentMethod",
         header: t("Payment Method"),
         render: (method) => (
@@ -1040,6 +1222,7 @@ const PaymentEco = () => {
         statusOptions={statusOptions}
         onUpdateStatus={updateOrderStatus}
         updating={updating}
+        refetch={refetch}
       />
     </div>
   );

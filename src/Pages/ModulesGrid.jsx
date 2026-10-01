@@ -22,9 +22,7 @@ import { toast } from "react-toastify";
 const modules = [
   {
     name: "Dashboard",
-    items: [
-      { name: "Dashboard", path: "/analytics" },
-    ],
+    items: [{ name: "Dashboard", path: "/analytics" }],
     icon: LayoutDashboard,
     path: "/analytics",
     color: "bg-blue-500",
@@ -136,6 +134,7 @@ const modules = [
     name: "HRM",
     items: [
       { name: "Admin", path: "/admin" },
+      { name: "Delivery Man", path: "/delivery-man" },
       { name: "Profile", path: "/profile" },
     ],
     icon: Users,
@@ -201,7 +200,8 @@ export default function ModulesGrid() {
   });
 
   const handleModuleClick = (module) => {
-    const isLocked = !tenantLoading && module.name === "Reports" && !features.haveReports;
+    const isLocked =
+      !tenantLoading && module.name === "Reports" && !features.haveReports;
     if (isLocked) {
       return;
     }
@@ -225,7 +225,9 @@ export default function ModulesGrid() {
         <header className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-1 bg-red-600 rounded-full" />
-            <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">System Core</span>
+            <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
+              System Core
+            </span>
           </div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">
             {t("ControlPanel")}
@@ -238,7 +240,10 @@ export default function ModulesGrid() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {filteredModules.length > 0 ? (
             filteredModules.map((module, idx) => {
-              const isLocked = !tenantLoading && module.name === "Reports" && !features.haveReports;
+              const isLocked =
+                !tenantLoading &&
+                module.name === "Reports" &&
+                !features.haveReports;
 
               return (
                 <div
@@ -251,9 +256,9 @@ export default function ModulesGrid() {
                   }`}
                   title={
                     isLocked
-                      ? (i18n.language === "ar"
-                          ? "قسم التقارير معطّل في باقتك الحالية (يتطلب ترقية)"
-                          : "Reports module is disabled in your current plan (requires upgrade)")
+                      ? i18n.language === "ar"
+                        ? "قسم التقارير معطّل في باقتك الحالية (يتطلب ترقية)"
+                        : "Reports module is disabled in your current plan (requires upgrade)"
                       : undefined
                   }
                 >
@@ -261,47 +266,63 @@ export default function ModulesGrid() {
                   {isLocked && (
                     <div className="absolute top-5 right-5 z-20 flex items-center gap-1.5 bg-slate-200/80 border border-slate-300 text-slate-700 px-2.5 py-1 rounded-full text-[11px] font-bold backdrop-blur-xs">
                       <Lock className="w-3 h-3 text-slate-600" />
-                      <span>{i18n.language === "ar" ? "معطّل بالباقة" : "Disabled in Plan"}</span>
+                      <span>
+                        {i18n.language === "ar"
+                          ? "معطّل بالباقة"
+                          : "Disabled in Plan"}
+                      </span>
                     </div>
                   )}
 
                   {/* Animated Background Gradient */}
                   {!isLocked && (
-                    <div className={`absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-700 ${module.color}`} />
+                    <div
+                      className={`absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-700 ${module.color}`}
+                    />
                   )}
 
                   <div className="relative z-10 flex flex-col h-full justify-between">
                     <div>
                       {/* Icon Section */}
-                      <div className={`w-12 h-12 rounded-2xl ${module.color} flex items-center justify-center mb-4 shadow-lg ${module.shadow} ${
-                        isLocked
-                          ? "opacity-50 grayscale"
-                          : "group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500"
-                      }`}>
+                      <div
+                        className={`w-12 h-12 rounded-2xl ${module.color} flex items-center justify-center mb-4 shadow-lg ${module.shadow} ${
+                          isLocked
+                            ? "opacity-50 grayscale"
+                            : "group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500"
+                        }`}
+                      >
                         <module.icon className="text-white w-6 h-6" />
                       </div>
 
                       {/* Title Section */}
-                      <h3 className={`text-xl font-black mb-3 tracking-tight leading-tight transition-colors ${
-                        isLocked
-                          ? "text-slate-400"
-                          : "text-slate-800 group-hover:text-red-600"
-                      }`}>
+                      <h3
+                        className={`text-xl font-black mb-3 tracking-tight leading-tight transition-colors ${
+                          isLocked
+                            ? "text-slate-400"
+                            : "text-slate-800 group-hover:text-red-600"
+                        }`}
+                      >
                         {t(module.name)}
                       </h3>
 
                       {/* Distribution in 2 cols */}
                       <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                         {module.items.map((item, i) => {
-                          const itemName = typeof item === "string" ? item : item.name;
+                          const itemName =
+                            typeof item === "string" ? item : item.name;
                           const isSubItemLocked =
-                            (module.name === "Inventory" && itemName === "Stock Take" && !tenantLoading && !features.haveStockTake) ||
+                            (module.name === "Inventory" &&
+                              itemName === "Stock Take" &&
+                              !tenantLoading &&
+                              !features.haveStockTake) ||
                             isLocked;
 
                           return (
                             <div
                               key={i}
-                              onClick={(e) => handleItemClick(e, item, isSubItemLocked)}
+                              onClick={(e) =>
+                                handleItemClick(e, item, isSubItemLocked)
+                              }
                               className={`flex items-center gap-1.5 group/item py-0.5 px-1.5 -mx-1.5 rounded-md transition-all ${
                                 isSubItemLocked
                                   ? "opacity-60 cursor-not-allowed"
@@ -309,9 +330,9 @@ export default function ModulesGrid() {
                               }`}
                               title={
                                 isSubItemLocked
-                                  ? (i18n.language === "ar"
-                                      ? `${t(itemName)} (معطّل في باقتك الحالية)`
-                                      : `${t(itemName)} (Disabled in your plan)`)
+                                  ? i18n.language === "ar"
+                                    ? `${t(itemName)} (معطّل في باقتك الحالية)`
+                                    : `${t(itemName)} (Disabled in your plan)`
                                   : t(itemName)
                               }
                             >
@@ -320,11 +341,13 @@ export default function ModulesGrid() {
                               ) : (
                                 <div className="min-w-[4px] h-[4px] rounded-full bg-slate-300 group-hover/item:bg-red-500 group-hover/item:scale-125 transition-all flex-shrink-0" />
                               )}
-                              <span className={`text-[9px] font-bold uppercase tracking-wider truncate transition-colors ${
-                                isSubItemLocked
-                                  ? "text-slate-400 line-through decoration-amber-400"
-                                  : "text-slate-400 group-hover/item:text-slate-800"
-                              }`}>
+                              <span
+                                className={`text-[9px] font-bold uppercase tracking-wider truncate transition-colors ${
+                                  isSubItemLocked
+                                    ? "text-slate-400 line-through decoration-amber-400"
+                                    : "text-slate-400 group-hover/item:text-slate-800"
+                                }`}
+                              >
                                 {t(itemName)}
                               </span>
                             </div>
@@ -338,7 +361,11 @@ export default function ModulesGrid() {
                       {isLocked ? (
                         <div className="flex items-center text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">
                           <Lock className="w-3 h-3 mr-1.5" />
-                          <span>{i18n.language === "ar" ? "معطّل بالباقة" : "Plan Disabled"}</span>
+                          <span>
+                            {i18n.language === "ar"
+                              ? "معطّل بالباقة"
+                              : "Plan Disabled"}
+                          </span>
                         </div>
                       ) : (
                         <div className="flex items-center text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 group-hover:text-red-500 transition-colors">

@@ -1,139 +1,314 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Settings, Truck, MapPin, DollarSign, Package, Check, Edit2 } from "lucide-react";
-import useGet from "@/hooks/useGet";
-import Loader from "@/components/Loader";
+// src/Pages/Shipping/Shipping.jsx
+import { useState, useEffect } from "react";
+import { Truck } from "lucide-react";
+import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import useGet from "@/hooks/useGet";
+import usePut from "@/hooks/usePut";
+import Loader from "@/components/Loader";
+import SelfCard from "./SelfCard";
+import BostaCard from "./BostaCard";
+import AramexCard from "./AramexCard";
+import FreeShippingCard from "./FreeShippingCard";
 
 const Shipping = () => {
-    const navigate = useNavigate();
-    const { t, i18n } = useTranslation();
-    const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
 
-    const { data: fetchResponse, loading: fetching, error: fetchError } = useGet("/api/admin/shipping/settings");
+  // ═══════════════════════════════════════════════════════════
+  // Data Fetching
+  // ═══════════════════════════════════════════════════════════
+  const {
+    data: settingsData,
+    loading: settingsLoading,
+    error: settingsError,
+    refetch: refetchSettings,
+  } = useGet("/api/admin/shipping/settings");
 
-    if (fetching) return <Loader />;
+  const { data: warehouseData } = useGet("/api/admin/warehouse");
 
-    const settings = fetchResponse?.settings || {
-        shippingMethod: "zone",
-        flatRate: 0,
-        carrierRate: 0,
-        freeShippingEnabled: false,
-    };
+  const { putData, loading: savingSettings } = usePut(
+    "/api/admin/shipping/settings",
+  );
 
-    return (
-        <div className="p-6 max-w-5xl mx-auto min-h-screen animate-in fade-in duration-300">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                    <div className="p-3 bg-red-100 text-red-600 rounded-xl">
-                        <Truck size={28} />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">{t("Shipping_Settings") || "Shipping Settings"}</h1>
-                        <p className="text-gray-500 mt-1">{t("View_shipping_methods_and_rates") || "View your current shipping methods and rates"}</p>
-                    </div>
-                </div>
-                <button
-                    onClick={() => navigate(`/shipping/edit/${settings._id || 'default'}`)}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors shadow-sm"
-                >
-                    <Edit2 size={16} />
-                    {t("Edit_Settings") || "Edit Settings"}
-                </button>
-            </div>
+  // ═══════════════════════════════════════════════════════════
+  // States
+  // ═══════════════════════════════════════════════════════════
+  const [activeMethod, setActiveMethod] = useState("self");
 
-            {fetchError && !fetchError.includes("404") && (
-                <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">
-                    {t("Error_loading_data") || "Error loading data"}: {fetchError}
-                </div>
-            )}
+  const [selfForm, setSelfForm] = useState({
+    enabled: true,
+    method: "zone",
+    flatRate: 0,
+  });
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Settings Display */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Method Display Card */}
-                    <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-bl-full -z-10 opacity-50"></div>
+  const [bostaForm, setBostaForm] = useState({
+    enabled: false,
+    apiKey: "",
+    baseUrl: "https://app.bosta.co/api/v2",
+    environment: "production",
+    pickup: {
+      firstName: "",
+      lastName: "",
+      phone: "",
+      email: "",
+      city: "",
+      cityId: "",
+      zoneId: "",
+      districtId: "",
+      firstLine: "",
+      secondLine: "",
+      buildingNumber: "",
+      floor: "",
+      apartment: "",
+    },
+    defaults: {
+      packageType: "Parcel",
+      size: "MEDIUM",
+      weight: 1,
+      itemsCount: 1,
+      description: "Order",
+    },
+    codEnabled: true,
+  });
 
-                        <h2 className="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2">
-                            <Settings size={20} className="text-red-500" />
-                            {t("Active_Shipping_Method") || "Active Shipping Method"}
-                        </h2>
+  const [freeShipping, setFreeShipping] = useState(false);
 
-                        {/* Display Active Method */}
-                        <div className="p-5 rounded-xl border border-red-100 bg-red-50/50">
-                            {settings.shippingMethod === "zone" && (
-                                <div className="flex items-start gap-4">
-                                    <div className="p-3 bg-white rounded-lg shadow-sm text-red-500">
-                                        <MapPin size={24} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-gray-900 mb-1">{t("Area_Shipping") || "Area Shipping (Zones)"}</h3>
-                                        <p className="text-gray-600 text-sm">{t("Area_shipping_description") || "Calculate shipping rates based on geographical zones or areas."}</p>
-                                    </div>
-                                </div>
-                            )}
+  // ═══════════════════════════════════════════════════════════
+  // Load data into state
+  // ═══════════════════════════════════════════════════════════
+  useEffect(() => {
+    if (!settingsData?.settings) return;
+    const s = settingsData.settings;
 
-                            {settings.shippingMethod === "flat_rate" && (
-                                <div className="flex items-start gap-4">
-                                    <div className="p-3 bg-white rounded-lg shadow-sm text-red-500">
-                                        <DollarSign size={24} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-1">{t("Flat_Rate_Shipping") || "Flat Rate Shipping"}</h3>
-                                        <p className="text-gray-600 text-sm mb-4">{t("Flat_rate_description") || "Charge a fixed shipping amount regardless of destination."}</p>
+    setActiveMethod(s.activeMethod || "self");
+    setFreeShipping(s.freeShippingEnabled || false);
 
-                                        <div className="inline-flex flex-col bg-white p-4 rounded-xl border border-red-100 shadow-sm min-w-48">
-                                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{t("Rate_Amount") || "Rate Amount"}</span>
-                                            <span className="text-2xl font-bold text-gray-900">{settings.flatRate?.toFixed(2) || "0.00"}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+    setSelfForm({
+      enabled: s.self?.enabled !== false,
+      method: s.self?.method || "zone",
+      flatRate: s.self?.flatRate || 0,
+    });
 
-                            {settings.shippingMethod === "carrier" && (
-                                <div className="flex items-start gap-4">
-                                    <div className="p-3 bg-white rounded-lg shadow-sm text-red-500">
-                                        <Package size={24} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-1">{t("Carrier_Shipping") || "Carrier Shipping"}</h3>
-                                        <p className="text-gray-600 text-sm mb-4">{t("Carrier_shipping_description") || "Shipping rates provided by external shipping carriers."}</p>
+    setBostaForm({
+      enabled: s.bosta?.enabled === true,
+      apiKey: s.bosta?.apiKey || "",
+      baseUrl: s.bosta?.baseUrl || "https://app.bosta.co/api/v2",
+      environment: s.bosta?.environment || "production",
+      pickup: {
+        firstName: s.bosta?.pickup?.firstName || "",
+        lastName: s.bosta?.pickup?.lastName || "",
+        phone: s.bosta?.pickup?.phone || "",
+        email: s.bosta?.pickup?.email || "",
+        city: s.bosta?.pickup?.city || "",
+        cityId: s.bosta?.pickup?.cityId || "",
+        zoneId: s.bosta?.pickup?.zoneId || "",
+        districtId: s.bosta?.pickup?.districtId || "",
+        firstLine: s.bosta?.pickup?.firstLine || "",
+        secondLine: s.bosta?.pickup?.secondLine || "",
+        buildingNumber: s.bosta?.pickup?.buildingNumber || "",
+        floor: s.bosta?.pickup?.floor || "",
+        apartment: s.bosta?.pickup?.apartment || "",
+      },
+      defaults: {
+        packageType: s.bosta?.defaults?.packageType || "Parcel",
+        size: s.bosta?.defaults?.size || "MEDIUM",
+        weight: s.bosta?.defaults?.weight || 1,
+        itemsCount: s.bosta?.defaults?.itemsCount || 1,
+        description: s.bosta?.defaults?.description || "Order",
+      },
+      codEnabled: s.bosta?.codEnabled !== false,
+    });
+  }, [settingsData]);
 
-                                        <div className="inline-flex flex-col bg-white p-4 rounded-xl border border-red-100 shadow-sm min-w-48">
-                                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{t("Carrier_Fixed_Rate") || "Carrier Fixed Rate"}</span>
-                                            <span className="text-2xl font-bold text-gray-900">{settings.carrierRate?.toFixed(2) || "0.00"}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+  // ═══════════════════════════════════════════════════════════
+  // Online Warehouse
+  // ═══════════════════════════════════════════════════════════
+  const warehouses = warehouseData?.warehouses || warehouseData || [];
+  const onlineWarehouse = Array.isArray(warehouses)
+    ? warehouses.find((w) => w.Is_Online === true)
+    : null;
 
-                {/* Sidebar Display */}
-                <div className="space-y-6">
-                    {/* Free Shipping Status */}
-                    <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-2">{t("Free_Shipping") || "Free Shipping"}</h3>
-                        <p className="text-sm text-gray-500 mb-6">
-                            {t("Enable_free_shipping_description") || "Enable free shipping globally on selected products (configurable in marketing module)."}
-                        </p>
+  // ═══════════════════════════════════════════════════════════
+  // Handlers
+  // ═══════════════════════════════════════════════════════════
+  const handleActiveMethodChange = async (val) => {
+    setActiveMethod(val);
+    try {
+      await putData({ activeMethod: val });
+      toast.success(
+        t("Active_method_updated") || "Active shipping method updated",
+      );
+      refetchSettings();
+    } catch (err) {
+      setActiveMethod(activeMethod);
+      toast.error(t("Failed_to_update") || "Failed to update");
+    }
+  };
 
-                        <div className={`flex items-center gap-3 p-4 rounded-xl border ${settings.freeShippingEnabled ? 'bg-green-50/50 border-green-100 text-green-700' : 'bg-gray-50 border-gray-200 text-gray-600'}`}>
-                            <div className={`p-2 rounded-full ${settings.freeShippingEnabled ? 'bg-green-100' : 'bg-gray-200'}`}>
-                                {settings.freeShippingEnabled ? <Check size={16} /> : <div className="w-4 h-4 rounded-full border-2 border-current opacity-50"></div>}
-                            </div>
-                            <div>
-                                <span className="font-semibold block">{settings.freeShippingEnabled ? t("Active") || "Active" : t("Inactive") || "Inactive"}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  const handleSaveSelf = async () => {
+    try {
+      await putData({
+        activeMethod,
+        self: selfForm,
+      });
+      toast.success(t("Self_settings_saved") || "Self settings saved");
+      refetchSettings();
+    } catch (err) {
+      toast.error(t("Failed_to_save") || "Failed to save");
+    }
+  };
+
+  const handleSaveBosta = async () => {
+    try {
+      await putData({
+        activeMethod,
+        bosta: bostaForm,
+      });
+      toast.success(t("Bosta_settings_saved") || "Bosta settings saved");
+      refetchSettings();
+    } catch (err) {
+      toast.error(t("Failed_to_save") || "Failed to save");
+    }
+  };
+
+  const handleFreeShippingToggle = async (val) => {
+    setFreeShipping(val);
+    try {
+      await putData({ freeShippingEnabled: val });
+      refetchSettings();
+    } catch (err) {
+      setFreeShipping(!val);
+      toast.error(t("Failed_to_update") || "Failed to update");
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // Render
+  // ═══════════════════════════════════════════════════════════
+  if (settingsLoading) return <Loader />;
+
+  return (
+    <div
+      className="p-6 max-w-7xl mx-auto min-h-screen animate-in fade-in duration-300"
+      dir={isRTL ? "rtl" : "ltr"}
+    >
+      {/* ═══════ Header ═══════ */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-red-100 text-red-600 rounded-xl">
+            <Truck size={28} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {t("Shipping_Settings") || "Shipping Settings"}
+            </h1>
+            <p className="text-gray-500 mt-0.5 text-sm">
+              {t("Manage_shipping_providers") ||
+                "Manage your shipping providers"}
+            </p>
+          </div>
         </div>
-    );
+      </div>
+
+      {settingsError && !settingsError.includes("404") && (
+        <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100 text-sm">
+          {t("Error_loading_data") || "Error loading data"}: {settingsError}
+        </div>
+      )}
+
+      {/* ═══════ Active Method Selector ═══════ */}
+      <div className="mb-6 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+          {t("Active_Shipping_Method") || "Active Shipping Method"}
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => handleActiveMethodChange("self")}
+            className={`flex-1 flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+              activeMethod === "self"
+                ? "border-red-500 bg-red-50"
+                : "border-gray-200 hover:border-red-200 bg-white"
+            }`}
+          >
+            <div
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                activeMethod === "self"
+                  ? "border-red-500 bg-red-500"
+                  : "border-gray-300"
+              }`}
+            >
+              {activeMethod === "self" && (
+                <div className="w-2 h-2 rounded-full bg-white" />
+              )}
+            </div>
+            <div className="text-start flex-1">
+              <p className="font-bold text-gray-900 text-sm">
+                {t("Self_Shipping") || "Self Shipping"}
+              </p>
+              <p className="text-xs text-gray-500">
+                {t("Use_your_own_team") || "Use your own delivery team"}
+              </p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => handleActiveMethodChange("bosta")}
+            className={`flex-1 flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+              activeMethod === "bosta"
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-blue-200 bg-white"
+            }`}
+          >
+            <div
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                activeMethod === "bosta"
+                  ? "border-blue-500 bg-blue-500"
+                  : "border-gray-300"
+              }`}
+            >
+              {activeMethod === "bosta" && (
+                <div className="w-2 h-2 rounded-full bg-white" />
+              )}
+            </div>
+            <div className="text-start flex-1">
+              <p className="font-bold text-gray-900 text-sm">
+                {t("Bosta_Shipping") || "Bosta Shipping"}
+              </p>
+              <p className="text-xs text-gray-500">
+                {t("Integration_with_Bosta") || "Integration with Bosta"}
+              </p>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* ═══════ Provider Cards Grid ═══════ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+        <SelfCard
+          form={selfForm}
+          setForm={setSelfForm}
+          onSave={handleSaveSelf}
+          saving={savingSettings}
+          onlineWarehouse={onlineWarehouse}
+        />
+        <BostaCard
+          form={bostaForm}
+          setForm={setBostaForm}
+          onSave={handleSaveBosta}
+          saving={savingSettings}
+        />
+        <AramexCard />
+      </div>
+
+      {/* ═══════ Free Shipping ═══════ */}
+      <FreeShippingCard
+        enabled={freeShipping}
+        onToggle={handleFreeShippingToggle}
+        saving={savingSettings}
+      />
+    </div>
+  );
 };
 
 export default Shipping;
