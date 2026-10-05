@@ -9,6 +9,8 @@ import {
   Eye,
   EyeOff,
   Settings2,
+  DollarSign,
+  Percent,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
@@ -63,7 +65,6 @@ const BostaCard = ({ form, setForm, onSave, saving }) => {
   return (
     <>
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-        {/* ═══════ Header ═══════ */}
         <div className="p-5 pb-4 border-b border-gray-100">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -87,13 +88,11 @@ const BostaCard = ({ form, setForm, onSave, saving }) => {
           </div>
         </div>
 
-        {/* ═══════ Body ═══════ */}
         <div
           className={`p-5 space-y-4 flex-1 ${
             !form.enabled ? "opacity-50 pointer-events-none" : ""
           }`}
         >
-          {/* API Key */}
           <div>
             <Label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 block">
               {t("API_Key") || "API Key"} *
@@ -116,7 +115,6 @@ const BostaCard = ({ form, setForm, onSave, saving }) => {
             </div>
           </div>
 
-          {/* Base URL */}
           <div>
             <Label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 block">
               {t("Base_URL") || "Base URL"} *
@@ -130,7 +128,6 @@ const BostaCard = ({ form, setForm, onSave, saving }) => {
             />
           </div>
 
-          {/* Environment */}
           <div>
             <Label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 block">
               {t("Environment") || "Environment"} *
@@ -149,7 +146,110 @@ const BostaCard = ({ form, setForm, onSave, saving }) => {
             </Select>
           </div>
 
-          {/* Test Connection */}
+          {/* 💵 SHIPPING MARKUP */}
+          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg">
+                <DollarSign size={14} />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-black text-emerald-900">
+                  {t("Shipping_Markup") || "Shipping Markup"}
+                </p>
+                <p className="text-[10px] text-emerald-700">
+                  {t("Markup_desc") || "Your profit added on top of Bosta cost"}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => updateField("shippingMarkupType", "fixed")}
+                className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                  form.shippingMarkupType === "fixed"
+                    ? "bg-emerald-600 text-white"
+                    : "bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50"
+                }`}
+              >
+                <DollarSign size={12} />
+                {t("Fixed") || "Fixed"}
+              </button>
+              <button
+                type="button"
+                onClick={() => updateField("shippingMarkupType", "percentage")}
+                className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                  form.shippingMarkupType === "percentage"
+                    ? "bg-emerald-600 text-white"
+                    : "bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50"
+                }`}
+              >
+                <Percent size={12} />
+                {t("Percentage") || "Percentage"}
+              </button>
+            </div>
+
+            <div className="relative">
+              <Input
+                type="number"
+                min="0"
+                step={form.shippingMarkupType === "percentage" ? "1" : "0.5"}
+                value={form.shippingMarkup}
+                onChange={(e) =>
+                  updateField("shippingMarkup", Number(e.target.value) || 0)
+                }
+                placeholder="0"
+                className="pe-14 font-bold text-emerald-900"
+              />
+              <span className="absolute end-3 top-1/2 -translate-y-1/2 text-xs font-black text-emerald-600">
+                {form.shippingMarkupType === "percentage" ? "%" : "EGP"}
+              </span>
+            </div>
+
+            {form.shippingMarkup > 0 && (
+              <div className="mt-3 p-2.5 bg-white rounded-lg border border-emerald-100">
+                <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mb-1.5">
+                  {t("Example") || "Example"}
+                </p>
+                <div className="space-y-1 text-[11px]">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">
+                      {t("Bosta_Cost") || "Bosta cost"}:
+                    </span>
+                    <span className="font-bold text-gray-900">35.00 EGP</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">
+                      {t("Markup") || "Markup"}:
+                    </span>
+                    <span className="font-bold text-emerald-700">
+                      {form.shippingMarkupType === "percentage"
+                        ? `${form.shippingMarkup}% = ${(
+                            35 *
+                            (form.shippingMarkup / 100)
+                          ).toFixed(2)} EGP`
+                        : `${Number(form.shippingMarkup).toFixed(2)} EGP`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-emerald-100">
+                    <span className="font-bold text-gray-900">
+                      {t("Customer_Pays") || "Customer pays"}:
+                    </span>
+                    <span className="font-black text-emerald-700">
+                      {(
+                        35 +
+                        (form.shippingMarkupType === "percentage"
+                          ? 35 * (form.shippingMarkup / 100)
+                          : Number(form.shippingMarkup))
+                      ).toFixed(2)}{" "}
+                      EGP
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           <Button
             type="button"
             onClick={handleTestConnection}
@@ -178,7 +278,6 @@ const BostaCard = ({ form, setForm, onSave, saving }) => {
             )}
           </Button>
 
-          {/* Advanced Button */}
           <button
             onClick={() => setShowAdvanced(true)}
             className="w-full flex items-center justify-center gap-2 py-2 text-xs font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-dashed border-gray-200"
@@ -188,7 +287,6 @@ const BostaCard = ({ form, setForm, onSave, saving }) => {
           </button>
         </div>
 
-        {/* ═══════ Footer ═══════ */}
         <div className="p-4 bg-gray-50 border-t border-gray-100">
           <Button
             onClick={onSave}
@@ -201,7 +299,6 @@ const BostaCard = ({ form, setForm, onSave, saving }) => {
         </div>
       </div>
 
-      {/* ═══════ Advanced Modal ═══════ */}
       <BostaAdvancedModal
         open={showAdvanced}
         onOpenChange={setShowAdvanced}

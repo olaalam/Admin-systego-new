@@ -6,7 +6,6 @@ import {
   UserPlus,
   UserMinus,
   RefreshCw,
-  Package,
   X,
   Loader2,
   AlertTriangle,
@@ -34,6 +33,7 @@ const OrderShippingSection = ({ order, refetch }) => {
   const [showCreateBosta, setShowCreateBosta] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [unassigning, setUnassigning] = useState(false);
+  const [accepting, setAccepting] = useState(false);
   const [bostaLoading, setBostaLoading] = useState(null);
 
   const method = order.shippingMethod || order.shipmentType;
@@ -42,10 +42,31 @@ const OrderShippingSection = ({ order, refetch }) => {
   const bosta = order.bostaShipment;
   const warehouse = self?.warehouseId;
 
-  // ✅ Bosta terminal states
   const isBostaCancelled = bosta?.status === "Cancelled";
   const isBostaDelivered = bosta?.status === "Delivered";
   const isBostaTerminal = isBostaCancelled || isBostaDelivered;
+
+  // ═══════════════════════════════════════════════════════════
+  // SELF: Accept Order
+  // ═══════════════════════════════════════════════════════════
+  const handleAcceptOrder = async () => {
+    setAccepting(true);
+    try {
+      const res = await api.patch(
+        `/api/admin/online-orders/${order._id}/status`,
+        {
+          status: "processing",
+          statusDescription: "Order accepted by admin",
+        },
+      );
+      toast.success(res.data?.message || t("Order accepted"));
+      refetch?.();
+    } catch (err) {
+      toast.error(err.response?.data?.message || t("Failed to accept order"));
+    } finally {
+      setAccepting(false);
+    }
+  };
 
   // ═══════════════════════════════════════════════════════════
   // SELF: Unassign
@@ -68,7 +89,7 @@ const OrderShippingSection = ({ order, refetch }) => {
   };
 
   // ═══════════════════════════════════════════════════════════
-  // BOSTA: Refresh / Cancel / Label
+  // BOSTA: Refresh / Cancel
   // ═══════════════════════════════════════════════════════════
   const handleBostaAction = async (action) => {
     setBostaLoading(action);
@@ -89,17 +110,6 @@ const OrderShippingSection = ({ order, refetch }) => {
           `/api/admin/shipping/bosta/shipments/${bosta._id}`,
         );
         toast.success(res.data?.message || t("Shipment cancelled"));
-      } else if (action === "label") {
-        const res = await api.get(
-          `/api/admin/shipping/bosta/shipments/${bosta._id}/label`,
-        );
-        const url = res.data?.data?.labelUrl || res.data?.labelUrl;
-        if (url) {
-          window.open(url, "_blank");
-          setBostaLoading(null);
-          return;
-        }
-        toast.error(t("Label not available yet"));
       }
       refetch?.();
     } catch (err) {
@@ -111,9 +121,6 @@ const OrderShippingSection = ({ order, refetch }) => {
     }
   };
 
-  // ═══════════════════════════════════════════════════════════
-  // RENDER
-  // ═══════════════════════════════════════════════════════════
   if (!method) {
     return (
       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
@@ -186,27 +193,58 @@ const OrderShippingSection = ({ order, refetch }) => {
 
           {/* Delivery Man Section */}
           {!deliveryMan ? (
-            <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 flex items-start gap-3">
-              <AlertTriangle
-                size={16}
-                className="text-amber-600 shrink-0 mt-0.5"
-              />
-              <div className="flex-1">
-                <p className="text-xs font-bold text-amber-900">
-                  {t("Not assigned to a delivery man yet")}
-                </p>
-                <p className="text-[11px] text-amber-700 mt-0.5">
-                  {t("Assign a delivery man to start the delivery process")}
-                </p>
-                <button
-                  onClick={() => setShowAssign(true)}
-                  className="mt-3 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 active:scale-95"
-                >
-                  <UserPlus size={13} />
-                  {t("Assign Delivery Man")}
-                </button>
+            order.status === "pending" ? (
+              // ─── Needs Accept ───
+              <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-100 flex items-start gap-3">
+                <AlertTriangle
+                  size={16}
+                  className="text-indigo-600 shrink-0 mt-0.5"
+                />
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-indigo-900">
+                    {t("Order needs your approval")}
+                  </p>
+                  <p className="text-[11px] text-indigo-700 mt-0.5">
+                    {t("Accept the order to start the delivery process")}
+                  </p>
+                  <button
+                    onClick={handleAcceptOrder}
+                    disabled={accepting}
+                    className="mt-3 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+                  >
+                    {accepting ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      <CheckCircle2 size={13} />
+                    )}
+                    {t("Accept Order")}
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              // ─── Ready to assign ───
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 flex items-start gap-3">
+                <AlertTriangle
+                  size={16}
+                  className="text-amber-600 shrink-0 mt-0.5"
+                />
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-amber-900">
+                    {t("Not assigned to a delivery man yet")}
+                  </p>
+                  <p className="text-[11px] text-amber-700 mt-0.5">
+                    {t("Assign a delivery man to start the delivery process")}
+                  </p>
+                  <button
+                    onClick={() => setShowAssign(true)}
+                    className="mt-3 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 active:scale-95"
+                  >
+                    <UserPlus size={13} />
+                    {t("Assign Delivery Man")}
+                  </button>
+                </div>
+              </div>
+            )
           ) : (
             <>
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-3">
@@ -237,7 +275,9 @@ const OrderShippingSection = ({ order, refetch }) => {
                             ? "bg-emerald-50 text-emerald-600"
                             : self?.status === "failed"
                               ? "bg-rose-50 text-rose-600"
-                              : "bg-indigo-50 text-indigo-600"
+                              : self?.status === "returned"
+                                ? "bg-orange-50 text-orange-600"
+                                : "bg-indigo-50 text-indigo-600"
                         }`}
                       >
                         {t(self?.status || "assigned")}
@@ -281,7 +321,9 @@ const OrderShippingSection = ({ order, refetch }) => {
                 <button
                   onClick={() => setShowStatus(true)}
                   disabled={
-                    self?.status === "delivered" || self?.status === "failed"
+                    self?.status === "delivered" ||
+                    self?.status === "failed" ||
+                    self?.status === "returned"
                   }
                   className="flex-1 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -305,7 +347,6 @@ const OrderShippingSection = ({ order, refetch }) => {
       {method === "bosta" && (
         <>
           {!bosta ? (
-            // ─── No shipment yet ───
             <div className="p-4 rounded-xl bg-orange-50 border border-orange-100 flex items-start gap-3">
               <AlertTriangle
                 size={16}
@@ -328,7 +369,6 @@ const OrderShippingSection = ({ order, refetch }) => {
               </div>
             </div>
           ) : (
-            // ─── Shipment exists ───
             <>
               <div className="space-y-2">
                 <InfoRow
@@ -375,7 +415,7 @@ const OrderShippingSection = ({ order, refetch }) => {
                 </div>
               )}
 
-              {/* ⚠️ Cancelled / Delivered Banner */}
+              {/* Cancelled / Delivered Banner */}
               {isBostaTerminal && (
                 <div
                   className={`mt-3 p-3 rounded-xl border flex items-start gap-2 ${
@@ -407,27 +447,20 @@ const OrderShippingSection = ({ order, refetch }) => {
                         isBostaCancelled ? "text-red-700" : "text-emerald-700"
                       }`}
                     >
-                      {isBostaCancelled
-                        ? t(
-                            "No further actions are available. If you need to ship again, create a new shipment.",
-                          )
-                        : t("No further actions are available.")}
+                      {t(
+                        "No further actions are available. If you need to ship again, create a new shipment.",
+                      )}
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Action Buttons */}
+              {/* Action Buttons (Print Label اتشال) */}
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   onClick={() => handleBostaAction("refresh")}
                   disabled={!!bostaLoading || isBostaTerminal}
-                  className="flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={
-                    isBostaTerminal
-                      ? t("Shipment is in terminal state — cannot sync")
-                      : t("Sync Tracking")
-                  }
+                  className="flex-1 min-w-[120px] flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RefreshCw
                     size={12}
@@ -439,31 +472,10 @@ const OrderShippingSection = ({ order, refetch }) => {
                 <button
                   onClick={() => setShowBostaStatus(true)}
                   disabled={isBostaTerminal}
-                  className="flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={
-                    isBostaTerminal
-                      ? t("Shipment is in terminal state")
-                      : t("Update Status")
-                  }
+                  className="flex-1 min-w-[120px] flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RefreshCw size={12} />
                   {t("Update Status")}
-                </button>
-
-                <button
-                  onClick={() => handleBostaAction("label")}
-                  disabled={
-                    !!bostaLoading || !bosta.trackingNumber || isBostaCancelled
-                  }
-                  className="flex-1 min-w-[110px] flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[10px] font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={
-                    isBostaCancelled
-                      ? t("Shipment is cancelled — no label available")
-                      : t("Print Label")
-                  }
-                >
-                  <Package size={12} />
-                  {t("Print Label")}
                 </button>
 
                 <button
@@ -525,7 +537,6 @@ const OrderShippingSection = ({ order, refetch }) => {
         onUpdated={refetch}
       />
 
-      {/* Bosta Tracking History Modal */}
       {showHistory && bosta && (
         <BostaTrackingHistoryModal
           open={showHistory}
@@ -537,7 +548,6 @@ const OrderShippingSection = ({ order, refetch }) => {
   );
 };
 
-// ── Small helper ──
 const InfoRow = ({ label, value }) => (
   <div className="flex items-center justify-between border-t border-slate-100 pt-2 first:border-t-0 first:pt-0">
     <span className="text-[11px] font-bold text-slate-500 uppercase">
@@ -549,7 +559,6 @@ const InfoRow = ({ label, value }) => (
   </div>
 );
 
-// ── Tracking History Modal ──
 const BostaTrackingHistoryModal = ({ open, onClose, shipment }) => {
   const { t } = useTranslation();
   if (!open) return null;

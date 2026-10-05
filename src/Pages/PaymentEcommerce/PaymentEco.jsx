@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
 import OrderShippingSection from "@/components/OrderDetail/OrderShippingSection";
+import BulkCreateBostaShipmentsModal from "@/components/OrderDetail/BulkCreateBostaShipmentsModal";
 import {
   CheckCircle2,
   X,
@@ -19,7 +20,6 @@ import {
   RotateCcw,
   AlertTriangle,
   Calendar,
-  RefreshCw,
   Filter,
   Loader2,
   ChevronDown,
@@ -29,16 +29,13 @@ import {
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════
-// Helper: Order display status (self vs bosta)
+// Helpers
 // ═══════════════════════════════════════════════════════════
 const getOrderDisplayStatus = (order) => {
   const isBosta = (order.shippingMethod || order.shipmentType) === "bosta";
   return isBosta ? order.bostaShipment?.status || order.status : order.status;
 };
 
-// ═══════════════════════════════════════════════════════════
-// Status Styles
-// ═══════════════════════════════════════════════════════════
 const STATUS_STYLES = {
   pending: "bg-amber-50 text-amber-700 border-amber-200/60",
   confirmed: "bg-blue-50 text-blue-700 border-blue-200/60",
@@ -92,7 +89,7 @@ const Row = ({ label, value, valueClass = "text-slate-800" }) => (
 );
 
 // ═══════════════════════════════════════════════════════════
-// FinancialsModal — Order Details
+// FinancialsModal
 // ═══════════════════════════════════════════════════════════
 const FinancialsModal = ({ order, onCancel, loadingDetails, refetch }) => {
   const { t, i18n } = useTranslation();
@@ -515,6 +512,51 @@ const FinancialsModal = ({ order, onCancel, loadingDetails, refetch }) => {
                 label={t("Shipping Price")}
                 value={`${(order.shippingPrice || 0).toLocaleString()} ${t("EGP")}`}
               />
+
+              {/* 🆕 Shipping Breakdown — للأدمن بس */}
+              {order.shippingDetails?.bostaCost > 0 && (
+                <div className="px-4 py-2.5 bg-emerald-50/40 border-b border-emerald-100/50">
+                  <div className="space-y-1 text-[10px]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-semibold">
+                        ├─ {t("Bosta Cost") || "Bosta Cost"}:
+                      </span>
+                      <span className="text-slate-600 font-bold">
+                        {(
+                          order.shippingDetails.bostaCost || 0
+                        ).toLocaleString()}{" "}
+                        {t("EGP")}
+                      </span>
+                    </div>
+                    {order.shippingDetails.markup > 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-emerald-700 font-bold">
+                          └─ {t("Your Profit") || "Your Profit"}:
+                        </span>
+                        <span className="text-emerald-700 font-black">
+                          +
+                          {(order.shippingDetails.markup || 0).toLocaleString()}{" "}
+                          {t("EGP")}
+                        </span>
+                      </div>
+                    )}
+                    {order.shippingDetails.isCash && (
+                      <div className="flex items-center justify-between pt-1 border-t border-emerald-100 mt-1">
+                        <span className="text-amber-700 font-bold">
+                          💵 {t("COD Amount") || "COD Amount"}:
+                        </span>
+                        <span className="text-amber-700 font-black">
+                          {(
+                            order.shippingDetails.codAmount || 0
+                          ).toLocaleString()}{" "}
+                          {t("EGP")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <Row
                 label={t("Service Fee")}
                 value={`${(order.serviceFee || 0).toLocaleString()} ${t("EGP")}`}
@@ -571,13 +613,17 @@ const PaymentEco = () => {
     loading,
     refetch,
   } = useGet("/api/admin/online-orders");
+
   const [activeTab, setActiveTab] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
-  // ✅ View details — API call
+  // ✅ Bulk Modal فقط (بدون selection)
+  const [showBulkModal, setShowBulkModal] = useState(false);
+
+  // ✅ View Details
   const handleViewDetails = async (order) => {
-    setSelectedOrder(order); // Show immediately with list data
+    setSelectedOrder(order);
     setLoadingDetails(true);
 
     try {
@@ -591,7 +637,7 @@ const PaymentEco = () => {
     }
   };
 
-  // Keep selectedOrder in sync with fresh data when list refetches
+  // Keep selectedOrder in sync
   useEffect(() => {
     if (!selectedOrder?._id) return;
     if (!responseData?.orders) return;
@@ -599,7 +645,6 @@ const PaymentEco = () => {
       (o) => o._id === selectedOrder._id,
     );
     if (freshOrder) {
-      // merge — keep bostaShipment from detail if not in list
       setSelectedOrder((prev) => ({
         ...freshOrder,
         bostaShipment: freshOrder.bostaShipment || prev?.bostaShipment,
@@ -896,13 +941,26 @@ const PaymentEco = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
-              {t("Online Orders")}
-            </h1>
-            <p className="text-slate-500 text-xs md:text-sm mt-1">
-              {t("Track, filter, and manage your web store orders effectively")}
-            </p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+                {t("Online Orders")}
+              </h1>
+              <p className="text-slate-500 text-xs md:text-sm mt-1">
+                {t(
+                  "Track, filter, and manage your web store orders effectively",
+                )}
+              </p>
+            </div>
+
+            {/* ✅ Bulk Button (ثابت دايماً) */}
+            <button
+              onClick={() => setShowBulkModal(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition shadow-sm active:scale-95"
+            >
+              <Truck size={14} />
+              {t("Create Bosta Shipments")}
+            </button>
           </div>
 
           <div className="grid grid-cols-3 gap-3 w-full lg:w-auto">
@@ -1026,6 +1084,15 @@ const PaymentEco = () => {
         onCancel={() => setSelectedOrder(null)}
         loadingDetails={loadingDetails}
         refetch={refetch}
+      />
+
+      {/* ✅ Bulk Create Modal (بيجيب الأوردرات بنفسه) */}
+      <BulkCreateBostaShipmentsModal
+        open={showBulkModal}
+        onClose={() => setShowBulkModal(false)}
+        onCreated={() => {
+          refetch();
+        }}
       />
     </div>
   );

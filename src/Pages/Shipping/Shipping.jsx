@@ -15,9 +15,6 @@ const Shipping = () => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
 
-  // ═══════════════════════════════════════════════════════════
-  // Data Fetching
-  // ═══════════════════════════════════════════════════════════
   const {
     data: settingsData,
     loading: settingsLoading,
@@ -31,9 +28,6 @@ const Shipping = () => {
     "/api/admin/shipping/settings",
   );
 
-  // ═══════════════════════════════════════════════════════════
-  // States
-  // ═══════════════════════════════════════════════════════════
   const [activeMethod, setActiveMethod] = useState("self");
 
   const [selfForm, setSelfForm] = useState({
@@ -70,13 +64,13 @@ const Shipping = () => {
       description: "Order",
     },
     codEnabled: true,
+    // 🆕 Shipping Markup
+    shippingMarkup: 0,
+    shippingMarkupType: "fixed",
   });
 
   const [freeShipping, setFreeShipping] = useState(false);
 
-  // ═══════════════════════════════════════════════════════════
-  // Load data into state
-  // ═══════════════════════════════════════════════════════════
   useEffect(() => {
     if (!settingsData?.settings) return;
     const s = settingsData.settings;
@@ -118,20 +112,17 @@ const Shipping = () => {
         description: s.bosta?.defaults?.description || "Order",
       },
       codEnabled: s.bosta?.codEnabled !== false,
+      // 🆕 Shipping Markup
+      shippingMarkup: s.bosta?.shippingMarkup || 0,
+      shippingMarkupType: s.bosta?.shippingMarkupType || "fixed",
     });
   }, [settingsData]);
 
-  // ═══════════════════════════════════════════════════════════
-  // Online Warehouse
-  // ═══════════════════════════════════════════════════════════
   const warehouses = warehouseData?.warehouses || warehouseData || [];
   const onlineWarehouse = Array.isArray(warehouses)
     ? warehouses.find((w) => w.Is_Online === true)
     : null;
 
-  // ═══════════════════════════════════════════════════════════
-  // Handlers
-  // ═══════════════════════════════════════════════════════════
   const handleActiveMethodChange = async (val) => {
     setActiveMethod(val);
     try {
@@ -183,9 +174,6 @@ const Shipping = () => {
     }
   };
 
-  // ═══════════════════════════════════════════════════════════
-  // Render
-  // ═══════════════════════════════════════════════════════════
   if (settingsLoading) return <Loader />;
 
   return (
@@ -193,7 +181,6 @@ const Shipping = () => {
       className="p-6 max-w-7xl mx-auto min-h-screen animate-in fade-in duration-300"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      {/* ═══════ Header ═══════ */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-red-100 text-red-600 rounded-xl">
@@ -217,7 +204,6 @@ const Shipping = () => {
         </div>
       )}
 
-      {/* ═══════ Active Method Selector ═══════ */}
       <div className="mb-6 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
         <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
           {t("Active_Shipping_Method") || "Active Shipping Method"}
@@ -283,7 +269,6 @@ const Shipping = () => {
         </div>
       </div>
 
-      {/* ═══════ Provider Cards Grid ═══════ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
         <SelfCard
           form={selfForm}
@@ -301,7 +286,6 @@ const Shipping = () => {
         <AramexCard />
       </div>
 
-      {/* ═══════ Free Shipping ═══════ */}
       <FreeShippingCard
         enabled={freeShipping}
         onToggle={handleFreeShippingToggle}

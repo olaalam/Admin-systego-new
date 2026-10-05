@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Loader2,
   RefreshCw,
+  RotateCcw,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -40,6 +41,13 @@ const STATUS_OPTIONS = [
     icon: AlertTriangle,
     color: "text-rose-600",
     bg: "bg-rose-50",
+  },
+  {
+    id: "returned",
+    label: "Returned",
+    icon: RotateCcw, // 🆕 ضيف import
+    color: "text-orange-600",
+    bg: "bg-orange-50",
   },
 ];
 
