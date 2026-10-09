@@ -1,7 +1,18 @@
 // src/Pages/Shipping/BostaAdvancedModal.jsx
 import { useState, useEffect } from "react";
-import { MapPin, Package, Save, Loader2 } from "lucide-react";
+import {
+  MapPin,
+  Package,
+  Save,
+  Loader2,
+  Building2,
+  RefreshCw,
+  CheckCircle2,
+  Phone,
+  Sparkles,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +50,13 @@ const BostaAdvancedModal = ({
   const [districts, setDistricts] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
+
+  // 🆕 Pickup Locations
+  const [pickupLocations, setPickupLocations] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
+
+  // 🆕 Sync state
+  const [syncing, setSyncing] = useState(false);
 
   // ═══════════════════════════════════════════════════════════
   // Load Cities
@@ -79,6 +97,28 @@ const BostaAdvancedModal = ({
       .catch(() => setDistricts([]))
       .finally(() => setLoadingDistricts(false));
   }, [form.pickup.cityId, open]);
+
+  // ═══════════════════════════════════════════════════════════
+  // 🆕 Load Pickup Locations
+  // ═══════════════════════════════════════════════════════════
+  const fetchPickupLocations = () => {
+    if (!open) return;
+    setLoadingLocations(true);
+    api
+      .get("/api/admin/shipping/bosta/pickup-locations")
+      .then((res) => {
+        const list = res.data?.data?.locations || res.data?.locations || [];
+        setPickupLocations(list);
+      })
+      .catch(() => setPickupLocations([]))
+      .finally(() => setLoadingLocations(false));
+  };
+
+  // ✅ Auto-load when modal opens
+  useEffect(() => {
+    if (!open || !form.apiKey) return;
+    fetchPickupLocations();
+  }, [open, form.apiKey]);
 
   // ═══════════════════════════════════════════════════════════
   // Handlers
@@ -122,6 +162,48 @@ const BostaAdvancedModal = ({
     });
   };
 
+  // 🆕 Select Location
+  const handleSelectLocation = (locationId) => {
+    updatePickup("businessLocationId", locationId);
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // 🆕 Save + Sync Pickup Location
+  // ═══════════════════════════════════════════════════════════
+  const handleSaveAndSync = async () => {
+    setSyncing(true);
+    try {
+      // 1️⃣ احفظ الإعدادات
+      await onSave();
+
+      // 2️⃣ استنى شوية عشان الإعدادات تتحدّث في الـ DB
+      await new Promise((r) => setTimeout(r, 500));
+
+      // 3️⃣ Sync الـ Pickup Location في Bosta
+      const res = await api.post(
+        "/api/admin/shipping/bosta/pickup-locations/sync",
+      );
+
+      if (res.data?.success) {
+        toast.success(
+          res.data.data.message || "✅ Pickup location synced with Bosta",
+        );
+        fetchPickupLocations();
+      }
+    } catch (err) {
+      toast.error(
+        err.response?.data?.error?.message ||
+          err.response?.data?.message ||
+          t("Failed to sync pickup location with Bosta"),
+      );
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // Render
+  // ═══════════════════════════════════════════════════════════
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -136,14 +218,139 @@ const BostaAdvancedModal = ({
         </DialogHeader>
 
         <div className="space-y-6 py-2">
-          {/* ═══════════════ Pickup Address ═══════════════ */}
+          {/* ═══════════════════════════════════════════════════════
+              📍 Business Pickup Location
+          ═══════════════════════════════════════════════════════ */}
           <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                <Building2 size={14} />
+                {t("Business Pickup Location") || "Business Pickup Location"}
+              </h3>
+              <button
+                type="button"
+                onClick={fetchPickupLocations}
+                disabled={loadingLocations}
+                className="text-[10px] text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 transition disabled:opacity-50"
+              >
+                <RefreshCw
+                  size={11}
+                  className={loadingLocations ? "animate-spin" : ""}
+                />
+                {t("Refresh") || "Refresh"}
+              </button>
+            </div>
+
+            <p className="text-[11px] text-gray-500 mb-3 leading-relaxed">
+              {t(
+                "Select which pickup location Bosta drivers should come to. This is where all shipments will be collected from.",
+              ) ||
+                "Select which pickup location Bosta drivers should come to. This is where all shipments will be collected from."}
+            </p>
+
+            {loadingLocations ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 size={20} className="animate-spin text-blue-500" />
+              </div>
+            ) : pickupLocations.length === 0 ? (
+              <div className="p-4 rounded-lg bg-amber-50 border border-amber-100 text-center">
+                <p className="text-xs font-bold text-amber-900 mb-1">
+                  {t("No pickup locations found") ||
+                    "No pickup locations found"}
+                </p>
+                <p className="text-[10px] text-amber-700">
+                  {t(
+                    "Add your address below and click 'Save & Set as Default' to create one automatically.",
+                  ) ||
+                    "Add your address below and click 'Save & Set as Default' to create one automatically."}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {pickupLocations.map((loc) => {
+                  const isSelected = form.pickup.businessLocationId === loc._id;
+
+                  return (
+                    <button
+                      key={loc._id}
+                      type="button"
+                      onClick={() => handleSelectLocation(loc._id)}
+                      className={`w-full p-4 rounded-xl border-2 text-start transition-all ${
+                        isSelected
+                          ? "border-blue-500 bg-blue-50 shadow-sm"
+                          : "border-gray-200 bg-white hover:border-blue-200 hover:bg-blue-50/30"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          <div
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
+                              isSelected
+                                ? "border-blue-500 bg-blue-500"
+                                : "border-gray-300"
+                            }`}
+                          >
+                            {isSelected && (
+                              <CheckCircle2 size={12} className="text-white" />
+                            )}
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-sm font-bold text-gray-900">
+                                {loc.locationName}
+                              </p>
+                              {loc.isDefault && (
+                                <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                  DEFAULT
+                                </span>
+                              )}
+                            </div>
+
+                            {loc.address && (
+                              <p className="text-[11px] text-gray-500 mt-1 truncate">
+                                {loc.address.city?.name || ""}
+                                {loc.address.zone?.name
+                                  ? ` — ${loc.address.zone.name}`
+                                  : ""}
+                                {loc.address.district?.name
+                                  ? ` — ${loc.address.district.name}`
+                                  : ""}
+                              </p>
+                            )}
+
+                            {loc.address?.firstLine && (
+                              <p className="text-[11px] text-gray-500 mt-0.5 truncate">
+                                {loc.address.firstLine}
+                              </p>
+                            )}
+
+                            {loc.contactPerson?.phone && (
+                              <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1.5">
+                                <Phone size={10} />
+                                <span dir="ltr">{loc.contactPerson.phone}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════
+              📍 Pickup Address
+          ═══════════════════════════════════════════════════════ */}
+          <div className="pt-4 border-t border-gray-100">
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
               <MapPin size={14} />
               {t("Pickup_Address") || "Pickup Address"}
             </h3>
 
-            {/* Name Row */}
+            {/* First + Last Name */}
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
                 <Label className="text-xs mb-1.5 block">
@@ -307,7 +514,9 @@ const BostaAdvancedModal = ({
             </div>
           </div>
 
-          {/* ═══════════════ Package Defaults ═══════════════ */}
+          {/* ═══════════════════════════════════════════════════════
+              📦 Package Defaults
+          ═══════════════════════════════════════════════════════ */}
           <div className="pt-4 border-t border-gray-100">
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Package size={14} />
@@ -405,30 +614,43 @@ const BostaAdvancedModal = ({
               />
             </div>
           </div>
+
+          {/* 🆕 Info banner */}
+          <div className="p-3 rounded-lg bg-blue-50 border border-blue-100 flex items-start gap-2">
+            <Sparkles size={14} className="text-blue-600 shrink-0 mt-0.5" />
+            <p className="text-[11px] text-blue-900 font-medium leading-relaxed">
+              {t(
+                "When you click 'Save & Set as Default', the system will automatically create or update this pickup location in Bosta and mark it as default.",
+              ) ||
+                "When you click 'Save & Set as Default', the system will automatically create or update this pickup location in Bosta and mark it as default."}
+            </p>
+          </div>
         </div>
 
         <DialogFooter className="gap-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={saving}
+            disabled={saving || syncing}
           >
             {t("Cancel") || "Cancel"}
           </Button>
           <Button
-            onClick={onSave}
-            disabled={saving}
+            onClick={handleSaveAndSync}
+            disabled={saving || syncing}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
-            {saving ? (
+            {saving || syncing ? (
               <>
                 <Loader2 size={15} className="me-2 animate-spin" />
-                {t("Saving") || "Saving..."}
+                {syncing
+                  ? t("Syncing...") || "Syncing..."
+                  : t("Saving...") || "Saving..."}
               </>
             ) : (
               <>
                 <Save size={15} className="me-2" />
-                {t("Save_Advanced") || "Save Advanced"}
+                {t("Save_And_Set_Default") || "Save & Set as Default"}
               </>
             )}
           </Button>

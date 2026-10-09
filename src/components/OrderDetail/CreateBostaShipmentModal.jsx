@@ -9,9 +9,6 @@ import {
   DollarSign,
   Weight,
   FileText,
-  Calendar,
-  Clock,
-  Info,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -26,7 +23,7 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
 
-  // ─── Settings (للـ defaults) ───
+  // ─── Settings ───
   const [settings, setSettings] = useState(null);
 
   // ─── Form ───
@@ -44,17 +41,12 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
     weight: 1,
     notes: "",
     allowToOpenPackage: true,
-    // Pickup
-    pickupDate: "",
-    pickupTimeFrom: "10:00",
-    pickupTimeTo: "14:00",
-    autoPickup: true,
   });
 
   const [submitting, setSubmitting] = useState(false);
 
   // ═══════════════════════════════════════════════════════════
-  // Load Shipping Settings (لـ defaults)
+  // Load Shipping Settings
   // ═══════════════════════════════════════════════════════════
   useEffect(() => {
     if (!open) return;
@@ -68,8 +60,7 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
   }, [open]);
 
   // ═══════════════════════════════════════════════════════════
-  // 🆕 Prefill from order + settings
-  // يقرأ bostaCityId / bostaZoneId / bostaDistrictId من order.shippingAddress
+  // Prefill from order + settings
   // ═══════════════════════════════════════════════════════════
   useEffect(() => {
     if (!open || !order) return;
@@ -85,13 +76,6 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
     const isPaid = order.paymentStatus === "paid";
     const codAmount = isPaid ? 0 : Math.max(0, total);
 
-    // Pickup date: النهاردة + leadDays
-    const leadDays = settings?.bosta?.pickupLeadDays ?? 0;
-    const pickupDateObj = new Date();
-    pickupDateObj.setDate(pickupDateObj.getDate() + leadDays);
-    const pickupDate = pickupDateObj.toISOString().split("T")[0];
-
-    // ✅ نتحقق إن الأوردر فيه Bosta fields
     const hasBostaAddress = !!(
       addr.bostaCityId &&
       addr.bostaZoneId &&
@@ -99,35 +83,21 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
     );
 
     setForm({
-      // ✅ Bosta fields من order.shippingAddress
       cityId: addr.bostaCityId || "",
       cityName: addr.bostaCityName || "",
       districtId: addr.bostaDistrictId || "",
       zoneId: addr.bostaZoneId || "",
-
-      // Common
       firstLine: addr.details || addr.street || "",
       secondLine: "",
       buildingNumber: String(addr.buildingNumber || ""),
       floor: String(addr.floorNumber || ""),
       apartment: String(addr.apartmentNumber || ""),
-
-      // Package
       cod: codAmount,
       weight: settings?.bosta?.defaults?.weight || 1,
       notes: `Order #${order.reference || order._id?.slice(-6)}`,
       allowToOpenPackage: true,
-
-      // Pickup
-      pickupDate,
-      pickupTimeFrom:
-        settings?.bosta?.pickup?.defaultPickupTimeSlot?.from || "10:00",
-      pickupTimeTo:
-        settings?.bosta?.pickup?.defaultPickupTimeSlot?.to || "14:00",
-      autoPickup: settings?.bosta?.autoCreatePickup !== false,
     });
 
-    // ✅ لو فيه bostaCityId → نحمّل districts عشان الـ dropdown
     if (hasBostaAddress && addr.bostaCityId) {
       setLoadingDistricts(true);
       api
@@ -168,7 +138,7 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
   }, [open]);
 
   // ═══════════════════════════════════════════════════════════
-  // Load Districts when city changes (لو مش محمّلة أصلاً)
+  // Load Districts when city changes
   // ═══════════════════════════════════════════════════════════
   useEffect(() => {
     if (!form.cityId || districts.length > 0) return;
@@ -201,7 +171,6 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
       ...prev,
       cityId,
       cityName: city?.name || "",
-      // reset district/zone لو الـ city اتغيرت
       districtId: cityId !== prev.cityId ? "" : prev.districtId,
       zoneId: cityId !== prev.cityId ? "" : prev.zoneId,
     }));
@@ -220,19 +189,16 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
   };
 
   // ═══════════════════════════════════════════════════════════
-  // Submit
+  // Submit — Delivery Only
   // ═══════════════════════════════════════════════════════════
   const handleSubmit = async () => {
     if (!form.cityId) return toast.error(t("Please select a city"));
     if (!form.districtId) return toast.error(t("Please select a district"));
     if (!form.firstLine?.trim())
       return toast.error(t("Address line is required"));
-    if (form.autoPickup && !form.pickupDate)
-      return toast.error(t("Pickup date is required"));
 
     setSubmitting(true);
     try {
-      // ─── Step 1: Create Delivery ───
       const payload = {
         order_id: order._id,
         dropOffAddress: {
@@ -257,48 +223,12 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
         payload,
       );
 
-      const shipmentId = shipRes.data?.data?.shipment?._id;
       const trackingNumber =
         shipRes.data?.data?.shipment?.trackingNumber || "—";
 
-      if (!shipmentId) {
-        throw new Error("Shipment created but no ID returned");
-      }
-
-      // ─── Step 2: Create Pickup ───
-      let pickupScheduled = false;
-      if (form.autoPickup) {
-        try {
-          const pickupPayload = {
-            shipmentId,
-            scheduledDate: form.pickupDate,
-            scheduledTimeSlot: {
-              from: form.pickupTimeFrom,
-              to: form.pickupTimeTo,
-            },
-          };
-
-          await api.post("/api/admin/shipping/bosta/pickups", pickupPayload);
-          pickupScheduled = true;
-        } catch (pickupErr) {
-          console.error("Pickup error:", pickupErr);
-          toast.warning(
-            t(
-              "Shipment created, but pickup scheduling failed. You can schedule it manually later.",
-            ),
-          );
-        }
-      }
-
-      if (pickupScheduled) {
-        toast.success(
-          t("Shipment created & pickup scheduled for") + " " + form.pickupDate,
-        );
-      } else if (!form.autoPickup) {
-        toast.success(
-          t("Shipment created successfully") + " • AWB: " + trackingNumber,
-        );
-      }
+      toast.success(
+        t("Shipment created successfully") + " • AWB: " + trackingNumber,
+      );
 
       onCreated?.();
       onClose();
@@ -367,7 +297,6 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
               {t("Drop-off Address")}
             </h4>
 
-            {/* City + District */}
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1.5">
@@ -417,7 +346,6 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
               </div>
             </div>
 
-            {/* Address line */}
             <div className="mb-3">
               <label className="block text-[11px] font-bold text-slate-600 mb-1.5">
                 {t("Address Line")} *
@@ -431,7 +359,6 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
               />
             </div>
 
-            {/* Building / Floor / Apt */}
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1.5">
@@ -528,78 +455,6 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
             </div>
           </div>
 
-          {/* Pickup Schedule */}
-          <div className="p-4 rounded-2xl bg-orange-50/50 border border-orange-100">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-xs font-bold text-orange-700 uppercase tracking-wider flex items-center gap-2">
-                <Calendar size={14} />
-                {t("Pickup Schedule")}
-              </h4>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-orange-700 uppercase">
-                  {t("Auto")}
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.autoPickup}
-                  onChange={(e) => update("autoPickup", e.target.checked)}
-                  className="w-4 h-4 accent-orange-500 cursor-pointer"
-                />
-              </div>
-            </div>
-
-            <p className="text-[11px] text-orange-700/80 mb-3 flex items-start gap-1.5">
-              <Info size={11} className="shrink-0 mt-0.5" />
-              {t(
-                "Bosta driver will come to your warehouse to pick up the package",
-              )}
-            </p>
-
-            {form.autoPickup && (
-              <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1.5">
-                    {t("Pickup Date")} *
-                  </label>
-                  <input
-                    type="date"
-                    value={form.pickupDate}
-                    min={new Date().toISOString().split("T")[0]}
-                    onChange={(e) => update("pickupDate", e.target.value)}
-                    className="w-full bg-white border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-3 py-2.5 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1.5 flex items-center gap-1">
-                      <Clock size={11} />
-                      {t("From")}
-                    </label>
-                    <input
-                      type="time"
-                      value={form.pickupTimeFrom}
-                      onChange={(e) => update("pickupTimeFrom", e.target.value)}
-                      className="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl px-3 py-2.5"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1.5 flex items-center gap-1">
-                      <Clock size={11} />
-                      {t("To")}
-                    </label>
-                    <input
-                      type="time"
-                      value={form.pickupTimeTo}
-                      onChange={(e) => update("pickupTimeTo", e.target.value)}
-                      className="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl px-3 py-2.5"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Notes */}
           <div>
             <label className="block text-[11px] font-bold text-slate-600 mb-1.5 flex items-center gap-1">
@@ -614,14 +469,22 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
             />
           </div>
 
-          {/* Info */}
-          <div className="p-3 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-2">
-            <AlertCircle size={14} className="text-blue-600 shrink-0 mt-0.5" />
-            <p className="text-[11px] text-blue-900 font-medium leading-relaxed">
-              {t(
-                "Pickup address will be taken from Bosta settings. Make sure it's configured in Shipping Settings → Advanced.",
-              )}
-            </p>
+          {/* Info — Pickup Auto Notice */}
+          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100 flex items-start gap-2">
+            <AlertCircle
+              size={14}
+              className="text-emerald-600 shrink-0 mt-0.5"
+            />
+            <div>
+              <p className="text-[11px] text-emerald-900 font-bold mb-0.5">
+                {t("Auto Pickup Enabled")}
+              </p>
+              <p className="text-[10px] text-emerald-700 leading-relaxed">
+                {t(
+                  "Pickup is handled automatically. Your shipment will be collected at the scheduled daily pickup. No manual pickup needed for each order.",
+                )}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -648,7 +511,6 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
               <>
                 <Truck size={13} />
                 {t("Create Shipment")}
-                {form.autoPickup && ` + ${t("Pickup")}`}
               </>
             )}
           </button>

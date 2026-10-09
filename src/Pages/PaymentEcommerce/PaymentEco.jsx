@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
 import OrderShippingSection from "@/components/OrderDetail/OrderShippingSection";
 import BulkCreateBostaShipmentsModal from "@/components/OrderDetail/BulkCreateBostaShipmentsModal";
+import CreateDailyPickupModal from "@/components/OrderDetail/CreateDailyPickupModal";
 import {
   CheckCircle2,
   X,
@@ -513,7 +514,6 @@ const FinancialsModal = ({ order, onCancel, loadingDetails, refetch }) => {
                 value={`${(order.shippingPrice || 0).toLocaleString()} ${t("EGP")}`}
               />
 
-              {/* 🆕 Shipping Breakdown — للأدمن بس */}
               {order.shippingDetails?.bostaCost > 0 && (
                 <div className="px-4 py-2.5 bg-emerald-50/40 border-b border-emerald-100/50">
                   <div className="space-y-1 text-[10px]">
@@ -618,8 +618,11 @@ const PaymentEco = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
-  // ✅ Bulk Modal فقط (بدون selection)
+  // ✅ Bulk Modal
   const [showBulkModal, setShowBulkModal] = useState(false);
+
+  // 🆕 Daily Pickup Modal
+  const [showPickupModal, setShowPickupModal] = useState(false);
 
   // ✅ View Details
   const handleViewDetails = async (order) => {
@@ -953,14 +956,25 @@ const PaymentEco = () => {
               </p>
             </div>
 
-            {/* ✅ Bulk Button (ثابت دايماً) */}
-            <button
-              onClick={() => setShowBulkModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition shadow-sm active:scale-95"
-            >
-              <Truck size={14} />
-              {t("Create Bosta Shipments")}
-            </button>
+            {/* ✅ أزرار العمليات */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setShowBulkModal(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition shadow-sm active:scale-95"
+              >
+                <Truck size={14} />
+                {t("Create Bosta Shipments")}
+              </button>
+
+              {/* 🆕 Daily Pickup Button */}
+              <button
+                onClick={() => setShowPickupModal(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm active:scale-95"
+              >
+                <RotateCcw size={14} />
+                {t("Create Daily Pickup")}
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3 w-full lg:w-auto">
@@ -1086,10 +1100,19 @@ const PaymentEco = () => {
         refetch={refetch}
       />
 
-      {/* ✅ Bulk Create Modal (بيجيب الأوردرات بنفسه) */}
+      {/* ✅ Bulk Create Modal */}
       <BulkCreateBostaShipmentsModal
         open={showBulkModal}
         onClose={() => setShowBulkModal(false)}
+        onCreated={() => {
+          refetch();
+        }}
+      />
+
+      {/* 🆕 Daily Pickup Modal */}
+      <CreateDailyPickupModal
+        open={showPickupModal}
+        onClose={() => setShowPickupModal(false)}
         onCreated={() => {
           refetch();
         }}
