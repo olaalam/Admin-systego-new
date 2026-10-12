@@ -25,7 +25,8 @@ export default function BrandEdit() {
     { key: "ar_name", label: t("Name(Arabic)"), required: true },
     { key: "name", label: t("Name(English)"), required: true },
     { key: "logo", label: t("Logo"), type: "image", required: true },
-  ], []);
+    { key: "is_featured", label: isRTL ? "مميز (Featured)" : "Featured", type: "switch", required: false },
+  ], [isRTL, t]);
 
   useEffect(() => {
     const fetchPaymentMethod = async () => {
@@ -45,6 +46,7 @@ export default function BrandEdit() {
           description: paymentMethod.description || "",
           logo: paymentMethod.logo || "",
           status: paymentMethod.status || false,
+          is_featured: paymentMethod.is_featured ?? false,
         });
       } catch (err) {
         toast.error(t("Failed to fetch brand data"));

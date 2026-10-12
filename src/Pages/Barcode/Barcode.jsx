@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Trash2, FileText, Loader as LoaderIcon, X, Plus } from "lucide-react";
+import { Trash2, FileText, Loader as LoaderIcon, Plus } from "lucide-react";
 import Loader from "@/components/Loader";
 import useGet from "@/hooks/useGet";
 import usePost from "@/hooks/usePost";
 import { toast } from "react-toastify";
-import SmartSearch from "@/components/SmartSearch"; // تأكد من المسار الصحيح للملف
+import SmartSearch from "@/components/SmartSearch";
 import { useTranslation } from "react-i18next";
 
 const PrintBarcode = () => {
@@ -12,10 +12,10 @@ const PrintBarcode = () => {
   const { data: productsData, loading: productsLoading } =
     useGet("/api/admin/product");
   const { data: sizesData, loading: sizesLoading } = useGet(
-    "/api/admin/label/sizes"
+    "/api/admin/label/sizes",
   );
   const { postData: generateLabels, loading: isSubmitting } = usePost(
-    "/api/admin/label/generate"
+    "/api/admin/label/generate",
   );
 
   // State Management
@@ -40,39 +40,84 @@ const PrintBarcode = () => {
   const products = productsData?.products || [];
   const labelSizes = sizesData?.labelSizes || [];
 
+  // =========================================================
+  // Helper: بناء اسم الـ variation
+  // =========================================================
+  const buildVariationText = (priceVariation) => {
+    if (!priceVariation?.variations?.length) return "";
+
+    return priceVariation.variations
+      .map((v) => {
+        const optionNames = (v.options || []).map((o) => o.name).join(", ");
+        return optionNames ? `${v.name}: ${optionNames}` : v.name;
+      })
+      .filter(Boolean)
+      .join(" | ");
+  };
+
   // --- 1. Filter Logic ---
   const filteredProducts = products.filter((product) => {
     const search = searchTerm.toLowerCase();
-    return (
-      product.name?.toLowerCase().includes(search) ||
-      product.code?.toLowerCase().includes(search) || // إضافة البحث في الكود الأساسي
-      product.prices?.some((p) => p.code?.toLowerCase().includes(search))
-    );
+
+    const productName = isRTL ? product.ar_name || product.name : product.name;
+
+    // البحث في اسم المنتج
+    if (productName?.toLowerCase().includes(search)) return true;
+
+    // البحث في كود المنتج الأساسي
+    if (product.code?.toLowerCase().includes(search)) return true;
+
+    // البحث في أكواد وأسماء الـ variations
+    if (
+      product.prices?.some((p) => {
+        const codeMatch = p.code?.toLowerCase().includes(search);
+
+        const variationMatch = p.variations?.some((v) =>
+          v.options?.some((o) => o.name?.toLowerCase().includes(search)),
+        );
+
+        return codeMatch || variationMatch;
+      })
+    ) {
+      return true;
+    }
+
+    return false;
   });
 
   // --- 2. Selection Actions ---
   const addProduct = (product, priceVariation = null) => {
-    // لو مفيش variation، productPriceId يبقى null
     const priceId = priceVariation ? priceVariation._id : null;
-
-    // نستخدم productId كـ key للتمييز لو مفيش variation، وإلا نستخدم priceId
     const uniqueKey = priceId || product._id;
 
     const exists = selectedProducts.find(
-      (p) => (p.productPriceId ?? p.productId) === uniqueKey
+      (p) => (p.productPriceId ?? p.productId) === uniqueKey,
     );
 
     if (!exists) {
+      // ✅ بناء الاسم مع الـ variation
+      const variationText = priceVariation
+        ? buildVariationText(priceVariation)
+        : "";
+
+      const productName = isRTL
+        ? product.ar_name || product.name
+        : product.name;
+
+      const displayName = variationText
+        ? `${productName} - ${variationText}`
+        : productName;
+
       setSelectedProducts([
         ...selectedProducts,
         {
           productId: product._id,
-          productPriceId: priceId, // null لو مفيش variation
+          productPriceId: priceId,
           quantity: 1,
-          productName: product.name,
+          productName: displayName,
           brandName: product.brandId?.name || "",
-          code: priceVariation ? priceVariation.code : (product.code || ""),
-          price: priceVariation ? priceVariation.price : (product.price || 0),
+          code: priceVariation ? priceVariation.code : product.code || "",
+          price: priceVariation ? priceVariation.price : product.price || 0,
         },
       ]);
     }
@@ -83,31 +128,42 @@ const PrintBarcode = () => {
     const quantity = Math.max(1, parseInt(val) || 1);
     setSelectedProducts(
       selectedProducts.map((p) =>
-        p.productId === productId && p.productPriceId === priceId ? { ...p, quantity } : p
-      )
+        p.productId === productId && p.productPriceId === priceId
+          ? { ...p, quantity }
+          : p,
+      ),
     );
   };
 
   const removeProduct = (productId, priceId) => {
     setSelectedProducts(
-      selectedProducts.filter((p) => !(p.productId === productId && p.productPriceId === priceId))
+      selectedProducts.filter(
+        (p) => !(p.productId === productId && p.productPriceId === priceId),
+      ),
     );
   };
 
   const handleBarcodeScanned = (scannedCode) => {
     if (!scannedCode) return;
     for (const product of products) {
-      // 1. فحص الكود الأساسي للمنتج
+      // 1. فحص الكود الأساسي
       if (product.code === scannedCode) {
         addProduct(product);
         toast.success(`${t("Added")}: ${product.name}`);
         return;
       }
-      // 2. فحص الأكواد داخل التنوعات
+
+      // 2. فحص أكواد الـ variations
       const priceMatch = product.prices?.find((p) => p.code === scannedCode);
       if (priceMatch) {
         addProduct(product, priceMatch);
-        toast.success(`${t("Added")}: ${product.name}`);
+
+        const variationText = buildVariationText(priceMatch);
+        const displayName = variationText
+          ? `${product.name} - ${variationText}`
+          : product.name;
+
+        toast.success(`${t("Added")}: ${displayName}`);
         return;
       }
     }
@@ -133,7 +189,7 @@ const PrintBarcode = () => {
         businessNameSize: parseInt(labelConfig.businessNameSize),
         brandSize: parseInt(labelConfig.brandSize),
       },
-      paperSize: selectedPaperSize, // هذا المتغير حيوي جداً لضبط مساحة الورقة
+      paperSize: selectedPaperSize,
     };
 
     try {
@@ -164,7 +220,7 @@ const PrintBarcode = () => {
   const BarcodePreview = ({ product, size, labelConfig, businessName }) => {
     const getPreviewStyle = () => {
       const dimensions = size?.labelSize?.match(
-        /(\d+\.?\d*)mm\s*×\s*(\d+\.?\d*)mm/
+        /(\d+\.?\d*)mm\s*×\s*(\d+\.?\d*)mm/,
       );
       if (!dimensions) return { width: "150px", height: "80px" };
       const width = parseFloat(dimensions[1]) * 3.5;
@@ -205,7 +261,6 @@ const PrintBarcode = () => {
           </div>
         )}
 
-        {/* تم تغيير الخلفية السوداء هنا لتبدو كباركود حقيقي بالـ CSS */}
         <div
           className="w-full h-10 mb-1 opacity-80"
           style={{
@@ -261,7 +316,9 @@ const PrintBarcode = () => {
                     >
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-gray-800">
-                          {product.name}
+                          {isRTL
+                            ? product.ar_name || product.name
+                            : product.name}
                         </span>
                         <span className="text-xs text-gray-400 uppercase tracking-widest">
                           {product.category?.name}
@@ -269,31 +326,63 @@ const PrintBarcode = () => {
                       </div>
 
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {/* الحالة الأولى: إذا كان المنتج يحتوي على تنوعات أسعار */}
                         {product.prices && product.prices.length > 0 ? (
-                          product.prices.map((pv) => (
-                            <button
-                              key={pv._id}
-                              onClick={() => addProduct(product, pv)}
-                              className="text-xs bg-white border border-gray-200 hover:border-gray-500 px-2 py-1 rounded-md flex items-center gap-1 transition-all"
-                            >
-                              <Plus className="w-3 h-3 text-gray-600" />
-                              <span className="font-mono">{pv.code}</span> -{" "}
-                              <span className="text-gray-700 font-bold">
-                                ${pv.price}
-                              </span>
-                            </button>
-                          ))
+                          product.prices.map((pv) => {
+                            const variationText = buildVariationText(pv);
+
+                            return (
+                              <button
+                                key={pv._id}
+                                onClick={() => addProduct(product, pv)}
+                                className="text-xs bg-white border border-gray-200 hover:border-gray-500 px-2 py-1 rounded-md flex items-center gap-1 transition-all"
+                              >
+                                <Plus className="w-3 h-3 text-gray-600" />
+
+                                <span className="font-bold text-gray-800">
+                                  {isRTL
+                                    ? product.ar_name || product.name
+                                    : product.name}
+                                  {variationText && (
+                                    <span className="text-gray-500 font-normal">
+                                      {" "}
+                                      - {variationText}
+                                    </span>
+                                  )}
+                                </span>
+
+                                <span className="font-mono text-gray-500">
+                                  ({pv.code})
+                                </span>
+
+                                {" - "}
+
+                                <span className="text-gray-700 font-bold">
+                                  {pv.price} {t("EGP")}
+                                </span>
+                              </button>
+                            );
+                          })
                         ) : (
-                          /* الحالة الثانية: إذا كان المنتج بسيطاً (بدون تنوعات) */
                           <button
                             onClick={() => addProduct(product, null)}
                             className="text-xs bg-white border border-blue-200 hover:border-blue-500 px-2 py-1 rounded-md flex items-center gap-1 transition-all"
                           >
                             <Plus className="w-3 h-3 text-blue-600" />
-                            <span className="font-mono">{product.code || "No Code"}</span> -{" "}
+
+                            <span className="font-bold text-blue-800">
+                              {isRTL
+                                ? product.ar_name || product.name
+                                : product.name}
+                            </span>
+
+                            <span className="font-mono text-gray-500">
+                              ({product.code || "No Code"})
+                            </span>
+
+                            {" - "}
+
                             <span className="text-blue-700 font-bold">
-                              ${product.price || 0}
+                              {product.price || 0} {t("EGP")}
                             </span>
                           </button>
                         )}
@@ -328,7 +417,7 @@ const PrintBarcode = () => {
                 <tbody className="divide-y divide-gray-100">
                   {selectedProducts.map((product) => (
                     <tr
-                      key={`${product.productId}-${product.productPriceId ?? 'main'}`}
+                      key={`${product.productId}-${product.productPriceId ?? "main"}`}
                       className="hover:bg-gray-50/50"
                     >
                       <td className="px-6 py-4 font-medium text-gray-900">
@@ -346,7 +435,7 @@ const PrintBarcode = () => {
                             updateQuantity(
                               product.productId,
                               product.productPriceId,
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           className="w-20 border-2 border-gray-100 rounded-lg px-3 py-1.5 focus:border-gray-400 outline-none transition-all font-bold"
@@ -354,7 +443,12 @@ const PrintBarcode = () => {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button
-                          onClick={() => removeProduct(product.productId, product.productPriceId)}
+                          onClick={() =>
+                            removeProduct(
+                              product.productId,
+                              product.productPriceId,
+                            )
+                          }
                           className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
                         >
                           <Trash2 className="w-5 h-5" />
@@ -377,7 +471,7 @@ const PrintBarcode = () => {
                     className="w-4 h-4 rounded text-gray-600 focus:ring-gray-500 cursor-pointer"
                     checked={
                       labelConfig[
-                      `show${item.charAt(0).toUpperCase() + item.slice(1)}`
+                        `show${item.charAt(0).toUpperCase() + item.slice(1)}`
                       ]
                     }
                     onChange={(e) =>
@@ -465,9 +559,7 @@ const PrintBarcode = () => {
             )}
             {isSubmitting
               ? t("generating_print_file")
-              : t("generate_and_print_labels")
-
-            }
+              : t("generate_and_print_labels")}
           </button>
         </div>
       </div>

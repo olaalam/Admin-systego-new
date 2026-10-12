@@ -18,6 +18,7 @@ const fields = [
     key: "options",
     label: t("Options"),
     type: "array", // Array input
+    uniqueSubKey: "name",
     subFields: [
       { key: "name", label: t("OptionName"), required: true },
       // ✅ type: "switch" بدل checkbox
@@ -31,13 +32,26 @@ const fields = [
 
   const handleSubmit = async (data) => {
     try {
-      // تجهيز الـ payload ليناسب متطلبات الـ backend
+      // 1. تصفية الخيارات الفارغة تماماً
+      const validOptions = (data.options || []).filter((opt) => opt.name && opt.name.trim() !== "");
+
+      // 2. التحقق من تكرار أسماء الخيارات في نفس الفاريشن
+      const rawOptions = validOptions.map((opt) => opt.name.trim());
+      const lowerOptions = rawOptions.map((n) => n.toLowerCase());
+      const duplicateIndex = lowerOptions.findIndex((name, idx) => lowerOptions.indexOf(name) !== idx);
+
+      if (duplicateIndex !== -1) {
+        const duplicateName = rawOptions[duplicateIndex];
+        toast.error(`مينفعش، خيار "${duplicateName}" متسجل وموجود قبل كده في نفس الفاريشن!`);
+        return;
+      }
+
+      // تجهيز الـ payload بالخيارات الصالحة فقط
       const payload = {
         name: data.name,
-        ar_name:data.ar_name,
-        // ✅ التأكد من تعيين قيمة status كـ boolean (true/false)
-        options: (data.options || []).map((opt) => ({
-          name: opt.name,
+        ar_name: data.ar_name,
+        options: validOptions.map((opt) => ({
+          name: opt.name.trim(),
           status: opt.status ?? false, 
         })),
       };

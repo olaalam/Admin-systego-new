@@ -41,6 +41,7 @@ export default function CategoryEdit() {
           banner: category.banner || "",
           order: category.order !== undefined && category.order !== null ? category.order : "",
           parentId: category.parentId?._id || category.parentId || "", // ضمان أخذ الـ ID
+          is_featured: category.is_featured ?? false,
         });
 
         // 2. إعداد قائمة الأقسام (بنفس طريقة كود الـ Add)
@@ -72,6 +73,7 @@ export default function CategoryEdit() {
     { key: "image", label: t("Image"), type: "image", required: true },
     { key: "banner", label: isRTL ? "البانر" : "Banner", type: "image", required: false },
     { key: "order", label: isRTL ? "الترتيب" : "Order", type: "number", min: 0, required: false, placeholder: isRTL ? "أدخل رقم الترتيب (اختياري)" : "Enter order number (optional)" },
+    { key: "is_featured", label: isRTL ? "قسم مميز (Featured)" : "Featured Category", type: "switch", required: false },
     {
       key: "parentId",
       label: t("ParentCategory"),

@@ -5,6 +5,7 @@ import { UserPlus } from "lucide-react";
 import { ComboboxMultiSelect } from "@/components/ui/combobox-multi-select";
 import { Switch } from "@/components/ui/switch";
 import { useTranslation } from "react-i18next";
+import DeleteDialog from "@/components/DeleteForm";
 
 const AddPage = ({
   title = "Add Item",
@@ -18,6 +19,8 @@ const AddPage = ({
   submitButtonText = "Save"
 }) => {
   const [formData, setFormData] = useState({});
+  const [deletingArrayItem, setDeletingArrayItem] = useState(null);
+  const [isDeletingArrayItem, setIsDeletingArrayItem] = useState(false);
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
   useEffect(() => {
@@ -25,7 +28,9 @@ const AddPage = ({
       const filteredData = fields.reduce((acc, field) => {
         if (field.type === "array" || field.type === "multiselect") {
           acc[field.key] = Array.isArray(initialData[field.key])
-            ? initialData[field.key]
+            ? initialData[field.key].map((item) =>
+                typeof item === "object" && item !== null ? { ...item } : item
+              )
             : [];
         } else {
           acc[field.key] =
@@ -79,10 +84,50 @@ const AddPage = ({
     }));
   };
 
-  const removeArrayItem = (key, index) => {
+  const removeArrayItem = async (key, index) => {
+    const item = (formData[key] || [])[index];
+    const fieldDef = fields.find((f) => f.key === key);
+
+    const isPersisted = Boolean(item?.id || item?._id);
+    const shouldConfirm = isPersisted && fieldDef?.confirmDelete === true;
+
+    if (shouldConfirm) {
+      setDeletingArrayItem({ key, index, item, fieldDef });
+      return;
+    }
+
+    if (fieldDef && typeof fieldDef.onRemove === "function") {
+      const proceed = await fieldDef.onRemove(item, index, formData, setFormData);
+      if (proceed === false) return;
+    }
+
     const newArray = [...(formData[key] || [])];
     newArray.splice(index, 1);
     setFormData((prev) => ({ ...prev, [key]: newArray }));
+  };
+
+  const handleConfirmDeleteArrayItem = async () => {
+    if (!deletingArrayItem) return;
+    const { key, index, item, fieldDef } = deletingArrayItem;
+
+    setIsDeletingArrayItem(true);
+    try {
+      let proceed = true;
+      if (fieldDef && typeof fieldDef.onRemove === "function") {
+        proceed = await fieldDef.onRemove(item, index, formData, setFormData);
+      }
+
+      if (proceed !== false) {
+        const newArray = [...(formData[key] || [])];
+        newArray.splice(index, 1);
+        setFormData((prev) => ({ ...prev, [key]: newArray }));
+      }
+    } catch (error) {
+      console.error("Error during array item deletion:", error);
+    } finally {
+      setIsDeletingArrayItem(false);
+      setDeletingArrayItem(null);
+    }
   };
 
   const handleImageChange = async (key, files, isMultiple) => {
@@ -124,15 +169,46 @@ const AddPage = ({
   };
 
   const handleSubmit = () => {
+    // 1. تصفية العناصر الفارغة والتحقق من التكرار في الحقول من نوع array
+    const cleanedFormData = { ...formData };
+
     for (let field of fields) {
-      if (field.required && !formData[field.key]?.length && field.type === "multiselect") {
+      if (field.type === "array") {
+        const uniqueKey = field.uniqueSubKey || "name";
+        const rawArray = formData[field.key] || [];
+
+        // تصفية الخيارات الفارغة تماماً (سيف واكني مضفتش الفاضي ده)
+        const validItems = rawArray.filter(
+          (item) => item[uniqueKey] && item[uniqueKey].trim() !== ""
+        );
+
+        // فحص التكرار بين الخيارات الصالحة
+        const rawNames = validItems.map((item) => item[uniqueKey].trim());
+        const lowerNames = rawNames.map((n) => n.toLowerCase());
+        const dupIdx = lowerNames.findIndex((val, idx) => lowerNames.indexOf(val) !== idx);
+
+        if (dupIdx !== -1) {
+          toast.error(
+            isArabic
+              ? `مينفعش، خيار "${rawNames[dupIdx]}" متسجل وموجود قبل كده في نفس الفاريشن!`
+              : `Option "${rawNames[dupIdx]}" already exists in this variation!`
+          );
+          return;
+        }
+
+        cleanedFormData[field.key] = validItems;
+      }
+    }
+
+    for (let field of fields) {
+      if (field.required && !cleanedFormData[field.key]?.length && field.type === "multiselect") {
         toast.error(`Please select at least one ${field.label}`);
         return;
       }
       if (
         field.required &&
         field.type === "image" &&
-        (!formData[field.key] || typeof formData[field.key] !== "string")
+        (!cleanedFormData[field.key] || typeof cleanedFormData[field.key] !== "string")
       ) {
         toast.error(`Please upload ${field.label}`);
         return;
@@ -143,23 +219,24 @@ const AddPage = ({
         field.type !== "checkbox" &&
         field.type !== "switch" &&
         field.type !== "custom" &&
-        !formData[field.key]
+        field.type !== "array" &&
+        !cleanedFormData[field.key]
       ) {
         toast.error(`${t("Please fill in")} ${field.label}`);
         return;
       }
     }
 
-    if (formData.from && formData.to) {
-      const fromDate = new Date(formData.from);
-      const toDate = new Date(formData.to);
+    if (cleanedFormData.from && cleanedFormData.to) {
+      const fromDate = new Date(cleanedFormData.from);
+      const toDate = new Date(cleanedFormData.to);
       if (fromDate > toDate) {
         toast.error("Valid From date cannot be later than Valid To date");
         return;
       }
     }
 
-    onSubmit(formData);
+    onSubmit(cleanedFormData);
   };
 
   return (
@@ -236,7 +313,8 @@ const AddPage = ({
                       <button
                         type="button"
                         onClick={() => removeArrayItem(field.key, idx)}
-                        className="text-red-500 text-sm"
+                        className="text-red-500 hover:text-red-700 text-sm font-bold p-1 rounded transition-colors"
+                        title={t("Delete") || "Delete"}
                       >
                         ✕
                       </button>
@@ -383,6 +461,29 @@ const AddPage = ({
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog for Array Items */}
+      {deletingArrayItem && (
+        <DeleteDialog
+          title={
+            deletingArrayItem.fieldDef?.deleteDialogTitle ||
+            t("DeleteOption") ||
+            "Delete Option"
+          }
+          message={
+            typeof deletingArrayItem.fieldDef?.deleteDialogMessage === "function"
+              ? deletingArrayItem.fieldDef.deleteDialogMessage(deletingArrayItem.item)
+              : deletingArrayItem.fieldDef?.deleteDialogMessage ||
+                t("DeleteOptionConfirm", {
+                  name: deletingArrayItem.item?.name || "",
+                }) ||
+                `Are you sure you want to delete "${deletingArrayItem.item?.name || "this item"}"? This action cannot be undone.`
+          }
+          onConfirm={handleConfirmDeleteArrayItem}
+          onCancel={() => setDeletingArrayItem(null)}
+          loading={isDeletingArrayItem}
+        />
+      )}
     </div>
   );
 };

@@ -333,6 +333,22 @@ const Category = () => {
         </div>
       ),
     },
+    {
+      key: "is_featured",
+      header: isRTL ? "مميز" : "Featured",
+      filterable: false,
+      render: (value) => (
+        <span
+          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+            value
+              ? "bg-amber-50 text-amber-700 border border-amber-200"
+              : "bg-gray-100 text-gray-500 border border-gray-200"
+          }`}
+        >
+          {value ? (isRTL ? "مميز ⭐" : "Featured ⭐") : (isRTL ? "عادي" : "Normal")}
+        </span>
+      ),
+    },
   ];
 
   if (loading) return <Loader />;

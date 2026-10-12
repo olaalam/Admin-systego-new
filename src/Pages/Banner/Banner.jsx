@@ -25,18 +25,44 @@ const Banner = () => {
     };
 
     const columns = [
-        { key: "name", header: t("bannerName"), filterable: false },
+        {
+            key: "name",
+            header: t("bannerName"),
+            filterable: false,
+            render: (name) => Array.isArray(name) ? name.join(", ") : name,
+        },
+        {
+            key: "title",
+            header: t("Title"),
+            filterable: false,
+            render: (value) => value || "—",
+        },
         {
             key: "images",
             header: t("bannerImage"),
             filterable: false,
             render: (images) => (
                 <img
-                    src={images[0]}
+                    src={images?.[0] || ""}
                     alt="banner"
                     className="w-16 h-10 object-cover rounded"
                 />
             )
+        },
+        {
+            key: "link",
+            header: t("Banner Link", "رابط البانر"),
+            filterable: false,
+            render: (value) => value ? (
+                <a
+                    href={value}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-600 hover:underline max-w-[150px] truncate block text-xs"
+                >
+                    {value}
+                </a>
+            ) : "—",
         },
         {
             key: "isActive",
