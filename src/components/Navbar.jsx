@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { ArrowLeft, LogOut, RefreshCw, Search, X, Lock } from "lucide-react";
+import { ArrowLeft, LogOut, RefreshCw, Search, X, Lock, Menu } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import '../translation/i18n';
 import NotificationDropdown from "./NotificationDropdown";
@@ -9,7 +9,7 @@ import usePost from "@/hooks/usePost";
 import { useTenantInfo } from "@/context/TenantContext";
 import { toast } from "react-toastify";
 import logo from "@/assets/logo.jpg";
-export default function Navbar() {
+export default function Navbar({ onToggleMobileMenu }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -191,57 +191,69 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center relative z-10">
+      <nav className="bg-white shadow-md px-3 sm:px-6 py-2.5 sm:py-3 flex justify-between items-center relative z-10 gap-2">
 
         {/* Left side */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          {!isControlPanel && onToggleMobileMenu && (
+            <button
+              onClick={onToggleMobileMenu}
+              className="md:hidden p-1.5 hover:bg-gray-100 rounded-lg text-slate-700"
+              title="Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+
           {isControlPanel ? (
             /* Search area - only on Control Panel */
             searchOpen ? (
-              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-64 transition-all">
-                <Search className="w-6 h-6 text-slate-400 flex-shrink-0" />
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 w-48 sm:w-64 transition-all">
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 flex-shrink-0" />
                 <input
                   ref={inputRef}
                   type="text"
                   value={searchValue}
                   onChange={handleSearchChange}
                   placeholder={t("Searchmenu") + "..."}
-                  className="flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                  className="flex-1 min-w-0 bg-transparent text-xs sm:text-sm text-slate-700 outline-none placeholder:text-slate-400"
                 />
-                <button onClick={closeSearch}>
-                  <X className="w-6 h-6 text-slate-400 hover:text-slate-700 transition-colors" />
+                <button onClick={closeSearch} className="p-0.5">
+                  <X className="w-4 h-4 text-slate-400 hover:text-slate-700 transition-colors" />
                 </button>
               </div>
             ) : (
               <button
                 onClick={openSearch}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-all text-sm font-medium border border-slate-200"
+                className="flex items-center gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-all text-xs sm:text-sm font-medium border border-slate-200"
               >
-                <Search className="w-6 h-6" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">{t("Searchmenu")}</span>
               </button>
             )
           ) : (
             /* Back button - on all other pages */
-            <button onClick={handleBack} className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
-              <ArrowLeft className="w-5 h-5 text-secondary" />
-              <span className="text-sm font-medium text-secondary">{t("navbar.back")}</span>
+            <button onClick={handleBack} className="flex items-center gap-1.5 sm:gap-2 text-gray-700 hover:text-gray-900 p-1">
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-secondary rtl:rotate-180" />
+              <span className="text-xs sm:text-sm font-medium text-secondary hidden xs:inline">{t("navbar.back")}</span>
             </button>
           )}
         </div>
 
         {/* Center: Logo */}
-        <div className="flex items-center">
-          <img src={logo} alt="SysteGo Logo" className="h-12 w-auto object-contain" />
+        <div className="flex items-center justify-center flex-shrink-0">
+          <img src={logo} alt="SysteGo Logo" className="h-8 sm:h-12 w-auto object-contain" />
         </div>
-        <div className="flex items-center gap-4">
+
+        {/* Right side actions */}
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
 
           {/* زر POS وشارة الترقية إذا كانت الميزة غير متوفرة */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={handleGoToPOS}
               disabled={!features?.havePOS}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-bold transition-all ${
+              className={`flex items-center gap-1 px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all ${
                 features?.havePOS
                   ? "bg-secondary text-white hover:bg-opacity-90 cursor-pointer shadow-sm"
                   : "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
@@ -252,17 +264,17 @@ export default function Navbar() {
                   : "POS"
               }
             >
-              {!features?.havePOS && <Lock className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />}
+              {!features?.havePOS && <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 flex-shrink-0" />}
               <span>POS</span>
             </button>
 
             {!features?.havePOS && (
               <span
-                className="flex items-center gap-1 text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 px-2 py-1 rounded-lg cursor-default select-none shadow-xs"
+                className="hidden sm:flex items-center gap-1 text-[10px] sm:text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg cursor-default select-none shadow-xs"
                 title={i18n.language === "ar" ? "هذه الميزة تتطلب ترقية باقتك الحالية" : "This feature requires a plan upgrade"}
               >
-                <Lock className="w-3 h-3 text-amber-600 flex-shrink-0" />
-                <span>{i18n.language === "ar" ? "يتطلب ترقية" : "Upgrade"}</span>
+                <Lock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-600 flex-shrink-0" />
+                <span>{i18n.language === "ar" ? "ترقية" : "Upgrade"}</span>
               </span>
             )}
           </div>
@@ -271,11 +283,11 @@ export default function Navbar() {
           <button
             onClick={handleRefreshTenant}
             disabled={isRefreshingTenant}
-            className="flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 cursor-pointer disabled:opacity-50 transition-colors p-1.5 hover:bg-emerald-50 rounded-lg"
+            className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 cursor-pointer disabled:opacity-50 transition-colors p-1 sm:p-1.5 hover:bg-emerald-50 rounded-lg"
             title={i18n.language === "ar" ? "تحديث بيانات المؤسسة والاشتراك" : "Refresh Tenant Info"}
           >
-            <RefreshCw className={`w-4 h-4 ${isRefreshingTenant ? "animate-spin" : ""}`} />
-            <span className="text-[10px] font-bold">TENANT</span>
+            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshingTenant ? "animate-spin" : ""}`} />
+            <span className="hidden md:inline text-[10px] font-bold">TENANT</span>
           </button>
 
           {/* زر التحديث - يظهر في الـ localhost والـ subdomains فقط */}
@@ -283,22 +295,23 @@ export default function Navbar() {
             <button
               onClick={handleUpdateVersion}
               disabled={isUpdating || apiLoading}
-              className="flex items-center gap-2 text-secondary hover:text-blue-600 cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1 text-secondary hover:text-blue-600 cursor-pointer disabled:opacity-50 p-1 rounded-lg hover:bg-slate-50"
               title="Update Version"
             >
-              <RefreshCw className={`w-5 h-5 ${(isUpdating || apiLoading) ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 sm:w-5 sm:h-5 ${(isUpdating || apiLoading) ? "animate-spin" : ""}`} />
             </button>
           )}
+
           {/* زر تحديث الماستر الجديد */}
           {showMasterRefreshBtn && (
             <button
               onClick={handleRefreshMaster}
               disabled={isUpdating || apiLoading}
-              className="flex items-center gap-2 text-orange-500 hover:text-orange-600 cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1 text-orange-500 hover:text-orange-600 cursor-pointer disabled:opacity-50 p-1 sm:p-1.5 rounded-lg hover:bg-orange-50"
               title="Refresh Master (Demos)"
             >
-              <RefreshCw className={`w-5 h-5 ${(isUpdating || apiLoading) ? "animate-spin" : ""}`} />
-              <span className="text-[10px] font-bold">MASTER</span>
+              <RefreshCw className={`w-3.5 h-3.5 sm:w-5 sm:h-5 ${(isUpdating || apiLoading) ? "animate-spin" : ""}`} />
+              <span className="hidden md:inline text-[10px] font-bold">MASTER</span>
             </button>
           )}
 
@@ -309,16 +322,16 @@ export default function Navbar() {
           <select
             onChange={handleLanguage}
             value={i18n.language}
-            className="bg-transparent text-secondary font-semibold px-2 py-1 outline-none cursor-pointer"
+            className="bg-transparent text-secondary font-semibold text-xs sm:text-sm px-1 sm:px-2 py-1 outline-none cursor-pointer"
           >
             <option value='ar'>AR</option>
             <option value='en'>EN</option>
           </select>
 
           {/* زر تسجيل الخروج */}
-          <button onClick={handleLogout} className="flex items-center gap-2 text-secondary hover:text-gray-900 cursor-pointer">
-            <LogOut className="w-5 h-5" />
-            <span className="text-sm font-medium">{t("navbar.logout")}</span>
+          <button onClick={handleLogout} className="flex items-center gap-1 sm:gap-2 text-secondary hover:text-gray-900 cursor-pointer p-1">
+            <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline text-xs sm:text-sm font-medium">{t("navbar.logout")}</span>
           </button>
         </div>
       </nav>

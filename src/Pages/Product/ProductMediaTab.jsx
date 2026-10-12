@@ -89,13 +89,13 @@ const ProductMediaTab = ({
 
         {/* Gallery Preview */}
         {form.gallery_product.length > 0 && (
-          <div className="grid grid-cols-4 gap-4 mt-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 mt-4">
             {form.gallery_product.map((img, idx) => (
               <div key={idx} className="relative group">
                 <img
                   src={img}
                   alt={`gallery-${idx}`}
-                  className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
+                  className="w-full h-24 sm:h-32 object-cover rounded-lg border-2 border-gray-200"
                 />
                 <button
                   type="button"

@@ -18,10 +18,13 @@ const MainLayout = () => {
 
   // State to control the loading status
   const [isLoading, setIsLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   useEffect(() => {
     document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
     console.log("Direction set to:", i18n.language === "ar" ? "rtl" : "ltr");
   }, [i18n.language]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -61,24 +64,27 @@ const MainLayout = () => {
 
   // غير كده نعرض اللايوت كامل مع السايدبار
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar />
-        <main className="flex-1 bg-gray-50 overflow-y-auto">
+    <div className="flex flex-col md:flex-row h-screen w-full overflow-hidden">
+      <Sidebar mobileOpen={mobileMenuOpen} setMobileOpen={setMobileMenuOpen} />
+      <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden">
+        <Navbar onToggleMobileMenu={() => setMobileMenuOpen(prev => !prev)} />
+        <main className="flex-1 bg-gray-50 overflow-y-auto overflow-x-hidden">
           {isLoading ? (
             <div className="w-full h-full flex items-center justify-center">
               <Loader />
             </div>
           ) : (
-            <div dir={i18n.language === "ar" ? "rtl" : "ltr"}
-              className=""
+            <div
+              dir={i18n.language === "ar" ? "rtl" : "ltr"}
+              className="w-full min-w-0"
               style={{
                 scrollbarWidth: "none",
                 msOverflowStyle: "none"
-              }}>
+              }}
+            >
               <AppRoutes />
-            </div>)}
+            </div>
+          )}
         </main>
       </div>
     </div>

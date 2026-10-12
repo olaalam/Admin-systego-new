@@ -176,8 +176,10 @@ const moduleIconBg = {
   "Settings": "bg-gray-600",
 };
 
-export default function Sidebar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen: externalSetMobileOpen }) {
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+  const mobileOpen = externalMobileOpen !== undefined ? externalMobileOpen : internalMobileOpen;
+  const setMobileOpen = externalSetMobileOpen || setInternalMobileOpen;
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { t, i18n } = useTranslation();
@@ -385,21 +387,9 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile top bar */}
-      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b bg-white sticky top-0 z-50">
-        <button onClick={() => setMobileOpen(true)} className="p-2 hover:bg-gray-100 rounded-lg">
-          <Menu className="w-5 h-5 text-slate-700" />
-        </button>
-        {activeModuleGroup && (
-          <span className="text-sm font-black text-slate-700">{t(activeModuleGroup.name)}</span>
-        )}
-        {!activeModuleGroup && <img src={logo} alt="logo" className="h-7" />}
-        <div className="w-9" />
-      </div>
-
       {/* Mobile Sheet */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="p-0 w-72 border-r-0">
+        <SheetContent side={i18n.language === "ar" ? "right" : "left"} className="p-0 w-72 border-r-0">
           <div className="h-full bg-white">
             <SidebarContent isMobile={true} />
           </div>
