@@ -511,7 +511,7 @@ const Product = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-3 sm:p-6 bg-gray-50 min-h-screen">
       <DataTable
         data={products}
         columns={columns}

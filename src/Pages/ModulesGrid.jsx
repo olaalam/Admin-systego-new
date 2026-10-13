@@ -220,7 +220,7 @@ export default function ModulesGrid() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] p-6 md:p-12">
+    <div className="min-h-screen bg-[#f8fafc] p-4 sm:p-6 md:p-12">
       <div className="max-w-7xl mx-auto">
         <header className="mb-6">
           <div className="flex items-center gap-3 mb-2">
@@ -229,15 +229,15 @@ export default function ModulesGrid() {
               System Core
             </span>
           </div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
             {t("ControlPanel")}
           </h1>
-          <p className="text-slate-500 font-medium mt-1">
+          <p className="text-slate-500 font-medium mt-1 text-sm sm:text-base">
             {t("SelectModuleToManage")}
           </p>
         </header>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
           {filteredModules.length > 0 ? (
             filteredModules.map((module, idx) => {
               const isLocked =
@@ -249,7 +249,7 @@ export default function ModulesGrid() {
                 <div
                   key={idx}
                   onClick={() => handleModuleClick(module)}
-                  className={`group relative bg-white rounded-[2.5rem] p-6 border transition-all duration-500 overflow-hidden flex flex-col aspect-square select-none ${
+                  className={`group relative bg-white rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-6 border transition-all duration-500 overflow-hidden flex flex-col sm:aspect-square select-none ${
                     isLocked
                       ? "cursor-not-allowed opacity-60 bg-slate-50/70 border-slate-200/90 shadow-none"
                       : "cursor-pointer border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200/60 active:scale-[0.97]"

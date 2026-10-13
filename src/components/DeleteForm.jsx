@@ -14,8 +14,8 @@ const DeleteDialog = ({
     const { t } = useTranslation();
 
   return (
-    <div className={`fixed inset-0 flex items-center justify-center bg-black/60 z-50 ${className}`}>
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+    <div className={`fixed inset-0 flex items-center justify-center bg-black/60 z-50 p-4 ${className}`}>
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-5 sm:p-6">
         {/* Header */}
         <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
         <p className="text-gray-600 mt-2">{message}</p>

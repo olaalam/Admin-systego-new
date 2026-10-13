@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowUpCircle, ArrowDownCircle, Package, Search, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 
 export default function ProductMovementReport() {
     const { t } = useTranslation();
@@ -30,7 +31,7 @@ export default function ProductMovementReport() {
     // دالة زر البحث
     const handleGenerateReport = () => {
         if (!selectedProduct || !startDate || !endDate) {
-            alert(t("Please select product and dates"));
+            toast.warning(t("Please select product and dates"));
             return;
         }
 

@@ -133,7 +133,7 @@ const ProductPriceTab = ({
   return (
     <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
       {/* Base product fields */}
-      <div className={`grid ${form.different_price ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
+      <div className={`grid ${form.different_price ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"} gap-4`}>
         {!form.different_price && (
           <div>
             <Label className="text-sm font-medium text-gray-700 mb-2 block">

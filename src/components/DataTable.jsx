@@ -222,14 +222,14 @@ export default function DataTable({
   return (
     <div className={className}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-start">
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">{title}</h2>
           {headerExtra}
         </div>
 
-        <div className="flex flex-wrap gap-3 items-center">
-          <div className="flex gap-2 order-1 sm:order-none">
+        <div className="flex flex-wrap gap-2 sm:gap-3 items-center w-full sm:w-auto">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 w-full sm:w-auto">
             {downloadTemplate && (
               <button
                 onClick={() => {
@@ -304,10 +304,10 @@ export default function DataTable({
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-        <div className="flex flex-wrap gap-3 items-center">
+      <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 mb-4">
+        <div className="flex flex-wrap gap-2.5 sm:gap-3 items-center">
           {searchable && (
-            <div className="flex-1 min-w-64">
+            <div className="w-full sm:flex-1 sm:min-w-64">
               <SmartSearch
                 value={searchTerm}
                 onChange={(val) => {

@@ -23,7 +23,7 @@ const SearchableSelect = ({ label, options, value, onChange, placeholder }) => {
     const selectedOption = options.find(opt => opt.value === value);
 
     return (
-        <div className="relative w-48" ref={dropdownRef}>
+        <div className="relative w-full sm:w-48" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white flex justify-between items-center focus:ring-2 focus:ring-red-500"

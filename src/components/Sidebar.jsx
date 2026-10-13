@@ -257,8 +257,10 @@ const moduleIconBg = {
   Settings: "bg-gray-600",
 };
 
-export default function Sidebar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen: externalSetMobileOpen }) {
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+  const mobileOpen = externalMobileOpen !== undefined ? externalMobileOpen : internalMobileOpen;
+  const setMobileOpen = externalSetMobileOpen || setInternalMobileOpen;
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { t, i18n } = useTranslation();
@@ -319,8 +321,8 @@ export default function Sidebar() {
   // Filtered by search
   const filteredChildren = searchQuery.trim()
     ? moduleChildren.filter((child) =>
-        t(child.name).toLowerCase().includes(searchQuery.toLowerCase()),
-      )
+      t(child.name).toLowerCase().includes(searchQuery.toLowerCase()),
+    )
     : moduleChildren;
 
   const ModuleIcon = activeModuleGroup?.icon;
@@ -419,9 +421,8 @@ export default function Sidebar() {
               return (
                 <div
                   key={i}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium opacity-50 cursor-not-allowed bg-slate-50/80 text-slate-400 select-none hover:bg-slate-100/60 transition-all ${
-                    desktopCollapsed && !isMobile ? "justify-center px-2" : ""
-                  }`}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium opacity-50 cursor-not-allowed bg-slate-50/80 text-slate-400 select-none hover:bg-slate-100/60 transition-all ${desktopCollapsed && !isMobile ? "justify-center px-2" : ""
+                    }`}
                   title={
                     i18n.language === "ar"
                       ? `${t(child.name)} (غير متاح في باقتك - يتطلب ترقية)`
@@ -461,11 +462,10 @@ export default function Sidebar() {
                   setMobileOpen(false);
                   setSearchQuery("");
                 }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium ${isActive
                     ? `${accentClass} font-bold shadow-sm`
                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                } ${desktopCollapsed && !isMobile ? "justify-center px-2" : ""}`}
+                  } ${desktopCollapsed && !isMobile ? "justify-center px-2" : ""}`}
                 title={desktopCollapsed && !isMobile ? t(child.name) : ""}
               >
                 {(!desktopCollapsed || isMobile) && (
@@ -493,9 +493,8 @@ export default function Sidebar() {
             navigate("/");
             setMobileOpen(false);
           }}
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all text-sm font-medium ${
-            desktopCollapsed && !isMobile ? "justify-center" : ""
-          }`}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all text-sm font-medium ${desktopCollapsed && !isMobile ? "justify-center" : ""
+            }`}
           title={desktopCollapsed && !isMobile ? t("ControlPanel") : ""}
         >
           <LayoutGrid className="w-4 h-4 flex-shrink-0" />
@@ -509,26 +508,9 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile top bar */}
-      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b bg-white sticky top-0 z-50">
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="p-2 hover:bg-gray-100 rounded-lg"
-        >
-          <Menu className="w-5 h-5 text-slate-700" />
-        </button>
-        {activeModuleGroup && (
-          <span className="text-sm font-black text-slate-700">
-            {t(activeModuleGroup.name)}
-          </span>
-        )}
-        {!activeModuleGroup && <img src={logo} alt="logo" className="h-7" />}
-        <div className="w-9" />
-      </div>
-
       {/* Mobile Sheet */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="p-0 w-72 border-r-0">
+        <SheetContent side={i18n.language === "ar" ? "right" : "left"} className="p-0 w-72 border-r-0">
           <div className="h-full bg-white">
             <SidebarContent isMobile={true} />
           </div>
@@ -537,9 +519,8 @@ export default function Sidebar() {
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden md:flex flex-col h-screen bg-white border-r border-slate-100 transition-all duration-300 relative z-40 flex-shrink-0 ${
-          desktopCollapsed ? "w-16" : "w-64"
-        }`}
+        className={`hidden md:flex flex-col h-screen bg-white border-r border-slate-100 transition-all duration-300 relative z-40 flex-shrink-0 ${desktopCollapsed ? "w-16" : "w-64"
+          }`}
       >
         <SidebarContent isMobile={false} />
       </aside>

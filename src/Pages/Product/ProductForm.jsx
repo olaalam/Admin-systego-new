@@ -694,19 +694,19 @@ const ProductForm = ({
         : t("productForm.update");
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6" dir={isRTL ? "rtl" : "ltr"}>
-      <div className="mx-auto">
-        <div className="mb-6">
-          <div className="flex flex-col gap-3 mb-2 ml-9">
-            <h1 className="text-2xl font-bold text-gray-900">{headerTitle}</h1>
-            <p className="text-gray-600">{headerSubtitle}</p>
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6" dir={isRTL ? "rtl" : "ltr"}>
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col gap-1 sm:gap-2 mb-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{headerTitle}</h1>
+            <p className="text-xs sm:text-sm text-gray-600">{headerSubtitle}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-24">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-4 sm:p-6 md:p-8 lg:p-12">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="border-b border-gray-200 bg-gray-50">
-              <TabsList className="w-full bg-transparent border-0 p-0 h-auto">
+            <div className="border-b border-gray-200 bg-gray-50 overflow-x-auto">
+              <TabsList className="w-full min-w-max bg-transparent border-0 p-0 h-auto">
                 <div className="flex w-full" dir={isRTL ? "rtl" : "ltr"}>
                   <TabsTrigger
                     value="general"
@@ -785,17 +785,11 @@ const ProductForm = ({
           </Tabs>
         </div>
 
-        <div className="mt-6 flex items-center justify-end gap-3">
+        <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
           <Button
             variant="outline"
-            onClick={() =>
-              navigateToListWithHighlight(
-                navigate,
-                "/product",
-                mode === "edit" ? initialData?._id : null,
-              )
-            }
-            className="px-6"
+            onClick={() => navigateToListWithHighlight(navigate, "/product", mode === "edit" ? initialData?._id : null)}
+            className="flex-1 sm:flex-none px-6"
           >
             {t("Cancel")}
           </Button>
@@ -803,7 +797,7 @@ const ProductForm = ({
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || submitLoading || !isFormValid()}
-            className="px-8 bg-secondary hover:bg-secondary/90"
+            className="flex-1 sm:flex-none px-8 bg-secondary hover:bg-secondary/90"
           >
             {submitLabel === "Saving..." || submitLabel === "Updating..." ? (
               submitLabel
