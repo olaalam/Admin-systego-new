@@ -26,6 +26,7 @@ import {
   ChevronDown,
   ShoppingBag,
   MapPin,
+  Trash2,
   User,
 } from "lucide-react";
 
@@ -88,6 +89,78 @@ const Row = ({ label, value, valueClass = "text-slate-800" }) => (
     <span className={`text-xs font-bold ${valueClass}`}>{value}</span>
   </div>
 );
+
+// ═══════════════════════════════════════════════════════════
+// ConfirmDeleteToast — بديل بسيط لـ sweetalert
+// ═══════════════════════════════════════════════════════════
+const confirmDeleteWithToast = (t, orderCode) => {
+  return new Promise((resolve) => {
+    let settled = false;
+
+    const toastId = toast(
+      ({ closeToast }) => (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-start gap-2">
+            <div className="p-2 bg-rose-50 text-rose-600 rounded-lg shrink-0">
+              <AlertTriangle size={16} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-900">
+                {t("Are you sure?")}
+              </p>
+              <p className="text-xs text-slate-600 mt-0.5">
+                {t("You are about to delete order")}{" "}
+                <span className="font-mono font-bold text-slate-900">
+                  #{orderCode}
+                </span>
+              </p>
+              <p className="text-[11px] text-rose-600 font-bold mt-1">
+                {t("This action cannot be undone!")}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 justify-end">
+            <button
+              onClick={() => {
+                if (settled) return;
+                settled = true;
+                closeToast();
+                resolve(false);
+              }}
+              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
+            >
+              {t("Cancel")}
+            </button>
+            <button
+              onClick={() => {
+                if (settled) return;
+                settled = true;
+                closeToast();
+                resolve(true);
+              }}
+              className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition"
+            >
+              {t("Yes, delete it")}
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        position: "top-center",
+        autoClose: false,
+        closeOnClick: false,
+        draggable: false,
+        closeButton: false,
+        onClose: () => {
+          if (!settled) {
+            settled = true;
+            resolve(false);
+          }
+        },
+      },
+    );
+  });
+};
 
 // ═══════════════════════════════════════════════════════════
 // FinancialsModal
@@ -624,6 +697,9 @@ const PaymentEco = () => {
   // 🆕 Daily Pickup Modal
   const [showPickupModal, setShowPickupModal] = useState(false);
 
+  // 🗑️ Delete state
+  const [deletingId, setDeletingId] = useState(null);
+
   // ✅ View Details
   const handleViewDetails = async (order) => {
     setSelectedOrder(order);
@@ -637,6 +713,24 @@ const PaymentEco = () => {
       console.error("Failed to load order details:", err);
     } finally {
       setLoadingDetails(false);
+    }
+  };
+
+  // 🗑️ Delete Order — يستخدم toast confirm
+  const handleDeleteOrder = async (order) => {
+    const orderCode = order._id?.slice(-6).toUpperCase();
+    const confirmed = await confirmDeleteWithToast(t, orderCode);
+    if (!confirmed) return;
+
+    setDeletingId(order._id);
+    try {
+      await api.delete(`/api/admin/online-orders/${order._id}`);
+      toast.success(t("Order deleted successfully"));
+      refetch();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || t("Failed to delete order"));
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -935,8 +1029,37 @@ const PaymentEco = () => {
           </div>
         ),
       },
+      // 🗑️ Delete Column
+      {
+        key: "delete",
+        header: t("Actions"),
+        render: (_, item) => {
+          const isDeleting = deletingId === item._id;
+          return (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteOrder(item);
+              }}
+              disabled={isDeleting}
+              title={t("Delete Order")}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
+            >
+              {isDeleting ? (
+                <Loader2 size={13} className="animate-spin" />
+              ) : (
+                <Trash2
+                  size={13}
+                  className="group-hover:scale-110 transition-transform"
+                />
+              )}
+              {t("Delete")}
+            </button>
+          );
+        },
+      },
     ],
-    [t, isArabic],
+    [t, isArabic, deletingId],
   );
 
   return (
