@@ -1,4 +1,4 @@
-// src/pages/coupons.jsx (اقترح تغيير اسم الملف إلى coupons.jsx للتوافق)
+// src/pages/coupons.jsx
 import { useState } from "react";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
@@ -11,8 +11,12 @@ import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
 
 const Coupon = () => {
-  // غيّرنا الـ endpoint إلى coupon بناءً على الـ response الجديد
-  const { data: responseData, loading, error, refetch } = useGet("/api/admin/coupon");
+  const {
+    data: responseData,
+    loading,
+    error,
+    refetch,
+  } = useGet("/api/admin/coupon");
   const { deleteData, loading: deleting } = useDelete("/api/admin/coupon");
 
   const { t, i18n } = useTranslation();
@@ -23,7 +27,6 @@ const Coupon = () => {
 
   const navigate = useNavigate();
 
-  // الـ response الجديد فيه nesting: data.data.coupons
   const coupons = responseData?.coupons || [];
 
   // دالة لتنسيق التاريخ حسب اللغة (عربي/إنجليزي)
@@ -66,7 +69,9 @@ const Coupon = () => {
       await deleteData("/api/admin/coupon", {
         ids: bulkDeleteIds,
       });
-      toast.success(t("CouponsDeletedSuccessfully", { count: bulkDeleteIds.length }));
+      toast.success(
+        t("CouponsDeletedSuccessfully", { count: bulkDeleteIds.length }),
+      );
       refetch();
     } finally {
       setBulkDeleting(false);
@@ -78,6 +83,24 @@ const Coupon = () => {
      Columns
   ======================= */
   const columns = [
+    // ✅ عمود الصورة (أول عمود)
+    {
+      key: "image",
+      header: isRTL ? "صورة" : "Image",
+      filterable: false,
+      render: (value) =>
+        value ? (
+          <img
+            src={value}
+            alt="coupon"
+            className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
+            -
+          </div>
+        ),
+    },
     {
       key: "coupon_code",
       header: t("CouponCode"),
@@ -92,10 +115,11 @@ const Coupon = () => {
       filterable: true,
       render: (value) => (
         <span
-          className={`px-2 py-1 rounded text-xs font-medium ${value === "percentage"
-            ? "bg-blue-50 text-blue-700"
-            : "bg-gray-50 text-gray-700"
-            }`}
+          className={`px-2 py-1 rounded text-xs font-medium ${
+            value === "percentage"
+              ? "bg-blue-50 text-blue-700"
+              : "bg-gray-50 text-gray-700"
+          }`}
         >
           {value === "percentage" ? t("Percentage") : t("Flat")}
         </span>
@@ -124,7 +148,7 @@ const Coupon = () => {
       key: "available",
       header: t("Available"),
       filterable: false,
-      render: (value, item) => (
+      render: (value) => (
         <span className={value <= 0 ? "text-red-600 font-medium" : ""}>
           {value ?? "-"}
         </span>
@@ -136,11 +160,6 @@ const Coupon = () => {
       filterable: false,
       render: (value) => formatDate(value),
     },
-    // عمود إضافي اختياري لعدد الاستخدامات
-    // {
-    //   header: t("Used"),
-    //   render: (_, item) => (item.quantity ?? 0) - (item.available ?? 0),
-    // },
   ];
 
   if (loading) return <Loader />;
@@ -150,7 +169,7 @@ const Coupon = () => {
       <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">
         {t("Errorloadingcoupons")}: {error}
       </div>
-    )
+    );
   }
 
   return (
@@ -160,7 +179,7 @@ const Coupon = () => {
         columns={columns}
         title={t("CouponManagement")}
         onAdd={() => navigate("add")}
-        onEdit={(item) => navigate(`edit/${item._id}`)} // غيّرنا الـ alert إلى navigation حقيقي
+        onEdit={(item) => navigate(`edit/${item._id}`)}
         onDelete={(item) => setDeleteTarget(item)}
         onBulkDelete={handleBulkDelete}
         addButtonText={t("AddCoupon")}
@@ -170,7 +189,6 @@ const Coupon = () => {
         searchable
         filterable
         moduleName={AppModules.COUPON}
-
       />
 
       {/* Delete Single */}

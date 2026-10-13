@@ -2,13 +2,15 @@
 import { useState } from "react";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
+import DeleteDialog from "@/components/DeleteForm"; // ⭐️ ضيف
 import useGet from "@/hooks/useGet";
+import useDelete from "@/hooks/useDelete"; // ⭐️ ضيف
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
 import { Search, RotateCcw } from "lucide-react";
+import { toast } from "react-toastify"; // ⭐️ ضيف
 
-// مكتبات التصدير
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -17,25 +19,52 @@ const Revenues = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
-  // 1. حالات التاريخ والـ API URL
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [apiUrl, setApiUrl] = useState("/api/admin/revenue");
 
-  const { data, loading, error } = useGet(apiUrl);
+  // ⭐️ State للحذف
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const { data, loading, error, refetch } = useGet(apiUrl);
   const { data: accountData } = useGet("/api/admin/bank_account");
 
-  const revenues = data?.revenues || [];
-  const financialAccountOptions = (accountData?.bankAccounts || []).map((a) => ({
-    label: a.name,
-    value: a._id,
-  }));
+  // ⭐️ Hook الحذف — بنبعت الـ URL كامل
+  const { deleteData, loading: deleting } = useDelete();
 
-  // 2. دالة تصدير Excel (أرقام بصيغة رقمية للجمع)
+  const revenues = data?.revenues || [];
+  const financialAccountOptions = (accountData?.bankAccounts || []).map(
+    (a) => ({
+      label: a.name,
+      value: a._id,
+    }),
+  );
+
+  /* =========================
+     ✅ دالة الحذف
+  ========================= */
+  const handleDelete = async (item) => {
+    try {
+      // ⭐️ الـ useDelete بتاعك بياخد URL كامل
+      await deleteData(`/api/admin/revenue/${item._id}`);
+
+      // ✅ الـ toast.success بتظهر تلقائي جوه useDelete
+      refetch();
+    } catch (err) {
+      // الـ toast.error بتظهر تلقائي جوه useDelete
+      console.error("❌ Delete error:", err);
+    } finally {
+      setDeleteTarget(null);
+    }
+  };
+
+  /* =========================
+     Excel Export
+  ========================= */
   const handleExportExcel = (filteredData) => {
     const exportData = filteredData.map((item) => ({
       [t("RevenueName")]: item.name || "-",
-      [t("Amount")]: Number(item.amount) || 0, // ✅ تحويل لرقم ليتمكنوا من الجمع
+      [t("Amount")]: Number(item.amount) || 0,
       [t("Category")]: item.Category_id?.name || "-",
       [t("FinancialAccount")]: item.financial_accountId?.name || "-",
       [t("CreatedBy")]: item.admin_id?.username || "-",
@@ -45,14 +74,24 @@ const Revenues = () => {
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Revenues");
-    XLSX.writeFile(workbook, `Revenues_${new Date().toLocaleDateString()}.xlsx`);
+    XLSX.writeFile(
+      workbook,
+      `Revenues_${new Date().toLocaleDateString()}.xlsx`,
+    );
   };
 
-  // 3. دالة تصدير PDF
+  /* =========================
+     PDF Export
+  ========================= */
   const handleExportPdf = (filteredData) => {
     const doc = new jsPDF();
-    const tableColumn = [t("RevenueName"), t("Amount"), t("Category"), t("FinancialAccount")];
-    const tableRows = filteredData.map(item => [
+    const tableColumn = [
+      t("RevenueName"),
+      t("Amount"),
+      t("Category"),
+      t("FinancialAccount"),
+    ];
+    const tableRows = filteredData.map((item) => [
       item.name,
       `${item.amount} EGP`,
       item.Category_id?.name,
@@ -67,7 +106,9 @@ const Revenues = () => {
     doc.save(`Revenues_${new Date().toLocaleDateString()}.pdf`);
   };
 
-  // 4. دوال التحكم في البحث
+  /* =========================
+     Search / Reset
+  ========================= */
   const handleSearch = () => {
     if (startDate && endDate) {
       setApiUrl(`/api/admin/revenue?startDate=${startDate}&endDate=${endDate}`);
@@ -80,7 +121,6 @@ const Revenues = () => {
     setApiUrl("/api/admin/revenue");
   };
 
-  // 5. مكون الفلتر بجانب العنوان (حسب الصورة المرفقة)
   const dateFilterHeader = (
     <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm ml-4">
       <input
@@ -117,10 +157,30 @@ const Revenues = () => {
 
   const columns = [
     { key: "name", header: t("RevenueName"), filterable: false },
-    { key: "amount", header: t("Amount"), filterable: false, render: (value) => `${value} ${t("EGP")}` },
-    { key: "Category_id.name", header: t("Category"), filterable: false, render: (_, item) => item?.Category_id?.name || "-" },
-    { key: "financial_accountId.name", header: t("FinancialAccount"), filterable: false, render: (_, item) => item?.financial_accountId?.name || "-" },
-    { key: "admin_id.username", header: t("CreatedBy"), filterable: false, render: (_, item) => item?.admin_id?.username || "-" },
+    {
+      key: "amount",
+      header: t("Amount"),
+      filterable: false,
+      render: (value) => `${value} ${t("EGP")}`,
+    },
+    {
+      key: "Category_id.name",
+      header: t("Category"),
+      filterable: false,
+      render: (_, item) => item?.Category_id?.name || "-",
+    },
+    {
+      key: "financial_accountId.name",
+      header: t("FinancialAccount"),
+      filterable: false,
+      render: (_, item) => item?.financial_accountId?.name || "-",
+    },
+    {
+      key: "admin_id.username",
+      header: t("CreatedBy"),
+      filterable: false,
+      render: (_, item) => item?.admin_id?.username || "-",
+    },
     { key: "note", header: t("Note"), filterable: false },
   ];
 
@@ -138,21 +198,37 @@ const Revenues = () => {
         data={revenues}
         columns={columns}
         title={t("RevenuesManagement")}
-        headerExtra={dateFilterHeader} // وضع الفلتر بجانب العنوان
-        onExport={handleExportExcel}    // زر الإكسل
-        onExportPdf={handleExportPdf}  // زر الـ PDF
+        headerExtra={dateFilterHeader}
+        onExport={handleExportExcel}
+        onExportPdf={handleExportPdf}
         addButtonText={t("Add Revenue")}
         onAdd={() => navigate("add")}
         addPath="add"
         editPath={(item) => `edit/${item._id}`}
+        onDelete={(item) => setDeleteTarget(item)} // ⭐️ ربط الحذف
         itemsPerPage={10}
         searchable={true}
         filterable={true}
         moduleName={AppModules.REVENUE}
         filters={[
-          { key: "financial_accountId._id", label: t("FinancialAccount"), options: financialAccountOptions },
+          {
+            key: "financial_accountId._id",
+            label: t("FinancialAccount"),
+            options: financialAccountOptions,
+          },
         ]}
       />
+
+      {/* ⭐️ Dialog تأكيد الحذف */}
+      {deleteTarget && (
+        <DeleteDialog
+          title={t("DeleteRevenue") || "حذف الإيراد"}
+          message={`${t("Are you sure you want to delete")} "${deleteTarget.name}"?`}
+          onConfirm={() => handleDelete(deleteTarget)}
+          onCancel={() => setDeleteTarget(null)}
+          loading={deleting}
+        />
+      )}
     </div>
   );
 };

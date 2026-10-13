@@ -9,7 +9,8 @@ import { useTranslation } from "react-i18next";
 const CouponAdd = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
 
   const fields = useMemo(
     () => [
@@ -67,7 +68,7 @@ const CouponAdd = () => {
         required: true,
         min: 0,
         placeholder: "e.g. 100",
-        helperText: t("InitialAvailableHelper"), // "Initial number of available uses. For new coupons, usually set equal to total quantity."
+        helperText: t("InitialAvailableHelper"),
       },
       {
         key: "expired_date",
@@ -76,8 +77,17 @@ const CouponAdd = () => {
         required: true,
         helperText: t("ExpiryDateHelper"),
       },
+
+      // ✅ حقل الصورة (base64)
+      {
+        key: "image",
+        label: isRTL ? "صورة الكوبون" : "Coupon Image",
+        type: "image",
+        required: false,
+        helperText: t("CouponImageHelper"),
+      },
     ],
-    [t]
+    [t],
   );
 
   const handleSubmit = async (formData) => {
@@ -87,13 +97,18 @@ const CouponAdd = () => {
         coupon_code: formData.coupon_code.trim().toUpperCase(),
         type: formData.type,
         amount: Number(formData.amount),
-        minimum_amount_for_use: formData.minimum_amount_for_use ? Number(formData.minimum_amount_for_use) : undefined,
+        minimum_amount_for_use: formData.minimum_amount_for_use
+          ? Number(formData.minimum_amount_for_use)
+          : undefined,
         quantity: Number(formData.quantity),
         available: Number(formData.available),
         expired_date: formData.expired_date,
+        image: formData.image || undefined,
       };
 
-      Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+      Object.keys(payload).forEach(
+        (key) => payload[key] === undefined && delete payload[key],
+      );
 
       await api.post("/api/admin/coupon", payload);
 
@@ -101,12 +116,10 @@ const CouponAdd = () => {
       navigate("/coupon");
     } catch (err) {
       console.error("❌ Error adding coupon:", err);
-
       const errorMessage =
         err.response?.data?.message ||
         err.response?.data?.error?.message ||
         t("FailedToAddCoupon");
-
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -125,7 +138,7 @@ const CouponAdd = () => {
           type: "percentage",
           amount: 50,
           quantity: 100,
-          available: 100, // افتراضي يساوي الـ quantity
+          available: 100,
         }}
         loading={loading}
         submitButtonText={t("CreateCoupon")}

@@ -8,19 +8,25 @@ import useGet from "@/hooks/useGet";
 import api from "@/api/api";
 import SmartSearch from "@/components/SmartSearch";
 import { useTranslation } from "react-i18next";
-import WarehouseMultiSelect from "./WarehouseMultiSelect";
 
 const PandelAdd = () => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const navigate = useNavigate();
-  const { data: productsData, loading: productsLoading } = useGet("/api/admin/product");
-  const { data: warehousesData } = useGet("/api/admin/warehouse");
+  const { data: productsData, loading: productsLoading } =
+    useGet("/api/admin/product");
   const [loading, setLoading] = useState(false);
-  const { t } = useTranslation();
 
   const products = productsData?.products || [];
-  const warehouses = warehousesData?.warehouses || [];
 
   const fields = [
+    {
+      key: "ar_name",
+      label: isRTL ? "الاسم (بالعربية)" : "Name (Arabic)",
+      type: "text",
+      required: true,
+      placeholder: isRTL ? "أدخل الاسم بالعربية" : "Enter Arabic name",
+    },
     {
       key: "name",
       label: t("BundleName"),
@@ -50,38 +56,37 @@ const PandelAdd = () => {
       step: "0.01",
     },
 
+    /* =========================
+       Products Section
+    ========================= */
     {
       key: "products",
       label: t("ProductsBundle"),
       type: "custom",
       required: true,
       render: (formData, setFormData) => {
-        // products في الـ formData هيكون array من objects:
-        // { productId, productPriceId, quantity }
         const selectedProducts = formData.products || [];
 
-        // جلب كامل بيانات المنتج من الـ products list بناءً على productId
         const getProductData = (productId) =>
           products.find((p) => (p._id || p.id) === productId);
 
-        // البحث
         const searchTerm = (formData.searchProduct || "").toLowerCase().trim();
         const suggestions =
           searchTerm.length > 0
             ? products
-              .filter(
-                (p) =>
-                  (p.name && p.name.toLowerCase().includes(searchTerm)) ||
-                  (p.code && p.code.toString().toLowerCase().includes(searchTerm))
-              )
-              .slice(0, 8)
+                .filter(
+                  (p) =>
+                    (p.name && p.name.toLowerCase().includes(searchTerm)) ||
+                    (p.code &&
+                      p.code.toString().toLowerCase().includes(searchTerm)),
+                )
+                .slice(0, 8)
             : [];
 
-        // إضافة منتج جديد للقائمة
         const handleAddProduct = (p) => {
           const prodId = p._id || p.id;
           const alreadyAdded = selectedProducts.some(
-            (sp) => sp.productId === prodId
+            (sp) => sp.productId === prodId,
           );
           if (alreadyAdded) {
             toast.warning(t("Thisproductisalreadyinthebundle"));
@@ -98,41 +103,39 @@ const PandelAdd = () => {
           toast.success(`${p.name} added!`);
         };
 
-        // حذف منتج
         const handleRemoveProduct = (productId) => {
           setFormData((prev) => ({
             ...prev,
-            products: selectedProducts.filter((sp) => sp.productId !== productId),
+            products: selectedProducts.filter(
+              (sp) => sp.productId !== productId,
+            ),
           }));
         };
 
-        // تغيير الـ variation (productPriceId)
         const handleVariationChange = (productId, priceId) => {
           setFormData((prev) => ({
             ...prev,
             products: selectedProducts.map((sp) =>
               sp.productId === productId
                 ? { ...sp, productPriceId: priceId || null }
-                : sp
+                : sp,
             ),
           }));
         };
 
-        // تغيير الـ quantity
         const handleQuantityChange = (productId, delta) => {
           setFormData((prev) => ({
             ...prev,
             products: selectedProducts.map((sp) =>
               sp.productId === productId
                 ? { ...sp, quantity: Math.max(1, sp.quantity + delta) }
-                : sp
+                : sp,
             ),
           }));
         };
 
         return (
           <div className="space-y-4">
-            {/* حقل البحث */}
             <div className="relative z-20">
               <SmartSearch
                 value={formData.searchProduct || ""}
@@ -141,7 +144,6 @@ const PandelAdd = () => {
                 }
               />
 
-              {/* Dropdown الاقتراحات */}
               {suggestions.length > 0 && (
                 <div className="absolute w-full bg-white border border-gray-200 rounded-lg shadow-xl mt-1 z-50 overflow-hidden">
                   {suggestions.map((p) => (
@@ -179,7 +181,6 @@ const PandelAdd = () => {
               )}
             </div>
 
-            {/* قائمة المنتجات المختارة */}
             {selectedProducts.length > 0 && (
               <div className="mt-4 border rounded-lg bg-white overflow-hidden shadow-sm">
                 <div className="bg-gray-50 px-4 py-2 border-b">
@@ -192,7 +193,6 @@ const PandelAdd = () => {
                     const productData = getProductData(sp.productId);
                     if (!productData) return null;
 
-                    // الـ variations (prices) بتاعة المنتج
                     const variations = productData.prices || [];
                     const hasVariations = variations.length > 1;
 
@@ -202,7 +202,6 @@ const PandelAdd = () => {
                         className="p-3 hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex items-start gap-3">
-                          {/* صورة المنتج */}
                           <div className="w-12 h-12 rounded-md border overflow-hidden bg-white flex-shrink-0 mt-1">
                             <img
                               src={
@@ -214,13 +213,11 @@ const PandelAdd = () => {
                             />
                           </div>
 
-                          {/* تفاصيل المنتج */}
                           <div className="flex-1 min-w-0">
                             <h4 className="text-sm font-bold text-gray-800 truncate">
                               {productData.name}
                             </h4>
 
-                            {/* Variation Dropdown - تظهر فقط لو المنتج عنده variations */}
                             {hasVariations && (
                               <div className="mt-2">
                                 <label className="text-xs text-gray-500 font-medium mb-1 block">
@@ -231,7 +228,7 @@ const PandelAdd = () => {
                                   onChange={(e) =>
                                     handleVariationChange(
                                       sp.productId,
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="w-full text-sm border border-gray-200 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
@@ -240,22 +237,25 @@ const PandelAdd = () => {
                                     — {t("NoVariation")} —
                                   </option>
                                   {variations.map((v) => (
-                                    <option key={v._id || v.id} value={v._id || v.id}>
-                                      {v.size || v.color || v.name || v.code} — {v.price} {t("EGP")}
+                                    <option
+                                      key={v._id || v.id}
+                                      value={v._id || v.id}
+                                    >
+                                      {v.size || v.color || v.name || v.code} —{" "}
+                                      {v.price} {t("EGP")}
                                     </option>
                                   ))}
                                 </select>
                               </div>
                             )}
 
-                            {/* لو مفيش variations - اظهر الكود */}
                             {!hasVariations && variations.length === 1 && (
                               <p className="text-xs text-gray-400 mt-0.5">
-                                {t("Code")}: {variations[0]?.code || "N/A"} — {variations[0]?.price} {t("EGP")}
+                                {t("Code")}: {variations[0]?.code || "N/A"} —{" "}
+                                {variations[0]?.price} {t("EGP")}
                               </p>
                             )}
 
-                            {/* Quantity Control */}
                             <div className="flex items-center gap-2 mt-2">
                               <span className="text-xs text-gray-500 font-medium">
                                 {t("Quantity")}:
@@ -286,7 +286,6 @@ const PandelAdd = () => {
                             </div>
                           </div>
 
-                          {/* زرار الحذف */}
                           <button
                             type="button"
                             onClick={() => handleRemoveProduct(sp.productId)}
@@ -306,6 +305,10 @@ const PandelAdd = () => {
         );
       },
     },
+
+    /* =========================
+       Images Section
+    ========================= */
     {
       key: "images",
       label: t("BundleImages"),
@@ -320,83 +323,14 @@ const PandelAdd = () => {
         />
       ),
     },
-    {
-      key: "all_warehouses",
-      label: t("All Warehouses"),
-      type: "checkbox",
-      render: (formData, setFormData) => (
-        <div className="flex items-center gap-2 py-2">
-          <input
-            type="checkbox"
-            id="all_warehouses"
-            checked={formData.all_warehouses ?? true} // القيمة الافتراضية true
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              all_warehouses: e.target.checked,
-              warehouse_ids: e.target.checked ? [] : prev.warehouse_ids
-            }))}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <label htmlFor="all_warehouses" className="text-sm font-medium text-gray-700 cursor-pointer">
-            {t("Available in all warehouses")}
-          </label>
-        </div>
-      )
-    },
-    {
-      key: "warehouse_section", // مفتاح تعريفي للقسم
-      label: t("Warehouses"),
-      type: "custom",
-      render: (formData, setFormData) => (
-        <div className="space-y-4 border p-4 rounded-lg bg-white shadow-sm">
-          {/* Checkbox: All Warehouses */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="all_warehouses"
-              checked={formData.all_warehouses}
-              onChange={(e) => {
-                const isChecked = e.target.checked;
-                setFormData((prev) => ({
-                  ...prev,
-                  all_warehouses: isChecked,
-                  // إذا اختار "كل المخازن" نمسح المصفوفة، وإذا ألغى الاختيار نجهزها مصفوفة فارغة
-                  warehouse_ids: isChecked ? [] : [],
-                }));
-              }}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="all_warehouses" className="text-sm font-bold text-gray-700 cursor-pointer">
-              {t("Available in all warehouses")}
-            </label>
-          </div>
 
-          {/* Multi-Select Combobox: يظهر فقط في حال عدم اختيار "كل المخازن" */}
-          {!formData.all_warehouses && (
-            <div className="pt-2 border-t border-gray-100 animate-in fade-in duration-300">
-              <WarehouseMultiSelect
-                label={t("Select Specific Warehouses")}
-                value={formData.warehouse_ids || []}
-                options={warehouses}
-                onChange={(newIds) =>
-                  setFormData((prev) => ({ ...prev, warehouse_ids: newIds }))
-                }
-                t={t}
-              />
-              {(!formData.warehouse_ids || formData.warehouse_ids.length === 0) && (
-                <p className="text-[11px] text-orange-500 mt-1">
-                  *{t("Please select at least one warehouse")}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      ),
-    },
+    /* ❌ مفيش قسم Warehouses في الإضافة */
   ];
 
+  /* =========================
+     Submit
+  ========================= */
   const handleSubmit = async (formData) => {
-    // Validation
     if (!formData.products || formData.products.length === 0) {
       toast.error(t("Please select at least one product for the Pandel"));
       return;
@@ -404,7 +338,6 @@ const PandelAdd = () => {
 
     setLoading(true);
     try {
-      // Clean Base64 images
       const imagesToSubmit = (formData.images || []).map((img) => {
         if (typeof img === "string" && img.includes("base64,")) {
           return img.split("base64,")[1];
@@ -412,16 +345,17 @@ const PandelAdd = () => {
         return img;
       });
 
-      // بناء الـ payload بالشكل الجديد
       const payload = {
+        ar_name: formData.ar_name || formData.name,
         name: formData.name,
         startdate: formData.startdate,
         enddate: formData.enddate,
         status: true,
         price: Number(formData.price),
         images: imagesToSubmit,
-        all_warehouses: formData.all_warehouses,
-        warehouse_ids: formData.all_warehouses ? [] : (formData.warehouse_ids || []),
+        // ⭐️ دايماً all_warehouses: true
+        all_warehouses: true,
+        warehouse_ids: [],
         products: formData.products.map((sp) => ({
           productId: sp.productId,
           productPriceId: sp.productPriceId || null,
@@ -429,13 +363,17 @@ const PandelAdd = () => {
         })),
       };
 
+      console.log("📤 Pandel payload:", payload);
+
       await api.post("/api/admin/pandel", payload);
       toast.success(t("Pandelcreatedsuccessfully"));
       navigate("/pandel");
     } catch (err) {
       console.error("❌ Error creating pandel:", err);
       const errorMessage =
-        err.response?.data?.message || t("Failedtocreatepandel");
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        t("Failedtocreatepandel");
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -453,15 +391,14 @@ const PandelAdd = () => {
         onSubmit={handleSubmit}
         onCancel={() => navigate("/pandel")}
         initialData={{
+          ar_name: "",
           name: "",
           startdate: "",
           enddate: "",
           price: "",
-          products: [],         // Array of { productId, productPriceId, quantity }
+          products: [],
           images: [],
           searchProduct: "",
-          all_warehouses: true,
-          warehouse_ids: [],
         }}
         loading={loading}
       />
@@ -469,7 +406,9 @@ const PandelAdd = () => {
   );
 };
 
-// --- Sub Component: Image Upload ---
+/* =========================
+   Image Upload Sub-Component
+========================= */
 const ImageUploadSection = ({ images, onImagesChange }) => {
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);

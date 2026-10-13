@@ -1,4 +1,4 @@
-// src/pages/CouponEdit.jsx (اقترح تغيير اسم الملف إلى CouponEdit.jsx)
+// src/pages/CouponEdit.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import usePut from "@/hooks/usePut";
@@ -11,7 +11,8 @@ import { useTranslation } from "react-i18next";
 export default function CouponEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
 
   const { putData, loading: updating } = usePut(`/api/admin/coupon/${id}`);
 
@@ -28,8 +29,8 @@ export default function CouponEdit() {
         label: t("CouponCode"),
         type: "text",
         required: true,
-        placeholder: t("CouponCodePlaceholder"), // e.g. "WELCOME50"
-        helperText: t("CouponCodeHelper"), // "Enter a unique coupon code (uppercase recommended)"
+        placeholder: t("CouponCodePlaceholder"),
+        helperText: t("CouponCodeHelper"),
       },
       {
         key: "type",
@@ -49,7 +50,7 @@ export default function CouponEdit() {
         min: 0,
         step: "any",
         placeholder: "e.g. 50",
-        helperText: t("AmountHelper"), // "For percentage: enter value like 50 for 50%. For flat: enter fixed amount."
+        helperText: t("AmountHelper"),
       },
       {
         key: "minimum_amount_for_use",
@@ -59,7 +60,7 @@ export default function CouponEdit() {
         min: 0,
         step: "any",
         placeholder: "e.g. 200",
-        helperText: t("MinimumAmountHelper"), // "Minimum order amount to apply coupon (optional)"
+        helperText: t("MinimumAmountHelper"),
       },
       {
         key: "quantity",
@@ -68,17 +69,26 @@ export default function CouponEdit() {
         required: true,
         min: 1,
         placeholder: "e.g. 100",
-        helperText: t("QuantityHelper"), // "Total number of times this coupon can be used"
+        helperText: t("QuantityHelper"),
       },
       {
         key: "expired_date",
         label: t("ExpiryDate"),
         type: "date",
         required: true,
-        helperText: t("ExpiryDateHelper"), // "Coupon will expire at the end of this date"
+        helperText: t("ExpiryDateHelper"),
+      },
+
+      // ✅ حقل الصورة (base64)
+      {
+        key: "image",
+        label: isRTL ? "صورة الكوبون" : "Coupon Image",
+        type: "image",
+        required: false,
+        helperText: t("CouponImageHelper"),
       },
     ],
-    [t]
+    [t],
   );
 
   /* =======================
@@ -90,7 +100,6 @@ export default function CouponEdit() {
 
       try {
         const res = await api.get(`/api/admin/coupon/${id}`);
-        // افترض نفس هيكل الـ response السابق: res.data.data.coupon
         const coupon = res.data?.data?.coupon || res.data?.data;
 
         if (!coupon) {
@@ -105,10 +114,10 @@ export default function CouponEdit() {
           amount: Number(coupon.amount) || 0,
           minimum_amount_for_use: Number(coupon.minimum_amount_for_use) || "",
           quantity: Number(coupon.quantity) || 1,
-          // تنسيق التاريخ لـ input type="date" (YYYY-MM-DD)
           expired_date: coupon.expired_date
             ? new Date(coupon.expired_date).toISOString().split("T")[0]
             : "",
+          image: coupon.image || "", // ✅ الصورة الحالية
         });
       } catch (err) {
         console.error("❌ Error fetching coupon:", err);
@@ -128,16 +137,20 @@ export default function CouponEdit() {
   const handleSubmit = async (formData) => {
     try {
       const payload = {
-        coupon_code: formData.coupon_code.trim().toUpperCase(), // اختياري: تحويل إلى uppercase
+        coupon_code: formData.coupon_code.trim().toUpperCase(),
         type: formData.type,
         amount: Number(formData.amount),
-        minimum_amount_for_use: formData.minimum_amount_for_use ? Number(formData.minimum_amount_for_use) : undefined,
+        minimum_amount_for_use: formData.minimum_amount_for_use
+          ? Number(formData.minimum_amount_for_use)
+          : undefined,
         quantity: Number(formData.quantity),
         expired_date: formData.expired_date,
+        image: formData.image || undefined, // ✅ base64 (جديدة) أو URL (قديمة)
       };
 
-      // إزالة الحقول الفارغة إذا كان الـ backend لا يقبل undefined
-      Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+      Object.keys(payload).forEach(
+        (key) => payload[key] === undefined && delete payload[key],
+      );
 
       await putData(payload);
 

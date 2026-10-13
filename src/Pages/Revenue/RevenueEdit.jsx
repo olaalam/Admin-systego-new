@@ -12,17 +12,18 @@ import { useTranslation } from "react-i18next";
 export default function RevenueEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-const { t ,i18n } = useTranslation();
- const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const isEdit = Boolean(id);
 
   const { putData, loading: updating } = usePut(
-    isEdit ? `/api/admin/revenue/${id}` : null
+    isEdit ? `/api/admin/revenue/${id}` : null,
   );
   const { postData, loading: creating } = usePost("/api/admin/revenue");
 
-  const { data: selectionData, loading: loadingSelections } =
-    useGet("/api/admin/revenue/selection");
+  const { data: selectionData, loading: loadingSelections } = useGet(
+    "/api/admin/revenue/selection",
+  );
 
   const [initialData, setInitialData] = useState(null);
   const [fetching, setFetching] = useState(isEdit);
@@ -85,12 +86,10 @@ const { t ,i18n } = useTranslation();
         placeholder: t("Monthlypayment"),
       },
     ],
-    [categoryOptions, accountOptions]
+    [categoryOptions, accountOptions],
   );
 
-  /* =========================
-     Fetch Revenue (Edit)
-  ========================= */
+  /* Fetch Revenue (Edit) */
   useEffect(() => {
     const fetchRevenue = async () => {
       if (!isEdit) return;
@@ -106,6 +105,7 @@ const { t ,i18n } = useTranslation();
         }
 
         setInitialData({
+          ar_name: revenue.ar_name || "", // ⭐️ ضيف ده
           name: revenue.name || "",
           amount: revenue.amount || "",
           Category_id: revenue.Category_id?._id || "",
@@ -113,7 +113,7 @@ const { t ,i18n } = useTranslation();
           note: revenue.note || "",
         });
       } catch (err) {
-        toast.error(t("Failed to load revenue data"),err);
+        toast.error(t("Failed to load revenue data"));
         navigate("/revenue");
       } finally {
         setFetching(false);
@@ -123,18 +123,20 @@ const { t ,i18n } = useTranslation();
     fetchRevenue();
   }, [id, isEdit, navigate]);
 
-  /* =========================
-     Submit
-  ========================= */
+  /* Submit */
   const handleSubmit = async (formData) => {
     try {
       const payload = {
+        // ✅ ضيف ar_name
+        ar_name: formData.ar_name || formData.name,
         name: formData.name,
         amount: Number(formData.amount),
         Category_id: formData.Category_id,
         financial_accountId: formData.financial_accountId,
         note: formData.note,
       };
+
+      console.log("📤 Payload:", payload);
 
       if (isEdit) {
         await putData(payload);
@@ -147,7 +149,9 @@ const { t ,i18n } = useTranslation();
       navigate("/revenue");
     } catch (err) {
       const message =
-        err.response?.data?.message || t("Something went wrong");
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        t("Something went wrong");
       toast.error(message);
     }
   };
@@ -165,6 +169,7 @@ const { t ,i18n } = useTranslation();
         fields={fields}
         initialData={
           initialData || {
+            ar_name: "",
             name: "",
             amount: "",
             Category_id: "",

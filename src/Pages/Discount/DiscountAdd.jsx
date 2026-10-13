@@ -16,16 +16,23 @@ const DiscountAdd = () => {
   const { data: warehousesData } = useGet("/api/admin/warehouse");
   const warehouses = warehousesData?.warehouses || [];
 
-
-
   const fields = useMemo(
     () => [
+      // ✅ الاسم بالإنجليزي
       {
         key: "name",
         label: t("DiscountName"),
         type: "text",
         required: true,
-        placeholder: t("DiscountNamePlaceholder")
+        placeholder: t("DiscountNamePlaceholder"),
+      },
+      // ✅ الاسم بالعربي (جديد)
+      {
+        key: "ar_name",
+        label: t("DiscountNameAr"),
+        type: "text",
+        required: true,
+        placeholder: t("DiscountNameArPlaceholder"),
       },
       {
         key: "applyIn",
@@ -57,7 +64,9 @@ const DiscountAdd = () => {
               label={t("Warehouses")}
               options={warehouses}
               value={formData.warehouse_ids || []}
-              onChange={(val) => setFormData({ ...formData, warehouse_ids: val })}
+              onChange={(val) =>
+                setFormData({ ...formData, warehouse_ids: val })
+              }
               t={t}
             />
           ),
@@ -84,13 +93,16 @@ const DiscountAdd = () => {
           "If percentage, enter 15 for 15%. If fixed, enter amount value.",
       },
     ],
-    []
+    [t, warehouses],
   );
 
   const handleSubmit = async (formData) => {
     setLoading(true);
     try {
-      if (!formData.all_warehouses && (!formData.warehouse_ids || formData.warehouse_ids.length === 0)) {
+      if (
+        !formData.all_warehouses &&
+        (!formData.warehouse_ids || formData.warehouse_ids.length === 0)
+      ) {
         toast.error(t("PleaseSelectWarehousesOrEnableAllWarehouses"));
         setLoading(false);
         return;
@@ -98,6 +110,7 @@ const DiscountAdd = () => {
 
       const payload = {
         name: formData.name,
+        ar_name: formData.ar_name, // ✅ ضيفناه هنا
         type: formData.type,
         amount:
           formData.type === "percentage"
@@ -105,7 +118,9 @@ const DiscountAdd = () => {
             : Number(formData.amount),
         applyIn: formData.applyIn,
         all_warehouses: !!formData.all_warehouses,
-        warehouse_ids: formData.all_warehouses ? [] : formData.warehouse_ids || [],
+        warehouse_ids: formData.all_warehouses
+          ? []
+          : formData.warehouse_ids || [],
       };
 
       await api.post("/api/admin/discount", payload);

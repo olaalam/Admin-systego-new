@@ -1,3 +1,4 @@
+// src/pages/CustomerGroupEdit.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import usePut from "@/hooks/usePut";
@@ -10,21 +11,27 @@ import { useTranslation } from "react-i18next";
 export default function CustomerGroupEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
+
   const { putData, loading: updating } = usePut(
-    `/api/admin/customer/groups/${id}`
+    `/api/admin/customer/groups/${id}`,
   );
 
   const [groupData, setGroupData] = useState(null);
   const [fetching, setFetching] = useState(true);
 
-  // ✅ الحقول الخاصة بالـ customer group
   const fields = useMemo(
     () => [
       {
         key: "name",
         label: t("GroupName"),
+        required: true,
+      },
+      // ✅ الاسم بالعربي
+      {
+        key: "ar_name",
+        label: t("GroupNameAr"),
         required: true,
       },
       {
@@ -34,19 +41,15 @@ const { t, i18n } = useTranslation();
         required: true,
       },
     ],
-    []
+    [t],
   );
 
-  // ✅ جلب بيانات الجروب
   useEffect(() => {
     const fetchGroup = async () => {
       try {
         setFetching(true);
 
-        const res = await api.get(
-          `/api/admin/customer/groups/${id}`
-        );
-
+        const res = await api.get(`/api/admin/customer/groups/${id}`);
         const group = res.data?.data?.group;
 
         if (!group) {
@@ -57,6 +60,7 @@ const { t, i18n } = useTranslation();
 
         setGroupData({
           name: group.name || "",
+          ar_name: group.ar_name || "", // ✅ الجديد
           status: Boolean(group.status),
         });
       } catch (err) {
@@ -68,13 +72,13 @@ const { t, i18n } = useTranslation();
     };
 
     fetchGroup();
-  }, [id, navigate]);
+  }, [id, navigate, t]);
 
-  // ✅ إرسال نفس الـ body اللي طلبتيه
   const handleSubmit = async (formData) => {
     try {
       const payload = {
         name: formData.name,
+        ar_name: formData.ar_name, // ✅ الجديد
         status: Boolean(formData.status),
       };
 
@@ -84,8 +88,7 @@ const { t, i18n } = useTranslation();
       navigate("/customer-group");
     } catch (err) {
       const msg =
-        err.response?.data?.message ||
-        t("Failed to update customer group");
+        err.response?.data?.message || t("Failed to update customer group");
       toast.error(msg);
       console.error("❌ Error:", err.response?.data);
     }
@@ -99,8 +102,8 @@ const { t, i18n } = useTranslation();
     <div className="p-6 bg-gray-100 min-h-screen">
       {groupData && (
         <AddPage
-        title={t("edit_group_title", { name: groupData?.name || "..." })}
-description={t("edit_group_description")}
+          title={t("edit_group_title", { name: groupData?.name || "..." })}
+          description={t("edit_group_description")}
           fields={fields}
           initialData={groupData}
           onSubmit={handleSubmit}

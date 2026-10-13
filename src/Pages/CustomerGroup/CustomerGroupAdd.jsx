@@ -10,17 +10,22 @@ const CustomerGroupAdd = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
-  // ✅ endpoint الإضافة
+
   const { postData, loading: submitting } = usePost(
-    "/api/admin/customer/groups"
+    "/api/admin/customer/groups",
   );
 
-  // ✅ الحقول الخاصة بالـ customer group
   const fields = useMemo(
     () => [
       {
         key: "name",
         label: t("GroupName"),
+        required: true,
+      },
+      // ✅ الاسم بالعربي (جديد)
+      {
+        key: "ar_name",
+        label: t("GroupNameAr"), // هنضيفها في i18n
         required: true,
       },
       {
@@ -30,14 +35,14 @@ const CustomerGroupAdd = () => {
         required: true,
       },
     ],
-    []
+    [t],
   );
 
-  // ✅ إرسال البيانات بنفس الـ body المطلوب
   const handleSubmit = async (formData) => {
     try {
       const payload = {
         name: formData.name,
+        ar_name: formData.ar_name, // ✅ الجديد
         status: Boolean(formData.status),
       };
 
@@ -47,8 +52,7 @@ const CustomerGroupAdd = () => {
       navigate("/customer-group");
     } catch (err) {
       const msg =
-        err.response?.data?.message ||
-        t("failed_to_add_customer_group");
+        err.response?.data?.message || t("failed_to_add_customer_group");
       toast.error(msg);
       console.error("❌ Error:", err.response?.data);
     }
@@ -64,7 +68,7 @@ const CustomerGroupAdd = () => {
         onCancel={() => navigate("/customer-group")}
         loading={submitting}
         initialData={{
-          status: true, // default active
+          status: true,
         }}
       />
     </div>

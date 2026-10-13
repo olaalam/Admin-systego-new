@@ -12,18 +12,16 @@ import { useTranslation } from "react-i18next";
 export default function BankAccountEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
 
   const { putData, loading: updating } = usePut(
-    `/api/admin/bank_account/${id}`
+    `/api/admin/bank_account/${id}`,
   );
 
   const [bankAccountData, setBankAccountData] = useState(null);
   const [fetching, setFetching] = useState(true);
-    const { t } = useTranslation();
 
-  // =============================
-  // GET: Warehouses
-  // =============================
   const {
     data: warehouseData,
     loading: loadingWarehouses,
@@ -36,27 +34,31 @@ export default function BankAccountEdit() {
       value: w._id,
     })) || [];
 
-  // =============================
-  // Form fields
-  // =============================
   const fields = useMemo(
     () => [
+      // ⭐️ حقل الاسم بالعربية
+      {
+        key: "ar_name",
+        label: isRTL ? "الاسم (بالعربية)" : "Name (Arabic)",
+        type: "text",
+        required: true,
+      },
       {
         key: "name",
-      label: t("BankName"),
+        label: t("BankName"),
         type: "text",
         required: true,
       },
       {
         key: "warehouseId",
-      label: t("Warehouse"),
+        label: t("Warehouse"),
         type: "select",
         required: true,
         options: warehouses,
       },
       {
         key: "balance",
-      label: t("InitialBalance"),
+        label: t("InitialBalance"),
         type: "number",
         required: true,
         min: 0,
@@ -64,31 +66,28 @@ export default function BankAccountEdit() {
       },
       {
         key: "description",
-      label: t("Description"),
+        label: t("Description"),
         type: "textarea",
       },
       {
         key: "image",
-      label: t("Image"),
+        label: t("Image"),
         type: "image",
       },
       {
         key: "status",
-      label: t("Active"),
+        label: t("Active"),
         type: "switch",
       },
       {
         key: "in_POS",
-      label: t("AvailableinPOS"),
+        label: t("AvailableinPOS"),
         type: "switch",
       },
     ],
-    [warehouses]
+    [warehouses, isRTL, t],
   );
 
-  // =============================
-  // Fetch bank account data
-  // =============================
   useEffect(() => {
     const fetchBankAccount = async () => {
       try {
@@ -102,15 +101,18 @@ export default function BankAccountEdit() {
         }
 
         setBankAccountData({
+          // ⭐️ جلب ar_name من الاستجابة
+          ar_name: bankAccount.ar_name || "",
           name: bankAccount.name || "",
-warehouseId: Array.isArray(bankAccount.warehouseId)
-  ? bankAccount.warehouseId.map((w) => w._id)
-  : bankAccount.warehouseId?._id
-  ? [bankAccount.warehouseId._id]
-  : [],
+          warehouseId: Array.isArray(bankAccount.warehouseId)
+            ? bankAccount.warehouseId.map((w) => w._id)
+            : bankAccount.warehouseId?._id
+              ? [bankAccount.warehouseId._id]
+              : [],
           balance: bankAccount.balance || 0,
           description: bankAccount.description || "",
-          image: bankAccount.image || null,
+          // ⭐️ string فارغ بدلاً من null
+          image: bankAccount.image || "",
           status: Boolean(bankAccount.status),
           in_POS: Boolean(bankAccount.in_POS),
         });
@@ -126,51 +128,58 @@ warehouseId: Array.isArray(bankAccount.warehouseId)
     if (id) fetchBankAccount();
   }, [id, navigate]);
 
-  // =============================
-  // Submit
-  // =============================
-const handleSubmit = async (formData) => {
-  try {
-    // 1️⃣ جهزي الـ payload الأول
-    const payload = {
-      ...formData,
-      warehouseId: Array.isArray(formData.warehouseId)
-        ? formData.warehouseId
-        : [formData.warehouseId], // backend requirement
-    };
+  const handleSubmit = async (formData) => {
+    try {
+      const payload = {
+        // ⭐️ إرسال ar_name
+        ar_name: formData.ar_name || "",
+        name: formData.name || "",
+        warehouseId: Array.isArray(formData.warehouseId)
+          ? formData.warehouseId
+          : [formData.warehouseId],
+        balance: String(formData.balance),
+        description: formData.description || "",
+        status: Boolean(formData.status),
+        in_POS: Boolean(formData.in_POS),
+      };
 
-    // 2️⃣ لو الصورة URL قديمة → ما نبعتهوش
-    if (
-      typeof payload.image === "string" &&
-      payload.image === bankAccountData?.image
-    ) {
-      delete payload.image;
+      // ✅ لو الصورة URL قديمة → ما نبعتهاش
+      if (
+        typeof formData.image === "string" &&
+        formData.image === bankAccountData?.image
+      ) {
+        // لا نضيف image للـ payload
+      } else {
+        // ⭐️ إرسال string فارغ بدلاً من null
+        payload.image = formData.image || "";
+      }
+
+      console.log("📤 Updating payload:", payload);
+
+      await putData(payload);
+
+      toast.success("Bank account updated successfully!");
+      navigate("/accounting");
+    } catch (err) {
+      console.error(err);
+
+      const errorMessage =
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        "Failed to update bank account";
+
+      const errorDetails = err.response?.data?.error?.details;
+
+      if (Array.isArray(errorDetails)) {
+        errorDetails.forEach((d) => toast.error(d));
+      } else {
+        toast.error(errorMessage);
+      }
     }
-
-    console.log("📤 Updating payload:", payload);
-
-    await putData(payload);
-
-    toast.success("Bank account updated successfully!");
-    navigate("/accounting");
-  } catch (err) {
-    console.error(err);
-
-    const errorMessage =
-      err.response?.data?.message ||
-      err.response?.data?.error?.message ||
-      "Failed to update bank account";
-
-    toast.error(errorMessage);
-  }
-};
-
+  };
 
   const handleCancel = () => navigate("/accounting");
 
-  // =============================
-  // Loading & Error states
-  // =============================
   if (fetching || loadingWarehouses) return <Loader />;
 
   if (warehouseError) {
@@ -181,14 +190,11 @@ const handleSubmit = async (formData) => {
     );
   }
 
-  // =============================
-  // Render
-  // =============================
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <AddPage
-      title={`${t("Edit Bank Account")}: ${bankAccountData.name}`}
-description={t("Update the details of this bank account")}
+        title={`${t("Edit Bank Account")}: ${bankAccountData.name}`}
+        description={t("Update the details of this bank account")}
         fields={fields}
         initialData={bankAccountData}
         onSubmit={handleSubmit}

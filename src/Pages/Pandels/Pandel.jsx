@@ -73,11 +73,14 @@ const Pandels = () => {
       w-11 h-6 bg-gray-300 rounded-full peer 
       peer-checked:bg-primary 
       after:content-[''] after:absolute after:top-[2px] after:bg-white  after:rounded-full after:h-5 after:w-5 after:transition-all 
-      ${isRTL
-            ? "peer-checked:after:-translate-x-full"
-            : "peer-checked:after:translate-x-full"}
+      ${
+        isRTL
+          ? "peer-checked:after:-translate-x-full"
+          : "peer-checked:after:translate-x-full"
+      }
       after:start-[2px]
-    `} ></div>
+    `}
+      ></div>
       {updatingId === item._id && (
         <span className="ml-2 text-xs text-gray-500">{t("Updating")}</span>
       )}
@@ -147,14 +150,13 @@ const Pandels = () => {
     },
   ];
 
-
   if (loading) return <Loader />;
   if (error) {
     error && !error.includes("404") && (
       <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">
         {t("Errorloadingpandels")}: {error}
       </div>
-    )
+    );
   }
 
   return (
@@ -178,7 +180,8 @@ const Pandels = () => {
       {deleteTarget && (
         <DeleteDialog
           title={t("DeleteBundle")}
-          message={t("DeleteBundleMessage", { name: deleteTarget.name })} onConfirm={() => handleDelete(deleteTarget)}
+          message={t("DeleteBundleMessage", { name: deleteTarget.name })}
+          onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
         />

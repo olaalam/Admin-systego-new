@@ -17,11 +17,19 @@ const PandelEdit = () => {
   const { putData, loading: updating } = usePut(`/api/admin/pandel/${id}`);
   const { t } = useTranslation();
 
-  const { data: productsData, loading: productsLoading } = useGet("/api/admin/product");
-  const { data: pandelData, loading: pandelLoading } = useGet(`/api/admin/pandel/${id}`);
+  const { data: productsData, loading: productsLoading } =
+    useGet("/api/admin/product");
+  const { data: pandelData, loading: pandelLoading } = useGet(
+    `/api/admin/pandel/${id}`,
+  );
+  const { data: warehousesData, loading: warehousesLoading } = useGet(
+    "/api/admin/warehouse",
+  );
+  const warehouses = warehousesData?.warehouses || [];
+
   const [loading, setLoading] = useState(false);
 
-  if (productsLoading || pandelLoading) return <Loader />;
+  if (productsLoading || pandelLoading || warehousesLoading) return <Loader />;
 
   const products = productsData?.products || [];
   const pandel = pandelData?.pandel || {};
@@ -32,10 +40,7 @@ const PandelEdit = () => {
     return d.toISOString().split("T")[0];
   };
 
-  // تحويل بيانات الـ pandel القادمة من الـ API إلى الشكل المطلوب
-  // لو الـ API بيرجع productsId (القديم) أو products (الجديد) — نتعامل مع الاتنين
   const normalizeExistingProducts = () => {
-    // لو الـ API بيرجع products بالشكل الجديد
     if (pandel.products && Array.isArray(pandel.products)) {
       return pandel.products.map((sp) => ({
         productId: sp.productId?._id || sp.productId || sp._id,
@@ -43,7 +48,6 @@ const PandelEdit = () => {
         quantity: sp.quantity || 1,
       }));
     }
-    // fallback لو الـ API لسه بيرجع productsId القديم (array of IDs)
     if (pandel.productsId && Array.isArray(pandel.productsId)) {
       return pandel.productsId.map((pid) => ({
         productId: typeof pid === "object" ? pid._id || pid.id : pid,
@@ -55,6 +59,13 @@ const PandelEdit = () => {
   };
 
   const fields = [
+    {
+      key: "ar_name",
+      label: t("PandelName") + " (AR)",
+      type: "text",
+      required: true,
+      placeholder: t("EnterPandelName"),
+    },
     {
       key: "name",
       label: t("PandelName"),
@@ -84,12 +95,11 @@ const PandelEdit = () => {
       step: "0.01",
     },
     {
-      key: "warehouse_section", // مفتاح تعريفي للقسم
+      key: "warehouse_section",
       label: t("Warehouses"),
       type: "custom",
       render: (formData, setFormData) => (
         <div className="space-y-4 border p-4 rounded-lg bg-white shadow-sm">
-          {/* Checkbox: All Warehouses */}
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -100,18 +110,19 @@ const PandelEdit = () => {
                 setFormData((prev) => ({
                   ...prev,
                   all_warehouses: isChecked,
-                  // إذا اختار "كل المخازن" نمسح المصفوفة، وإذا ألغى الاختيار نجهزها مصفوفة فارغة
                   warehouse_ids: isChecked ? [] : [],
                 }));
               }}
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-            <label htmlFor="all_warehouses" className="text-sm font-bold text-gray-700 cursor-pointer">
+            <label
+              htmlFor="all_warehouses"
+              className="text-sm font-bold text-gray-700 cursor-pointer"
+            >
               {t("Available in all warehouses")}
             </label>
           </div>
 
-          {/* Multi-Select Combobox: يظهر فقط في حال عدم اختيار "كل المخازن" */}
           {!formData.all_warehouses && (
             <div className="pt-2 border-t border-gray-100 animate-in fade-in duration-300">
               <WarehouseMultiSelect
@@ -123,7 +134,8 @@ const PandelEdit = () => {
                 }
                 t={t}
               />
-              {(!formData.warehouse_ids || formData.warehouse_ids.length === 0) && (
+              {(!formData.warehouse_ids ||
+                formData.warehouse_ids.length === 0) && (
                 <p className="text-[11px] text-orange-500 mt-1">
                   *{t("Please select at least one warehouse")}
                 </p>
@@ -148,21 +160,20 @@ const PandelEdit = () => {
         const suggestions =
           searchTerm.length > 0
             ? products
-              .filter(
-                (p) =>
-                  (p.name && p.name.toLowerCase().includes(searchTerm)) ||
-                  p.prices?.some(
-                    (pr) =>
-                      pr.code && pr.code.toString().includes(searchTerm)
-                  )
-              )
-              .slice(0, 8)
+                .filter(
+                  (p) =>
+                    (p.name && p.name.toLowerCase().includes(searchTerm)) ||
+                    p.prices?.some((pr) =>
+                      pr.code?.toString().includes(searchTerm),
+                    ),
+                )
+                .slice(0, 8)
             : [];
 
         const handleAddProduct = (p) => {
           const prodId = p._id || p.id;
           const alreadyAdded = selectedProducts.some(
-            (sp) => sp.productId === prodId
+            (sp) => sp.productId === prodId,
           );
           if (alreadyAdded) {
             toast.warning(t("Thisproductisalreadyinthebundle"));
@@ -183,7 +194,7 @@ const PandelEdit = () => {
           setFormData((prev) => ({
             ...prev,
             products: selectedProducts.filter(
-              (sp) => sp.productId !== productId
+              (sp) => sp.productId !== productId,
             ),
           }));
         };
@@ -194,7 +205,7 @@ const PandelEdit = () => {
             products: selectedProducts.map((sp) =>
               sp.productId === productId
                 ? { ...sp, productPriceId: priceId || null }
-                : sp
+                : sp,
             ),
           }));
         };
@@ -205,14 +216,13 @@ const PandelEdit = () => {
             products: selectedProducts.map((sp) =>
               sp.productId === productId
                 ? { ...sp, quantity: Math.max(1, sp.quantity + delta) }
-                : sp
+                : sp,
             ),
           }));
         };
 
         return (
           <div className="space-y-4">
-            {/* حقل البحث */}
             <div className="relative z-20">
               <SmartSearch
                 value={formData.searchProduct || ""}
@@ -255,7 +265,6 @@ const PandelEdit = () => {
               )}
             </div>
 
-            {/* قائمة المنتجات المختارة */}
             {selectedProducts.length > 0 && (
               <div className="mt-4 border rounded-lg bg-white overflow-hidden shadow-sm">
                 <div className="bg-gray-50 px-4 py-2 border-b text-xs font-bold text-gray-500 uppercase">
@@ -288,7 +297,6 @@ const PandelEdit = () => {
                               {productData.name}
                             </h4>
 
-                            {/* Variation Dropdown */}
                             {hasVariations && (
                               <div className="mt-2">
                                 <label className="text-xs text-gray-500 font-medium mb-1 block">
@@ -299,7 +307,7 @@ const PandelEdit = () => {
                                   onChange={(e) =>
                                     handleVariationChange(
                                       sp.productId,
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="w-full text-sm border border-gray-200 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
@@ -312,7 +320,8 @@ const PandelEdit = () => {
                                       key={v._id || v.id}
                                       value={v._id || v.id}
                                     >
-                                      {v.size || v.color || v.name || v.code} — {v.price} {t("EGP")}
+                                      {v.size || v.color || v.name || v.code} —{" "}
+                                      {v.price} {t("EGP")}
                                     </option>
                                   ))}
                                 </select>
@@ -321,11 +330,11 @@ const PandelEdit = () => {
 
                             {!hasVariations && variations.length === 1 && (
                               <p className="text-xs text-gray-400 mt-0.5">
-                                {t("Code")}: {variations[0]?.code || "N/A"} — {variations[0]?.price} {t("EGP")}
+                                {t("Code")}: {variations[0]?.code || "N/A"} —{" "}
+                                {variations[0]?.price} {t("EGP")}
                               </p>
                             )}
 
-                            {/* Quantity Control */}
                             <div className="flex items-center gap-2 mt-2">
                               <span className="text-xs text-gray-500 font-medium">
                                 {t("Quantity")}:
@@ -399,7 +408,7 @@ const PandelEdit = () => {
             reader.onloadend = () => resolve(reader.result.split(",")[1]);
             reader.onerror = reject;
             reader.readAsDataURL(blob);
-          })
+          }),
       );
   };
 
@@ -411,17 +420,20 @@ const PandelEdit = () => {
           if (typeof img === "string" && img.startsWith("http"))
             return await toBase64(img);
           return img;
-        })
+        }),
       );
 
       const payload = {
+        ar_name: formData.ar_name || formData.name,
         name: formData.name,
         startdate: formData.startdate,
         enddate: formData.enddate,
         price: Number(formData.price),
         images: imagesBase64,
         all_warehouses: formData.all_warehouses,
-        warehouse_ids: formData.all_warehouses ? [] : (formData.warehouse_ids || []),
+        warehouse_ids: formData.all_warehouses
+          ? []
+          : formData.warehouse_ids || [],
         products: (formData.products || []).map((sp) => ({
           productId: sp.productId,
           productPriceId: sp.productPriceId || null,
@@ -429,11 +441,17 @@ const PandelEdit = () => {
         })),
       };
 
+      console.log("📤 Pandel update payload:", payload);
+
       await putData(payload);
       toast.success(t("Bundle updated successfully"));
       navigate("/pandel");
     } catch (err) {
-      toast.error(t("FailedtoupdateBundle"), err);
+      toast.error(
+        err.response?.data?.error?.message ||
+          err.response?.data?.message ||
+          t("FailedtoupdateBundle"),
+      );
     } finally {
       setLoading(false);
     }
@@ -447,14 +465,15 @@ const PandelEdit = () => {
         submitButtonText={t("UpdateBundle")}
         fields={fields}
         initialData={{
+          ar_name: pandel.ar_name || "",
           name: pandel.name || "",
           startdate: formatDate(pandel.startdate),
           enddate: formatDate(pandel.enddate),
           price: pandel.price || "",
-          products: normalizeExistingProducts(), // ← تحويل البيانات القديمة للشكل الجديد
+          products: normalizeExistingProducts(),
           images: pandel.images || [],
           searchProduct: "",
-          all_warehouses: pandel.all_warehouses,
+          all_warehouses: pandel.all_warehouses ?? true,
           warehouse_ids: pandel.warehouse_ids || [],
         }}
         onSubmit={handleSubmit}
@@ -465,7 +484,7 @@ const PandelEdit = () => {
   );
 };
 
-// مكون رفع الصور
+/* Image Upload Sub-Component */
 const ImageUploadSection = ({ images, onImagesChange }) => {
   const { t } = useTranslation();
 
@@ -479,7 +498,7 @@ const ImageUploadSection = ({ images, onImagesChange }) => {
       });
     });
     Promise.all(readers).then((newImages) =>
-      onImagesChange([...images, ...newImages])
+      onImagesChange([...images, ...newImages]),
     );
   };
 
@@ -527,7 +546,9 @@ const ImageUploadSection = ({ images, onImagesChange }) => {
           {images.map((img, index) => (
             <div key={index} className="relative group aspect-square">
               <img
-                src={img.startsWith("http") ? img : `data:image/jpeg;base64,${img}`}
+                src={
+                  img.startsWith("http") ? img : `data:image/jpeg;base64,${img}`
+                }
                 alt=""
                 className="w-full h-full object-cover rounded-lg border shadow-sm"
               />

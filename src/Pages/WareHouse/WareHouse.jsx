@@ -17,7 +17,9 @@ const WareHouse = () => {
   const isRTL = i18n.language === "ar";
   const navigate = useNavigate();
   const { data, loading, error, refetch } = useGet("/api/admin/warehouse");
-  const { deleteData, loading: deleting } = useDelete("/api/admin/warehouse/delete");
+  const { deleteData, loading: deleting } = useDelete(
+    "/api/admin/warehouse/delete",
+  );
 
   // 1. إضافة هوك usePut وتتبع حالة التحديث
   const [updatingId, setUpdatingId] = useState(null);
@@ -40,7 +42,9 @@ const WareHouse = () => {
     setUpdatingId(item._id);
     try {
       // استخدام API الـ Put لتحديث الحالة
-      await api.put(`/api/admin/warehouse/${item._id}`, { Is_Online: newStatus });
+      await api.put(`/api/admin/warehouse/${item._id}`, {
+        Is_Online: newStatus,
+      });
       toast.success(t("Statusupdatedsuccessfully"));
       refetch(); // إعادة جلب البيانات لتحديث الجدول
     } catch (err) {
@@ -63,7 +67,13 @@ const WareHouse = () => {
         >
           {value}
         </span>
-      )
+      ),
+    },
+    {
+      key: "ar_name",
+      header: t("Arabic Name"),
+      filterable: true,
+      render: (value) => value || "-",
     },
     { key: "address", header: t("Address"), filterable: true },
     { key: "phone", header: t("Phone"), filterable: true },

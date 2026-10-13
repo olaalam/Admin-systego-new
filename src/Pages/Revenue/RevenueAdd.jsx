@@ -8,8 +8,8 @@ import Loader from "@/components/Loader";
 import { useTranslation } from "react-i18next";
 
 const RevenueAdd = () => {
-const { t ,i18n } = useTranslation();
- const isRTL = i18n.language === "ar";
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const navigate = useNavigate();
 
   /* =========================
@@ -35,6 +35,13 @@ const { t ,i18n } = useTranslation();
   ========================= */
   const fields = useMemo(
     () => [
+      {
+        key: "ar_name",
+        label: isRTL ? "اسم الايراد  (بالعربية)" : "Revenue Name (Arabic)",
+        type: "text",
+        required: true,
+        placeholder: isRTL ? "أدخل الاسم بالعربية" : "Enter Arabic name",
+      },
       {
         key: "name",
         label: t("RevenueName"),
@@ -67,13 +74,13 @@ const { t ,i18n } = useTranslation();
       },
       {
         key: "note",
-        label:t( "Note"),
+        label: t("Note"),
         type: "textarea",
         required: false,
         placeholder: t("Monthlypayment"),
       },
     ],
-    [categoryOptions, accountOptions]
+    [categoryOptions, accountOptions],
   );
 
   /* =========================
@@ -82,12 +89,16 @@ const { t ,i18n } = useTranslation();
   const handleSubmit = async (formData) => {
     try {
       const payload = {
+        // ✅ ضيف ar_name — لو المستخدم مش بيدخله، استخدم name
+        ar_name: formData.ar_name || formData.name,
         name: formData.name,
         amount: Number(formData.amount),
         Category_id: formData.Category_id,
         financial_accountId: formData.financial_accountId,
         note: formData.note,
       };
+
+      console.log("📤 Payload:", payload);
 
       await api.post("/api/admin/revenue", payload);
 
@@ -104,7 +115,6 @@ const { t ,i18n } = useTranslation();
       toast.error(message);
     }
   };
-
   if (loading) return <Loader />;
 
   return (
@@ -116,6 +126,7 @@ const { t ,i18n } = useTranslation();
         onSubmit={handleSubmit}
         onCancel={() => navigate("/revenue")}
         initialData={{
+          ar_name: "",
           name: "",
           amount: "",
           Category_id: "",

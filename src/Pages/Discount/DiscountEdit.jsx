@@ -13,10 +13,8 @@ import { useTranslation } from "react-i18next";
 export default function DiscountEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-const { t, i18n } = useTranslation();
-  const { putData, loading: updating } = usePut(
-    `/api/admin/discount/${id}`
-  );
+  const { t, i18n } = useTranslation();
+  const { putData, loading: updating } = usePut(`/api/admin/discount/${id}`);
   const { data: warehousesData } = useGet("/api/admin/warehouse");
   const warehouses = warehousesData?.warehouses || [];
 
@@ -33,7 +31,14 @@ const { t, i18n } = useTranslation();
         label: t("DiscountName"),
         type: "text",
         required: true,
-        placeholder: t("DiscountNamePlaceholder")
+        placeholder: t("DiscountNamePlaceholder"),
+      },
+      {
+        key: "ar_name",
+        label: t("DiscountNameAr"),
+        type: "text",
+        required: true,
+        placeholder: t("DiscountNameArPlaceholder"),
       },
       {
         key: "applyIn",
@@ -65,7 +70,9 @@ const { t, i18n } = useTranslation();
               label={t("Warehouses")}
               options={warehouses}
               value={formData.warehouse_ids || []}
-              onChange={(val) => setFormData({ ...formData, warehouse_ids: val })}
+              onChange={(val) =>
+                setFormData({ ...formData, warehouse_ids: val })
+              }
               t={t}
             />
           ),
@@ -92,7 +99,7 @@ const { t, i18n } = useTranslation();
           "If percentage, enter 15 for 15%. If fixed, enter amount value.",
       },
     ],
-    [t, warehouses]
+    [t, warehouses],
   );
 
   /* =======================
@@ -114,13 +121,17 @@ const { t, i18n } = useTranslation();
 
         setDiscountData({
           name: discount.name || "",
+          ar_name: discount.ar_name || "", // ✅ جديد
           type: discount.type || "percentage",
           amount:
             discount.type === "percentage"
               ? Number(discount.amount) * 100
               : Number(discount.amount),
           applyIn: discount.applyIn || "POS",
-          all_warehouses: discount.all_warehouses !== undefined ? discount.all_warehouses : true,
+          all_warehouses:
+            discount.all_warehouses !== undefined
+              ? discount.all_warehouses
+              : true,
           warehouse_ids: discount.warehouse_ids || [],
         });
       } catch (err) {
@@ -140,13 +151,17 @@ const { t, i18n } = useTranslation();
   ======================= */
   const handleSubmit = async (formData) => {
     try {
-      if (!formData.all_warehouses && (!formData.warehouse_ids || formData.warehouse_ids.length === 0)) {
+      if (
+        !formData.all_warehouses &&
+        (!formData.warehouse_ids || formData.warehouse_ids.length === 0)
+      ) {
         toast.error(t("PleaseSelectWarehousesOrEnableAllWarehouses"));
         return;
       }
 
       const payload = {
         name: formData.name,
+        ar_name: formData.ar_name,
         type: formData.type,
         amount:
           formData.type === "percentage"
@@ -154,7 +169,9 @@ const { t, i18n } = useTranslation();
             : Number(formData.amount),
         applyIn: formData.applyIn,
         all_warehouses: !!formData.all_warehouses,
-        warehouse_ids: formData.all_warehouses ? [] : formData.warehouse_ids || [],
+        warehouse_ids: formData.all_warehouses
+          ? []
+          : formData.warehouse_ids || [],
       };
 
       await putData(payload);
@@ -194,9 +211,9 @@ const { t, i18n } = useTranslation();
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <AddPage
-  title={t("EditDiscountTitle", { name: discountData.name })}
-  description={t("EditDiscountDescription")}
-  submitButtonText={t("UpdateDiscount")}
+        title={t("EditDiscountTitle", { name: discountData.name })}
+        description={t("EditDiscountDescription")}
+        submitButtonText={t("UpdateDiscount")}
         fields={fields}
         initialData={discountData}
         onSubmit={handleSubmit}

@@ -12,108 +12,118 @@ import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
 
 const CustomerGroup = () => {
-    const navigate = useNavigate();
-    const { t, i18n } = useTranslation();
-    const isRTL = i18n.language === "ar";
-    const { data, loading, error, refetch } = useGet(
-        "/api/admin/customer/groups"
-    );
+  const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
+  const { data, loading, error, refetch } = useGet(
+    "/api/admin/customer/groups",
+  );
 
-    const { deleteData, loading: deleting } = useDelete(
-        "/api/admin/customer/groups/delete"
-    );
+  const { deleteData, loading: deleting } = useDelete(
+    "/api/admin/customer/groups/delete",
+  );
 
-    const [updatingStatus, setUpdatingStatus] = useState(false);
-    const [deleteTarget, setDeleteTarget] = useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
-    const groups = data?.groups || [];
+  const groups = data?.groups || [];
 
-    const handleDelete = async (item) => {
-        try {
-            await deleteData(`/api/admin/customer/groups/${item._id}`);
-            refetch();
-        } finally {
-            setDeleteTarget(null);
-        }
-    };
-
-    // 🔹 تعديل الحالة
-    const handleStatusChange = async (group) => {
-        if (!group?._id) return; // حماية إضافية
-        try {
-            setUpdatingStatus(true);
-            await api.put(`/api/admin/customer/groups/${group._id}`, {
-                status: !group.status,
-            });
-            toast.success(t("Statusupdatedsuccessfully"));
-            refetch();
-        } catch (err) {
-            toast.error(t("Failedtoupdatestatus"));
-            console.error(err);
-        } finally {
-            setUpdatingStatus(false);
-        }
-    };
-
-
-    const columns = [
-        {
-            key: "name",
-            header: t("GroupName"),
-            filterable: false,
-        },
-        {
-            key: "status",
-            header: t("Status"),
-            filterable: true,
-            render: (value, group) => (
-                <Switch
-                    checked={group.status}
-                    onCheckedChange={() => handleStatusChange(group)}
-                    disabled={updatingStatus}
-                />
-            ),
-        }
-
-    ];
-
-    if (loading) return <Loader />;
-
-    {
-        error && !error.includes("404") && (
-            <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">
-                {t("Errorloadingcustomergroups")}: {error}
-            </div>
-        )
+  const handleDelete = async (item) => {
+    try {
+      await deleteData(`/api/admin/customer/groups/${item._id}`);
+      refetch();
+    } finally {
+      setDeleteTarget(null);
     }
+  };
 
-    return (
-        <div className="p-6 bg-gray-100 min-h-screen">
-            <DataTable
-                data={groups}
-                columns={columns}
-                title={t("Customer Groups")}
-                addButtonText={t("Add Group")}
-                onAdd={() => navigate("add")}
-                onEdit={(item) => navigate(`edit/${item._id}`)}
-                onDelete={(item) => setDeleteTarget(item)}
-                itemsPerPage={10}
-                searchable
-                filterable
-                moduleName={AppModules.CUSTOMER_GROUP}
-            />
+  // 🔹 تعديل الحالة
+  const handleStatusChange = async (group) => {
+    if (!group?._id) return; // حماية إضافية
+    try {
+      setUpdatingStatus(true);
+      await api.put(`/api/admin/customer/groups/${group._id}`, {
+        status: !group.status,
+      });
+      toast.success(t("Statusupdatedsuccessfully"));
+      refetch();
+    } catch (err) {
+      toast.error(t("Failedtoupdatestatus"));
+      console.error(err);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
-            {deleteTarget && (
-                <DeleteDialog
-                    title={t("delete_customer_group_title")}
-                    message={t("confirm_delete_customer_group", { name: deleteTarget.name })}
-                    onConfirm={() => handleDelete(deleteTarget)}
-                    onCancel={() => setDeleteTarget(null)}
-                    loading={deleting}
-                />
-            )}
-        </div>
+  const columns = [
+    {
+      key: "name",
+      header: t("GroupName"),
+      filterable: false,
+    },
+    {
+      key: "ar_name", // ✅ جديد
+      header: isRTL ? "اسم المجموعة" : "Group Name",
+      filterable: false,
+      render: (value) => (
+        <span className="text-sm text-gray-700" dir="rtl">
+          {value || "-"}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: t("Status"),
+      filterable: true,
+      render: (value, group) => (
+        <Switch
+          checked={group.status}
+          onCheckedChange={() => handleStatusChange(group)}
+          disabled={updatingStatus}
+        />
+      ),
+    },
+  ];
+
+  if (loading) return <Loader />;
+
+  {
+    error && !error.includes("404") && (
+      <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">
+        {t("Errorloadingcustomergroups")}: {error}
+      </div>
     );
+  }
+
+  return (
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <DataTable
+        data={groups}
+        columns={columns}
+        title={t("Customer Groups")}
+        addButtonText={t("Add Group")}
+        onAdd={() => navigate("add")}
+        onEdit={(item) => navigate(`edit/${item._id}`)}
+        onDelete={(item) => setDeleteTarget(item)}
+        itemsPerPage={10}
+        searchable
+        filterable
+        moduleName={AppModules.CUSTOMER_GROUP}
+      />
+
+      {deleteTarget && (
+        <DeleteDialog
+          title={t("delete_customer_group_title")}
+          message={t("confirm_delete_customer_group", {
+            name: deleteTarget.name,
+          })}
+          onConfirm={() => handleDelete(deleteTarget)}
+          onCancel={() => setDeleteTarget(null)}
+          loading={deleting}
+        />
+      )}
+    </div>
+  );
 };
 
 export default CustomerGroup;

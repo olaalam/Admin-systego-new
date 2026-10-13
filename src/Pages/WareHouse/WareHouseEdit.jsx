@@ -17,13 +17,31 @@ export default function WareHouseEdit() {
   const [warehouseData, setWarehouseData] = useState(null);
   const [fetching, setFetching] = useState(true);
 
-  const fields = useMemo(() => [
-    { key: "name", label: t("Name"), required: true },
-    { key: "address", label: t("Address"), required: true },
-    { key: "phone", label: t("Phone"), required: true },
-    { key: "email", label: t("Email"), type: "email", required: true },
-    { key: "Is_Online", label: t("Is Online"), type: "checkbox", required: true },
-  ], []);
+  const fields = useMemo(
+    () => [
+      // ⭐️ إضافة حقل الاسم بالعربية
+      {
+        key: "ar_name",
+        label: isRTL ? "الاسم (بالعربية)" : "Name (Arabic)",
+        required: true,
+      },
+      {
+        key: "name",
+        label: isRTL ? "الاسم (بالإنجليزية)" : "Name (English)",
+        required: true,
+      },
+      { key: "address", label: t("Address"), required: true },
+      { key: "phone", label: t("Phone"), required: true },
+      { key: "email", label: t("Email"), type: "email", required: true },
+      {
+        key: "Is_Online",
+        label: t("Is Online"),
+        type: "checkbox",
+        required: false,
+      },
+    ],
+    [isRTL, t],
+  );
 
   useEffect(() => {
     const fetchWarehouse = async () => {
@@ -37,6 +55,8 @@ export default function WareHouseEdit() {
         }
 
         setWarehouseData({
+          // ⭐️ جلب ar_name من الاستجابة
+          ar_name: warehouse.ar_name || "",
           name: warehouse.name || "",
           address: warehouse.address || "",
           phone: warehouse.phone || "",
@@ -57,7 +77,16 @@ export default function WareHouseEdit() {
 
   const handleSubmit = async (formData) => {
     try {
-      await putData(formData);
+      const payload = {
+        ar_name: formData.ar_name,
+        name: formData.name,
+        address: formData.address,
+        phone: formData.phone,
+        email: formData.email,
+        Is_Online: formData.Is_Online ?? false,
+      };
+
+      await putData(payload);
       toast.success(t("Warehouse updated successfully"));
       navigate("/warehouse");
     } catch (err) {

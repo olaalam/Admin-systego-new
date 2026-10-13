@@ -1,9 +1,8 @@
-// src/pages/warehouseAdd.jsx (النسخة النهائية باستخدام usePost)
+// src/pages/warehouseAdd.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import AddPage from "@/components/AddPage";
 import { toast } from "react-toastify";
-// ⭐️ استيراد الـ Hook المخصص
 import usePost from "@/hooks/usePost";
 import { useTranslation } from "react-i18next";
 
@@ -11,27 +10,47 @@ const WareHouseAdd = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
-  // ⭐️ استخدام usePost: تحديد المسار وجلب postData وحالة التحميل loading
   const { postData, loading } = usePost("/api/admin/warehouse/");
 
   const fields = [
-    { key: "name", label: t("Name"), required: true },
+    // ⭐️ إضافة حقل الاسم بالعربية
+    {
+      key: "ar_name",
+      label: isRTL ? "الاسم (بالعربية)" : "Name (Arabic)",
+      required: true,
+    },
+    {
+      key: "name",
+      label: isRTL ? "الاسم (بالإنجليزية)" : "Name (English)",
+      required: true,
+    },
     { key: "address", label: t("Address"), required: true },
     { key: "phone", label: t("Phone"), required: true },
     { key: "email", label: t("Email"), type: "email", required: true },
-    { key: "Is_Online", label: t("Is Online"), type: "checkbox", required: true },
-    // إضافة حقل اختياري لتحديد ما إذا كان المستودع هو المستودع الافتراضي
+    {
+      key: "Is_Online",
+      label: t("Is Online"),
+      type: "checkbox",
+      required: false,
+    },
   ];
 
   const handleSubmit = async (data) => {
     try {
-      // ⭐️ استخدام postData بدلاً من api.post
-      await postData(data);
+      // ⭐️ التأكد من إرسال الحقلين
+      const payload = {
+        ar_name: data.ar_name,
+        name: data.name,
+        address: data.address,
+        phone: data.phone,
+        email: data.email,
+        Is_Online: data.Is_Online ?? false,
+      };
 
+      await postData(payload);
       toast.success(t("Warehouse added successfully"));
       navigate("/warehouse");
     } catch (err) {
-      // ✅ التعامل مع الأخطاء التفصيلية (مطابقة لـ AdminAdd.jsx)
       const errorMessage =
         err.response?.data?.error?.message ||
         err.response?.data?.message ||
@@ -57,15 +76,14 @@ const WareHouseAdd = () => {
         fields={fields}
         onSubmit={handleSubmit}
         onCancel={() => navigate("/warehouse")}
-        // ⭐️ استخدام حالة التحميل من الـ Hook
         loading={loading}
         initialData={{
+          ar_name: "",
           name: "",
           address: "",
           phone: "",
           email: "",
           Is_Online: false,
-          // stock_Quantity: 0, // 💡 هذا الحقل قد يكون غير ضروري في initialData لصفحة الإضافة
         }}
       />
     </div>
