@@ -19,7 +19,6 @@ export default function WareHouseEdit() {
 
   const fields = useMemo(
     () => [
-      // ⭐️ إضافة حقل الاسم بالعربية
       {
         key: "ar_name",
         label: isRTL ? "الاسم (بالعربية)" : "Name (Arabic)",
@@ -30,7 +29,18 @@ export default function WareHouseEdit() {
         label: isRTL ? "الاسم (بالإنجليزية)" : "Name (English)",
         required: true,
       },
-      { key: "address", label: t("Address"), required: true },
+      // ⭐️ العنوان بالإنجليزي
+      {
+        key: "address",
+        label: isRTL ? "العنوان (بالإنجليزية)" : "Address (English)",
+        required: true,
+      },
+      // ⭐️ العنوان بالعربي
+      {
+        key: "ar_address",
+        label: isRTL ? "العنوان (بالعربية)" : "Address (Arabic)",
+        required: true,
+      },
       { key: "phone", label: t("Phone"), required: true },
       { key: "email", label: t("Email"), type: "email", required: true },
       {
@@ -55,10 +65,12 @@ export default function WareHouseEdit() {
         }
 
         setWarehouseData({
-          // ⭐️ جلب ar_name من الاستجابة
           ar_name: warehouse.ar_name || "",
           name: warehouse.name || "",
+          // ⭐️ العنوان بالإنجليزي
           address: warehouse.address || "",
+          // ⭐️ العنوان بالعربي
+          ar_address: warehouse.ar_address || "",
           phone: warehouse.phone || "",
           email: warehouse.email || "",
           stock_Quantity: warehouse.stock_Quantity ?? 0,
@@ -81,6 +93,7 @@ export default function WareHouseEdit() {
         ar_name: formData.ar_name,
         name: formData.name,
         address: formData.address,
+        ar_address: formData.ar_address,
         phone: formData.phone,
         email: formData.email,
         Is_Online: formData.Is_Online ?? false,

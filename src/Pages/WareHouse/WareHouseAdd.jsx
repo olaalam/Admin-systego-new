@@ -13,7 +13,6 @@ const WareHouseAdd = () => {
   const { postData, loading } = usePost("/api/admin/warehouse/");
 
   const fields = [
-    // ⭐️ إضافة حقل الاسم بالعربية
     {
       key: "ar_name",
       label: isRTL ? "الاسم (بالعربية)" : "Name (Arabic)",
@@ -24,7 +23,18 @@ const WareHouseAdd = () => {
       label: isRTL ? "الاسم (بالإنجليزية)" : "Name (English)",
       required: true,
     },
-    { key: "address", label: t("Address"), required: true },
+    // ⭐️ العنوان بالإنجليزي
+    {
+      key: "address",
+      label: isRTL ? "العنوان (بالإنجليزية)" : "Address (English)",
+      required: true,
+    },
+    // ⭐️ العنوان بالعربي
+    {
+      key: "ar_address",
+      label: isRTL ? "العنوان (بالعربية)" : "Address (Arabic)",
+      required: true,
+    },
     { key: "phone", label: t("Phone"), required: true },
     { key: "email", label: t("Email"), type: "email", required: true },
     {
@@ -37,11 +47,11 @@ const WareHouseAdd = () => {
 
   const handleSubmit = async (data) => {
     try {
-      // ⭐️ التأكد من إرسال الحقلين
       const payload = {
         ar_name: data.ar_name,
         name: data.name,
         address: data.address,
+        ar_address: data.ar_address,
         phone: data.phone,
         email: data.email,
         Is_Online: data.Is_Online ?? false,
@@ -81,6 +91,7 @@ const WareHouseAdd = () => {
           ar_name: "",
           name: "",
           address: "",
+          ar_address: "",
           phone: "",
           email: "",
           Is_Online: false,
