@@ -1,11 +1,11 @@
 // src/api/pleskApi.js
 import axios from "axios";
 
-export const PLESK_API_KEY = "874c8d25-abd4-884d-0251-86e006eb3dc6";
-// hostego.net resolves to 62.84.185.153 and has a valid Let's Encrypt SSL certificate
-export const PLESK_DOMAIN_URL = "https://hostego.net:8443";
-export const PLESK_IP_URL = "https://62.84.185.153:8443";
-export const PLESK_PROXY_URL = "/plesk-proxy";
+// ✅ NO API key here — it lives safely on the backend server (.env)
+// All Plesk calls go through our backend proxy: /api/admin/plesk/proxy
+// This means x-api-key is NEVER visible in browser DevTools / Network tab
+
+const BACKEND_BASE = import.meta.env.VITE_API_BASE_URL || "https://bcknd.systego.net";
 
 /**
  * Extracts a clean hostname / domain from an input URL or environment variable.
@@ -68,43 +68,25 @@ export function deriveFrontendDomain(backendDomain) {
 }
 
 /**
- * Executes a POST request to Plesk API.
- * Uses https://hostego.net:8443 which matches the SSL certificate on 62.84.185.153:8443
+ * Calls the backend-side Plesk proxy.
+ * The backend injects `x-api-key` from its .env — never exposed to the browser.
+ *
+ * @param {string} endpointPath  Plesk endpoint, e.g. "/api/v2/cli/subscription/call"
+ * @param {object} body          Request body to forward to Plesk
  */
 async function callPleskEndpoint(endpointPath, body) {
-  const isDev = import.meta.env.DEV;
+  const proxyUrl = `${BACKEND_BASE}/api/admin/plesk/proxy`;
 
-  // In production, NEVER call /plesk-proxy because it does not exist on the production server.
-  // Instead, call https://hostego.net:8443 directly (valid SSL & CORS enabled).
-  const urlsToTry = [
-    `${PLESK_DOMAIN_URL}${endpointPath}`,
-    `${PLESK_IP_URL}${endpointPath}`,
-  ];
-
-  if (isDev) {
-    // Only in local development Vite server
-    urlsToTry.push(`${PLESK_PROXY_URL}${endpointPath}`);
-  }
-
-  let lastError = null;
-
-  for (const url of urlsToTry) {
-    try {
-      const response = await axios.post(url, body, {
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": PLESK_API_KEY,
-        },
-        timeout: 15000,
-      });
-      return response.data;
-    } catch (err) {
-      lastError = err;
-      console.warn(`Plesk API call to ${url} failed, attempting next fallback if available:`, err?.message);
+  const response = await axios.post(
+    proxyUrl,
+    { endpoint: endpointPath, body },
+    {
+      headers: { "Content-Type": "application/json" },
+      timeout: 25000,
     }
-  }
+  );
 
-  throw lastError;
+  return response.data;
 }
 
 /**
