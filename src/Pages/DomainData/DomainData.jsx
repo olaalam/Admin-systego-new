@@ -84,11 +84,9 @@ export default function DomainData() {
         const parsed = parseSubscriptionStdout(res.stdout);
         setParsedData(parsed);
 
-        // If Plesk returned an explicit --WWW-Root-- folder, prefill wwwRoot with it
-        if (parsed?.wwwRootFolder) {
-          setWwwRoot(parsed.wwwRootFolder);
-        } else {
-          setWwwRoot(deriveFrontendDomain(domain));
+        // Take the full path directly from --WWW-Root-- in subscription info (e.g. /var/www/vhosts/systego.net/Bcknd.systego.net)
+        if (parsed?.wwwRoot) {
+          setWwwRoot(parsed.wwwRoot);
         }
       } else if (res?.message) {
         setFetchError(res.message);
@@ -201,7 +199,7 @@ export default function DomainData() {
               </h1>
               <p className="text-gray-500 text-sm mt-1">
                 {isArabic
-                  ? "معلومات اشتراك السيرفر (Plesk) وربط النطاقات المخصصة للفرونت إند"
+                  ? "معلومات اشتراك السيرفر (Plesk) وربط النطاقات المخصصة"
                   : "Plesk subscription details & client custom domain linking"}
               </p>
             </div>
@@ -288,33 +286,33 @@ export default function DomainData() {
             )}
           </div>
 
-          {/* Card 3: Derived Frontend Subdomain */}
+          {/* Card 3: www-root from server */}
           <div className="bg-white/5 backdrop-blur-xs border border-white/10 rounded-xl p-4">
             <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
               <span className="flex items-center gap-1.5">
-                <Globe size={13} className="text-emerald-400" />
-                {isArabic ? "السب دومين المشتق للفرونت" : "Derived Frontend Subdomain"}
+                <HardDrive size={13} className="text-emerald-400" />
+                <span className="font-bold text-white">www-root</span>
               </span>
               <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold">
                 -www-root
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <p className="text-sm font-bold text-emerald-400 font-mono tracking-wide">
-                {wwwRoot || deriveFrontendDomain(targetDomain)}
+              <p className="text-xs font-bold text-emerald-400 font-mono tracking-wide truncate mr-2" title={wwwRoot || parsedData?.wwwRoot}>
+                {wwwRoot || parsedData?.wwwRoot || "/var/www/vhosts/systego.net/Bcknd.systego.net"}
               </p>
               <button
-                onClick={() => handleCopy(wwwRoot || deriveFrontendDomain(targetDomain), "front")}
-                className="text-gray-400 hover:text-white transition-colors"
+                onClick={() => handleCopy(wwwRoot || parsedData?.wwwRoot || "", "front")}
+                className="text-gray-400 hover:text-white transition-colors cursor-pointer"
                 title="Copy"
               >
                 {copiedKey === "front" ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
               </button>
             </div>
-            <p className="text-[10px] text-gray-400 mt-1">
+            <p className="text-[10px] text-gray-400 mt-0.5">
               {isArabic
-                ? "يتحول تلقائياً من (api-xyz → xyz) أو (xyzbcknd → xyz)"
-                : "Auto-converted: api-xyz → xyz or xyzbcknd → xyz"}
+                ? "مأخوذ مباشرة من --WWW-Root-- في بيانات الاشتراك"
+                : "Copied directly from --WWW-Root-- in subscription info"}
             </p>
           </div>
         </div>
@@ -335,7 +333,7 @@ export default function DomainData() {
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {isArabic
-                    ? "إنشاء موقع فرعي في Plesk وربط الدومين بالفرونت"
+                    ? "إنشاء موقع في Plesk وربط النطاق بـ www-root"
                     : "Create Plesk site mapping with -www-root"}
                 </p>
               </div>
@@ -371,11 +369,12 @@ export default function DomainData() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  {isArabic ? "مجلد الويب روت (-www-root)" : "Frontend WWW-Root"}
+                  <span>www-root (-www-root)</span>
                   <span className="text-red-500 ml-1">*</span>
                 </label>
-                <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                  {isArabic ? "ديناميكي من الباك" : "Auto Dynamic"}
+                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                  <Check size={11} className="text-emerald-600" />
+                  <span>{isArabic ? "مدرج تلقائياً" : "Auto-filled"}</span>
                 </span>
               </div>
               <div className="relative">
@@ -385,14 +384,16 @@ export default function DomainData() {
                   required
                   value={wwwRoot}
                   onChange={(e) => setWwwRoot(e.target.value)}
-                  placeholder="Sales.systego.net"
+                  placeholder="/var/www/vhosts/systego.net/Bcknd.systego.net"
                   className="w-full pl-9 pr-3 py-2.5 bg-emerald-50/40 border border-emerald-200 rounded-xl text-sm font-mono text-emerald-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                 />
               </div>
               <p className="text-[11px] text-gray-500 mt-1">
-                {isArabic
-                  ? "اسم المجلد المستهدف للفرونت إند (مشتق تلقائياً ويمكن تعديله)"
-                  : "Target folder for frontend (auto-calculated from backend subdomain)"}
+                {parsedData?.wwwRoot
+                  ? `${isArabic ? "مستخرج من:" : "Extracted from:"} ${parsedData.wwwRoot}`
+                  : (isArabic
+                      ? "المجلد المستهدف مأخوذ مباشرة من --WWW-Root--"
+                      : "Target directory taken from server --WWW-Root--")}
               </p>
             </div>
 

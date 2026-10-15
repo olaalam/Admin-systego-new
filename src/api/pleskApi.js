@@ -2,7 +2,9 @@
 import axios from "axios";
 
 export const PLESK_API_KEY = "874c8d25-abd4-884d-0251-86e006eb3dc6";
-export const PLESK_DIRECT_URL = "https://62.84.185.153:8443";
+// hostego.net resolves to 62.84.185.153 and has a valid Let's Encrypt SSL certificate
+export const PLESK_DOMAIN_URL = "https://hostego.net:8443";
+export const PLESK_IP_URL = "https://62.84.185.153:8443";
 export const PLESK_PROXY_URL = "/plesk-proxy";
 
 /**
@@ -66,14 +68,23 @@ export function deriveFrontendDomain(backendDomain) {
 }
 
 /**
- * Executes a POST request to Plesk API with automatic fallback between proxy and direct URL.
+ * Executes a POST request to Plesk API.
+ * Uses https://hostego.net:8443 which matches the SSL certificate on 62.84.185.153:8443
  */
 async function callPleskEndpoint(endpointPath, body) {
-  // If in Vite dev environment, try proxy first to bypass any self-signed cert blocks
   const isDev = import.meta.env.DEV;
-  const urlsToTry = isDev
-    ? [`${PLESK_PROXY_URL}${endpointPath}`, `${PLESK_DIRECT_URL}${endpointPath}`]
-    : [`${PLESK_DIRECT_URL}${endpointPath}`, `${PLESK_PROXY_URL}${endpointPath}`];
+
+  // In production, NEVER call /plesk-proxy because it does not exist on the production server.
+  // Instead, call https://hostego.net:8443 directly (valid SSL & CORS enabled).
+  const urlsToTry = [
+    `${PLESK_DOMAIN_URL}${endpointPath}`,
+    `${PLESK_IP_URL}${endpointPath}`,
+  ];
+
+  if (isDev) {
+    // Only in local development Vite server
+    urlsToTry.push(`${PLESK_PROXY_URL}${endpointPath}`);
+  }
 
   let lastError = null;
 
