@@ -224,6 +224,7 @@ const menuItems = [
         module: AppModules.SERVICE_FEES,
       },
       { name: "Couriers", path: "/courier", module: AppModules.COURIER },
+      { name: "Data", path: "/data" },
     ],
   },
 ];

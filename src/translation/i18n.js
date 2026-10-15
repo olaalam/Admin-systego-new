@@ -184,6 +184,7 @@ i18n.use(initReactI18next).init({
         Manufacturing: "Manufacturing",
         WareHouse: "Warehouse",
         Settings: "Settings",
+        Data: "Domain Data",
         productPage: {
           title: "Product Management",
           addButton: "Add Product",
@@ -3050,6 +3051,7 @@ i18n.use(initReactI18next).init({
         Ledger: "دفتر الأستاذ",
         Reports: "التقارير",
         Settings: "الإعدادات",
+        Data: "بيانات النطاق",
         HRM: "الموارد البشرية",
         CRM: "إدارة العملاء",
         POS: "نقطة البيع",

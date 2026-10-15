@@ -169,6 +169,7 @@ const modules = [
       { name: "Decimal", path: "/decimal-setting" },
       { name: "Service Fees", path: "/service-fees" },
       { name: "Couriers", path: "/courier" },
+      { name: "Data", path: "/data" },
     ],
     icon: Settings,
     path: "/barcode",

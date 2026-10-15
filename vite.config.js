@@ -19,5 +19,15 @@ export default defineConfig({
     },
   },
   base: '/admin-login',
-  envPrefix: 'VITE_'
+  envPrefix: 'VITE_',
+  server: {
+    proxy: {
+      '/plesk-proxy': {
+        target: 'https://62.84.185.153:8443',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/plesk-proxy/, ''),
+      },
+    },
+  },
 })

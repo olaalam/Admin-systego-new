@@ -158,6 +158,7 @@ import EcommerceDataEdit from "./Pages/EcommerceData/EcommerceDataEdit";
 import DeliveryMan from "./Pages/DeliveryMan/DeliveryMan";
 import DeliveryManAdd from "./Pages/DeliveryMan/DeliveryManAdd";
 import DeliveryManEdit from "./Pages/DeliveryMan/DeliveryManEdit";
+import DomainData from "./Pages/DomainData/DomainData";
 
 export default function AppRoutes() {
   return (
@@ -1705,6 +1706,17 @@ export default function AppRoutes() {
               action={ModuleActions.EDIT}
             >
               <CouriersEdit />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      <Route path="data">
+        <Route
+          index
+          element={
+            <ProtectedRoute>
+              <DomainData />
             </ProtectedRoute>
           }
         />
