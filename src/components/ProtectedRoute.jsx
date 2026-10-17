@@ -2,6 +2,7 @@ import { Navigate } from "react-router-dom";
 import { hasPermission } from "@/lib/checkPermission";
 import { useTenantInfo } from "@/context/TenantContext";
 import FeatureLocked from "@/Pages/FeatureLocked";
+import PaymentRequired from "@/Pages/PaymentRequired";
 
 export default function ProtectedRoute({
   children,
@@ -11,11 +12,16 @@ export default function ProtectedRoute({
   featureName,
 }) {
   const token = localStorage.getItem("token");
-  const { features, loading: tenantLoading } = useTenantInfo();
+  const { features, loading: tenantLoading, locked } = useTenantInfo();
 
   // 1. Check Authentication (Logged in?)
   if (!token) {
     return <Navigate to="/login" replace />;
+  }
+
+  // 1b. Subscription locked/expired -> require payment
+  if (!tenantLoading && locked) {
+    return <PaymentRequired />;
   }
 
   // 2. Check Subscription Feature Flag

@@ -9,9 +9,12 @@ const TenantContext = createContext({
     havePOS: false,
     haveReports: false,
     haveStockTake: false,
+    haveAdminPanel: true,
   },
   tenant: null,
   packageInfo: null,
+  subscription: null,
+  locked: false,
   loading: true,
   error: null,
   refetch: () => {},
@@ -32,9 +35,12 @@ export const TenantProvider = ({ children }) => {
     havePOS: false,
     haveReports: false,
     haveStockTake: false,
+    haveAdminPanel: true,
   });
   const [tenant, setTenant] = useState(null);
   const [packageInfo, setPackageInfo] = useState(null);
+  const [subscription, setSubscription] = useState(null);
+  const [locked, setLocked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -52,10 +58,13 @@ export const TenantProvider = ({ children }) => {
             havePOS: Boolean(data.features.havePOS),
             haveReports: Boolean(data.features.haveReports),
             haveStockTake: Boolean(data.features.haveStockTake),
+            haveAdminPanel: data.features.haveAdminPanel !== false,
           });
         }
         if (data.tenant) setTenant(data.tenant);
         if (data.package) setPackageInfo(data.package);
+        if (data.subscription !== undefined) setSubscription(data.subscription);
+        setLocked(Boolean(data.locked));
       }
       setError(null);
     } catch (err) {
@@ -80,10 +89,13 @@ export const TenantProvider = ({ children }) => {
             havePOS: Boolean(data.features.havePOS),
             haveReports: Boolean(data.features.haveReports),
             haveStockTake: Boolean(data.features.haveStockTake),
+            haveAdminPanel: data.features.haveAdminPanel !== false,
           });
         }
         if (data.tenant) setTenant(data.tenant);
         if (data.package) setPackageInfo(data.package);
+        if (data.subscription !== undefined) setSubscription(data.subscription);
+        setLocked(Boolean(data.locked));
       }
       setError(null);
       return data;
@@ -106,6 +118,8 @@ export const TenantProvider = ({ children }) => {
         features,
         tenant,
         packageInfo,
+        subscription,
+        locked,
         loading,
         error,
         refetch: fetchTenantInfo,

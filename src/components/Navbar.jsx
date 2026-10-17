@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { ArrowLeft, LogOut, RefreshCw, Search, X, Lock, Menu } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -20,14 +20,14 @@ export default function Navbar({ onToggleMobileMenu }) {
   const [searchValue, setSearchValue] = useState(searchParams.get("q") || "");
   const inputRef = useRef(null);
 
-  // استخدام الـ Hook الخاص بالـ Post لعمل الـ API Calls
+  // Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ù€ Hook Ø§Ù„Ø®Ø§Øµ Ø¨Ø§Ù„Ù€ Post Ù„Ø¹Ù…Ù„ Ø§Ù„Ù€ API Calls
   const { postData, loading: apiLoading } = usePost();
 
-  // جلب بيانات الـ Tenant و الـ features
+  // Ø¬Ù„Ø¨ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù€ Tenant Ùˆ Ø§Ù„Ù€ features
   const { features, refreshTenant } = useTenantInfo();
   const [isRefreshingTenant, setIsRefreshingTenant] = useState(false);
 
-  // حالة لعرض الـ Loader الكبير وقت التحديث
+  // Ø­Ø§Ù„Ø© Ù„Ø¹Ø±Ø¶ Ø§Ù„Ù€ Loader Ø§Ù„ÙƒØ¨ÙŠØ± ÙˆÙ‚Øª Ø§Ù„ØªØ­Ø¯ÙŠØ«
   const [isUpdating, setIsUpdating] = useState(false);
 
 
@@ -73,23 +73,23 @@ export default function Navbar({ onToggleMobileMenu }) {
     localStorage.setItem('language', newLang);
     document.body.dir = newLang === 'ar' ? 'rtl' : 'ltr';
   };
-  // 1. ضعي هذه المتغيرات هنا (خارج أي دالة) لكي يراها الـ return
+  // 1. Ø¶Ø¹ÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ù…ØªØºÙŠØ±Ø§Øª Ù‡Ù†Ø§ (Ø®Ø§Ø±Ø¬ Ø£ÙŠ Ø¯Ø§Ù„Ø©) Ù„ÙƒÙŠ ÙŠØ±Ø§Ù‡Ø§ Ø§Ù„Ù€ return
   const hostname = window.location.hostname;
   const parts = hostname.split('.');
 
-  // شرط اللوكال هوست والـ Subdomain
+  // Ø´Ø±Ø· Ø§Ù„Ù„ÙˆÙƒØ§Ù„ Ù‡ÙˆØ³Øª ÙˆØ§Ù„Ù€ Subdomain
   const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
   const isSubdomain = parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'systego';
   const isMainDomain = hostname === "systego.net";
   const showMasterRefreshBtn = isLocal || isMainDomain;
-  // المتغير الذي سنستخدمه في الأسفل لإظهار الزرار
+  // Ø§Ù„Ù…ØªØºÙŠØ± Ø§Ù„Ø°ÙŠ Ø³Ù†Ø³ØªØ®Ø¯Ù…Ù‡ ÙÙŠ Ø§Ù„Ø£Ø³ÙÙ„ Ù„Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„Ø²Ø±Ø§Ø±
   const showUpdateBtn = isLocal || isSubdomain;
 
   /**
-   * دالة لجلب اسم العميل من الرابط
+   * Ø¯Ø§Ù„Ø© Ù„Ø¬Ù„Ø¨ Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù…Ù† Ø§Ù„Ø±Ø§Ø¨Ø·
    */
   const getClientPayload = () => {
-    // نستخدم نفس المنطق اللي حددناه فوق
+    // Ù†Ø³ØªØ®Ø¯Ù… Ù†ÙØ³ Ø§Ù„Ù…Ù†Ø·Ù‚ Ø§Ù„Ù„ÙŠ Ø­Ø¯Ø¯Ù†Ø§Ù‡ ÙÙˆÙ‚
     if (isLocal) {
       return { clientName: "alexmuscle" };
     }
@@ -104,16 +104,16 @@ export default function Navbar({ onToggleMobileMenu }) {
       setIsUpdating(true);
       const payload = getClientPayload();
 
-      // 1. طلب فحص النسخة (Check Version)
+      // 1. Ø·Ù„Ø¨ ÙØ­Øµ Ø§Ù„Ù†Ø³Ø®Ø© (Check Version)
       const checkData = await postData(payload, "/api/admin/version-updater");
 
       if (checkData?.success && checkData?.data?.result?.success) {
 
-        // 2. طلب المزامنة الفعلي للجهتين (Sync) لضمان عدم وجود أي فقد في الملفات
+        // 2. Ø·Ù„Ø¨ Ø§Ù„Ù…Ø²Ø§Ù…Ù†Ø© Ø§Ù„ÙØ¹Ù„ÙŠ Ù„Ù„Ø¬Ù‡ØªÙŠÙ† (Sync) Ù„Ø¶Ù…Ø§Ù† Ø¹Ø¯Ù… ÙˆØ¬ÙˆØ¯ Ø£ÙŠ ÙÙ‚Ø¯ ÙÙŠ Ø§Ù„Ù…Ù„ÙØ§Øª
         const syncData = await postData(payload, "/api/admin/version-updater/sync");
 
         if (syncData) {
-          // الانتظار قليلاً ليقرأ المستخدم رسالة النجاح من الـ Toast ثم عمل Reload
+          // Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø± Ù‚Ù„ÙŠÙ„Ø§Ù‹ Ù„ÙŠÙ‚Ø±Ø£ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø±Ø³Ø§Ù„Ø© Ø§Ù„Ù†Ø¬Ø§Ø­ Ù…Ù† Ø§Ù„Ù€ Toast Ø«Ù… Ø¹Ù…Ù„ Reload
           setTimeout(() => {
             window.location.reload();
           }, 1500);
@@ -128,14 +128,14 @@ export default function Navbar({ onToggleMobileMenu }) {
       setIsUpdating(false);
     }
   };
-  // دالة تحديث الماستر
+  // Ø¯Ø§Ù„Ø© ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ø§Ø³ØªØ±
   const handleRefreshMaster = async () => {
     try {
       setIsUpdating(true);
 
-      // إرسال الطلب مع الـ API Key في الـ Headers
-      // ملاحظة: تأكدي أن usePost تدعم تمرير الـ Headers، إذا كانت لا تدعمها
-      // قد تحتاجين لاستخدام fetch مباشرة أو تعديل الـ hook
+      // Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø·Ù„Ø¨ Ù…Ø¹ Ø§Ù„Ù€ API Key ÙÙŠ Ø§Ù„Ù€ Headers
+      // Ù…Ù„Ø§Ø­Ø¸Ø©: ØªØ£ÙƒØ¯ÙŠ Ø£Ù† usePost ØªØ¯Ø¹Ù… ØªÙ…Ø±ÙŠØ± Ø§Ù„Ù€ HeadersØŒ Ø¥Ø°Ø§ ÙƒØ§Ù†Øª Ù„Ø§ ØªØ¯Ø¹Ù…Ù‡Ø§
+      // Ù‚Ø¯ ØªØ­ØªØ§Ø¬ÙŠÙ† Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… fetch Ù…Ø¨Ø§Ø´Ø±Ø© Ø£Ùˆ ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ù€ hook
       const response = await postData({}, "https://updater.systego.net/api/update/refresh-master", {
         headers: {
           "x-api-key": import.meta.env.VITE_REFRESH_MASTER_KEY
@@ -152,21 +152,21 @@ export default function Navbar({ onToggleMobileMenu }) {
     }
   };
 
-  // دالة ريفريش بيانات الـ Tenant
+  // Ø¯Ø§Ù„Ø© Ø±ÙŠÙØ±ÙŠØ´ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù€ Tenant
   const handleRefreshTenant = async () => {
     try {
       setIsRefreshingTenant(true);
       await refreshTenant();
       toast.success(
         i18n.language === "ar"
-          ? "تم تحديث بيانات المؤسسة والاشتراك بنجاح"
+          ? "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø¤Ø³Ø³Ø© ÙˆØ§Ù„Ø§Ø´ØªØ±Ø§Ùƒ Ø¨Ù†Ø¬Ø§Ø­"
           : "Tenant info refreshed successfully"
       );
     } catch (error) {
       console.error("Refresh Tenant failed:", error);
       toast.error(
         i18n.language === "ar"
-          ? "فشل تحديث بيانات المؤسسة"
+          ? "ÙØ´Ù„ ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø¤Ø³Ø³Ø©"
           : "Failed to refresh tenant info"
       );
     } finally {
@@ -178,14 +178,14 @@ export default function Navbar({ onToggleMobileMenu }) {
     if (!features?.havePOS) {
       toast.warning(
         i18n.language === "ar"
-          ? "نظام نقاط البيع (POS) غير متاح في باقتك الحالية"
+          ? "Ù†Ø¸Ø§Ù… Ù†Ù‚Ø§Ø· Ø§Ù„Ø¨ÙŠØ¹ (POS) ØºÙŠØ± Ù…ØªØ§Ø­ ÙÙŠ Ø¨Ø§Ù‚ØªÙƒ Ø§Ù„Ø­Ø§Ù„ÙŠØ©"
           : "POS is not available in your current package"
       );
       return;
     }
-    // بيجيب الـ origin الحالي ويضيف عليه المسار
+    // Ø¨ÙŠØ¬ÙŠØ¨ Ø§Ù„Ù€ origin Ø§Ù„Ø­Ø§Ù„ÙŠ ÙˆÙŠØ¶ÙŠÙ Ø¹Ù„ÙŠÙ‡ Ø§Ù„Ù…Ø³Ø§Ø±
     const posUrl = `${window.location.origin}/point-of-sale`;
-    // '_blank' بتخلي المتصفح يفتح الرابط في تاب جديدة
+    // '_blank' Ø¨ØªØ®Ù„ÙŠ Ø§Ù„Ù…ØªØµÙØ­ ÙŠÙØªØ­ Ø§Ù„Ø±Ø§Ø¨Ø· ÙÙŠ ØªØ§Ø¨ Ø¬Ø¯ÙŠØ¯Ø©
     window.open(posUrl, '_blank');
   };
 
@@ -248,7 +248,7 @@ export default function Navbar({ onToggleMobileMenu }) {
         {/* Right side actions */}
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
 
-          {/* زر POS وشارة الترقية إذا كانت الميزة غير متوفرة */}
+          {/* Ø²Ø± POS ÙˆØ´Ø§Ø±Ø© Ø§Ù„ØªØ±Ù‚ÙŠØ© Ø¥Ø°Ø§ ÙƒØ§Ù†Øª Ø§Ù„Ù…ÙŠØ²Ø© ØºÙŠØ± Ù…ØªÙˆÙØ±Ø© */}
           <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={handleGoToPOS}
@@ -260,7 +260,7 @@ export default function Navbar({ onToggleMobileMenu }) {
               }`}
               title={
                 !features?.havePOS
-                  ? (i18n.language === "ar" ? "نظام نقاط البيع (POS) غير متاح في باقتك - يتطلب ترقية" : "POS requires plan upgrade")
+                  ? (i18n.language === "ar" ? "Ù†Ø¸Ø§Ù… Ù†Ù‚Ø§Ø· Ø§Ù„Ø¨ÙŠØ¹ (POS) ØºÙŠØ± Ù…ØªØ§Ø­ ÙÙŠ Ø¨Ø§Ù‚ØªÙƒ - ÙŠØªØ·Ù„Ø¨ ØªØ±Ù‚ÙŠØ©" : "POS requires plan upgrade")
                   : "POS"
               }
             >
@@ -271,26 +271,37 @@ export default function Navbar({ onToggleMobileMenu }) {
             {!features?.havePOS && (
               <span
                 className="hidden sm:flex items-center gap-1 text-[10px] sm:text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg cursor-default select-none shadow-xs"
-                title={i18n.language === "ar" ? "هذه الميزة تتطلب ترقية باقتك الحالية" : "This feature requires a plan upgrade"}
+              title="This feature requires a plan upgrade"
               >
                 <Lock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-600 flex-shrink-0" />
-                <span>{i18n.language === "ar" ? "ترقية" : "Upgrade"}</span>
+                <span>{i18n.language === "ar" ? "ØªØ±Ù‚ÙŠØ©" : "Upgrade"}</span>
               </span>
             )}
           </div>
 
-          {/* زر ريفريش بيانات الـ Tenant */}
+          {/* Admin Panel upgrade indicator */}
+          {features?.haveAdminPanel === false && (
+            <span
+              className="hidden sm:flex items-center gap-1 text-[10px] sm:text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg cursor-default select-none shadow-xs"
+              title="Admin Panel requires plan upgrade"
+            >
+              <Lock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-600 flex-shrink-0" />
+              <span>Admin Panel - Upgrade</span>
+            </span>
+          )}
+
+          {/* Ø²Ø± Ø±ÙŠÙØ±ÙŠØ´ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù€ Tenant */}
           <button
             onClick={handleRefreshTenant}
             disabled={isRefreshingTenant}
             className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 cursor-pointer disabled:opacity-50 transition-colors p-1 sm:p-1.5 hover:bg-emerald-50 rounded-lg"
-            title={i18n.language === "ar" ? "تحديث بيانات المؤسسة والاشتراك" : "Refresh Tenant Info"}
+              title="Refresh Tenant Info"
           >
             <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshingTenant ? "animate-spin" : ""}`} />
             <span className="hidden md:inline text-[10px] font-bold">TENANT</span>
           </button>
 
-          {/* زر التحديث - يظهر في الـ localhost والـ subdomains فقط */}
+          {/* Ø²Ø± Ø§Ù„ØªØ­Ø¯ÙŠØ« - ÙŠØ¸Ù‡Ø± ÙÙŠ Ø§Ù„Ù€ localhost ÙˆØ§Ù„Ù€ subdomains ÙÙ‚Ø· */}
           {showUpdateBtn && (
             <button
               onClick={handleUpdateVersion}
@@ -302,7 +313,7 @@ export default function Navbar({ onToggleMobileMenu }) {
             </button>
           )}
 
-          {/* زر تحديث الماستر الجديد */}
+          {/* Ø²Ø± ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ø§Ø³ØªØ± Ø§Ù„Ø¬Ø¯ÙŠØ¯ */}
           {showMasterRefreshBtn && (
             <button
               onClick={handleRefreshMaster}
@@ -315,10 +326,10 @@ export default function Navbar({ onToggleMobileMenu }) {
             </button>
           )}
 
-          {/* قائمة الإشعارات */}
+          {/* Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª */}
           {hasPermission("notification", "View") && <NotificationDropdown />}
 
-          {/* اختيار اللغة */}
+          {/* Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ù„ØºØ© */}
           <select
             onChange={handleLanguage}
             value={i18n.language}
@@ -328,7 +339,7 @@ export default function Navbar({ onToggleMobileMenu }) {
             <option value='en'>EN</option>
           </select>
 
-          {/* زر تسجيل الخروج */}
+          {/* Ø²Ø± ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬ */}
           <button onClick={handleLogout} className="flex items-center gap-1 sm:gap-2 text-secondary hover:text-gray-900 cursor-pointer p-1">
             <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
             <span className="hidden sm:inline text-xs sm:text-sm font-medium">{t("navbar.logout")}</span>
@@ -336,13 +347,13 @@ export default function Navbar({ onToggleMobileMenu }) {
         </div>
       </nav>
 
-      {/* شاشة التحميل الكاملة أثناء عملية التحديث */}
+      {/* Ø´Ø§Ø´Ø© Ø§Ù„ØªØ­Ù…ÙŠÙ„ Ø§Ù„ÙƒØ§Ù…Ù„Ø© Ø£Ø«Ù†Ø§Ø¡ Ø¹Ù…Ù„ÙŠØ© Ø§Ù„ØªØ­Ø¯ÙŠØ« */}
       {(isUpdating || apiLoading) && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="flex flex-col items-center p-8 bg-white rounded-xl shadow-2xl">
             <RefreshCw className="w-12 h-12 text-secondary animate-spin mb-4" />
             <p className="text-lg font-bold text-gray-800">
-              {i18n.language === 'ar' ? 'جاري تحديث النظام، برجاء الانتظار...' : 'Updating system, please wait...'}
+              {i18n.language === 'ar' ? 'Ø¬Ø§Ø±ÙŠ ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù†Ø¸Ø§Ù…ØŒ Ø¨Ø±Ø¬Ø§Ø¡ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±...' : 'Updating system, please wait...'}
             </p>
           </div>
         </div>
@@ -351,3 +362,4 @@ export default function Navbar({ onToggleMobileMenu }) {
     </>
   );
 }
+
