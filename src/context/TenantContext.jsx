@@ -10,6 +10,8 @@ const TenantContext = createContext({
     haveReports: false,
     haveStockTake: false,
     haveAdminPanel: true,
+    branches: 0,
+    online_branches: 0,
   },
   tenant: null,
   packageInfo: null,
@@ -36,6 +38,8 @@ export const TenantProvider = ({ children }) => {
     haveReports: false,
     haveStockTake: false,
     haveAdminPanel: true,
+    branches: 0,
+    online_branches: 0,
   });
   const [tenant, setTenant] = useState(null);
   const [packageInfo, setPackageInfo] = useState(null);
@@ -59,6 +63,14 @@ export const TenantProvider = ({ children }) => {
             haveReports: Boolean(data.features.haveReports),
             haveStockTake: Boolean(data.features.haveStockTake),
             haveAdminPanel: data.features.haveAdminPanel !== false,
+            branches:
+              typeof data.features.branches === "number"
+                ? data.features.branches
+                : 0,
+            online_branches:
+              typeof data.features.online_branches === "number"
+                ? data.features.online_branches
+                : 0,
           });
         }
         if (data.tenant) setTenant(data.tenant);
@@ -90,6 +102,14 @@ export const TenantProvider = ({ children }) => {
             haveReports: Boolean(data.features.haveReports),
             haveStockTake: Boolean(data.features.haveStockTake),
             haveAdminPanel: data.features.haveAdminPanel !== false,
+            branches:
+              typeof data.features.branches === "number"
+                ? data.features.branches
+                : 0,
+            online_branches:
+              typeof data.features.online_branches === "number"
+                ? data.features.online_branches
+                : 0,
           });
         }
         if (data.tenant) setTenant(data.tenant);

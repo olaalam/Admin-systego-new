@@ -435,6 +435,7 @@ const AddPage = ({
                   min={field.min}
                   max={field.max}
                   step={field.step}
+                  disabled={field.disabled}
                 />
               )}
             </div>

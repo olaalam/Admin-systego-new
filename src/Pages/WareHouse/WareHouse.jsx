@@ -1,53 +1,24 @@
 // src/pages/warehouses.jsx
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
-import DeleteDialog from "@/components/DeleteForm";
 import useGet from "@/hooks/useGet";
-import useDelete from "@/hooks/useDelete";
-import api from "@/api/api";
-import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import { toast } from "react-toastify";
 
 const WareHouse = () => {
-  const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === "ar";
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data, loading, error, refetch } = useGet("/api/admin/warehouse");
-  const { deleteData, loading: deleting } = useDelete(
-    "/api/admin/warehouse/delete",
-  );
-
-  const [updatingId, setUpdatingId] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const { data, loading } = useGet("/api/admin/warehouse");
   const warehouses = data?.warehouses || [];
 
-  const handleDelete = async (item) => {
-    try {
-      await deleteData(`/api/admin/warehouse/${item._id}`);
-      refetch();
-    } finally {
-      setDeleteTarget(null);
+  const handleEdit = (item) => {
+    if (item.enabled === false) {
+      toast.error(t("ContactSupport"));
+      return;
     }
-  };
-
-  const handleOnlineToggle = async (item) => {
-    const newStatus = !item.Is_Online;
-    setUpdatingId(item._id);
-    try {
-      await api.put(`/api/admin/warehouse/${item._id}`, {
-        Is_Online: newStatus,
-      });
-      toast.success(t("Statusupdatedsuccessfully"));
-      refetch();
-    } catch (err) {
-      toast.error(t("FailedToUpdateStatus"));
-      console.error(err);
-    } finally {
-      setUpdatingId(null);
-    }
+    navigate(`edit/${item._id}`);
   };
 
   const columns = [
@@ -55,14 +26,17 @@ const WareHouse = () => {
       key: "name",
       header: t("Name"),
       filterable: true,
-      render: (value, row) => (
-        <span
-          className="text-blue-600 cursor-pointer hover:underline"
-          onClick={() => navigate(`/product-warehouse/${row._id}`)}
-        >
-          {value}
-        </span>
-      ),
+      render: (value, row) =>
+        row.enabled === false ? (
+          <span className="text-gray-400 line-through">{value}</span>
+        ) : (
+          <span
+            className="text-blue-600 cursor-pointer hover:underline"
+            onClick={() => navigate(`/product-warehouse/${row._id}`)}
+          >
+            {value}
+          </span>
+        ),
     },
     {
       key: "ar_name",
@@ -70,9 +44,7 @@ const WareHouse = () => {
       filterable: true,
       render: (value) => value || "-",
     },
-    // ⭐️ العنوان بالإنجليزي
     { key: "address", header: t("Address (English)"), filterable: true },
-    // ⭐️ العنوان بالعربي
     {
       key: "ar_address",
       header: t("Address (Arabic)"),
@@ -88,23 +60,27 @@ const WareHouse = () => {
       filterable: false,
       render: (value, item) => (
         <div className="flex items-center gap-2">
-          <label className="relative inline-flex items-center cursor-pointer scale-90">
-            <input
-              type="checkbox"
-              checked={value}
-              onChange={() => handleOnlineToggle(item)}
-              disabled={updatingId === item._id}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 shadow-sm"></div>
-          </label>
-          {updatingId === item._id && (
-            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          {item.enabled === false ? (
+            <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">
+              {t("BranchSuspended")}
+            </span>
+          ) : value ? (
+            <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+              {t("Online")}
+            </span>
+          ) : (
+            <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
+              {t("Offline")}
+            </span>
           )}
         </div>
       ),
     },
-    { key: "stock_Quantity", header: t("Stock Quantity"), filterable: false },
+    {
+      key: "stock_Quantity",
+      header: t("Stock Quantity"),
+      filterable: false,
+    },
     {
       key: "transfer",
       header: t("Transfer"),
@@ -120,39 +96,39 @@ const WareHouse = () => {
         </span>
       ),
     },
+    {
+      key: "notice",
+      header: "",
+      filterable: false,
+      render: (_, row) =>
+        row.enabled === false ? (
+          <span className="text-xs text-amber-700 whitespace-nowrap">
+            {t("ContactSupport")}
+          </span>
+        ) : null,
+    },
   ];
 
   if (loading) return <Loader />;
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="mb-4 px-4 py-2 rounded-lg bg-white shadow-sm border border-gray-200 text-sm inline-block">
+        <span className="text-gray-500">{t("Branches")}: </span>
+        <span className="font-semibold text-gray-800">
+          {warehouses.length}
+        </span>
+      </div>
       <DataTable
         data={warehouses}
         columns={columns}
         title={t("Branch Management")}
-        addButtonText={t("Add Branch")}
-        onAdd={() => navigate("add")}
-        onEdit={(item) => navigate(`edit/${item._id}`)}
-        onDelete={(item) => setDeleteTarget(item)}
-        addPath="add"
-        editPath={(item) => `edit/${item._id}`}
+        onEdit={handleEdit}
         itemsPerPage={10}
         searchable={true}
         filterable={true}
         moduleName={AppModules.WAREHOUSE}
       />
-
-      {deleteTarget && (
-        <DeleteDialog
-          title={t("Delete Warehouse")}
-          message={`${t(
-            "Are you sure you want to delete warehouse",
-          )} "${deleteTarget.name}"?`}
-          onConfirm={() => handleDelete(deleteTarget)}
-          onCancel={() => setDeleteTarget(null)}
-          loading={deleting}
-        />
-      )}
     </div>
   );
 };

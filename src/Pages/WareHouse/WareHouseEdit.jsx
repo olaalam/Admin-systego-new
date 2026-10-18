@@ -15,6 +15,7 @@ export default function WareHouseEdit() {
   const isRTL = i18n.language === "ar";
   const { putData, loading: updating } = usePut(`/api/admin/warehouse/${id}`);
   const [warehouseData, setWarehouseData] = useState(null);
+  const [warehouseMeta, setWarehouseMeta] = useState({ is_managed: false, enabled: true });
   const [fetching, setFetching] = useState(true);
 
   const fields = useMemo(
@@ -28,6 +29,8 @@ export default function WareHouseEdit() {
         key: "name",
         label: isRTL ? "الاسم (بالإنجليزية)" : "Name (English)",
         required: true,
+        // Branch identity is defined in Super Systego; keep it locked.
+        disabled: warehouseMeta.is_managed,
       },
       // ⭐️ العنوان بالإنجليزي
       {
@@ -41,16 +44,10 @@ export default function WareHouseEdit() {
         label: isRTL ? "العنوان (بالعربية)" : "Address (Arabic)",
         required: true,
       },
-      { key: "phone", label: t("Phone"), required: true },
-      { key: "email", label: t("Email"), type: "email", required: true },
-      {
-        key: "Is_Online",
-        label: t("Is Online"),
-        type: "checkbox",
-        required: false,
-      },
+      { key: "phone", label: t("Phone"), required: false },
+      { key: "email", label: t("Email"), type: "email", required: false },
     ],
-    [isRTL, t],
+    [isRTL, t, warehouseMeta.is_managed],
   );
 
   useEffect(() => {
@@ -76,6 +73,10 @@ export default function WareHouseEdit() {
           stock_Quantity: warehouse.stock_Quantity ?? 0,
           Is_Online: warehouse.Is_Online || false,
         });
+        setWarehouseMeta({
+          is_managed: warehouse.is_managed === true,
+          enabled: warehouse.enabled !== false,
+        });
       } catch (err) {
         toast.error(t("Failed to fetch warehouse data"));
         console.error("❌ Error fetching warehouse:", err);
@@ -96,7 +97,6 @@ export default function WareHouseEdit() {
         ar_address: formData.ar_address,
         phone: formData.phone,
         email: formData.email,
-        Is_Online: formData.Is_Online ?? false,
       };
 
       await putData(payload);
@@ -126,6 +126,11 @@ export default function WareHouseEdit() {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
+      {warehouseMeta.enabled === false && (
+        <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+          {t("ContactSupport")}
+        </div>
+      )}
       {warehouseData && (
         <AddPage
           title={`${t("Edit Warehouse")}: ${warehouseData.name}`}

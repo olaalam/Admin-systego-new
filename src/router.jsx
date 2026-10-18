@@ -1,5 +1,5 @@
 // src/router/index.jsx
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "@/Pages/Dashboard";
 import LoginPage from "@/components/Login";
 import NotFoundPage from "@/Pages/NotFound";
@@ -483,14 +483,7 @@ export default function AppRoutes() {
         />
         <Route
           path="add"
-          element={
-            <ProtectedRoute
-              module={AppModules.WAREHOUSE}
-              action={ModuleActions.ADD}
-            >
-              <WareHouseAdd />
-            </ProtectedRoute>
-          }
+          element={<Navigate to="/warehouse" replace />}
         />
         <Route
           path="edit/:id"
