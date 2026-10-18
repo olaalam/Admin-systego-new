@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
 import {
-    CheckCircle2, X, Clock, Eye, Wallet, CreditCard, Info
+    CheckCircle2, X, Clock, Eye, Wallet, CreditCard, Info, Package
 } from "lucide-react";
 
 // Modal Component for Financials
@@ -89,6 +89,67 @@ const FinancialsModal = ({ financials, onCancel }) => {
     );
 };
 
+// Modal Component for Sale Items
+const ItemsModal = ({ items, saleRef, saleTotal, onCancel }) => {
+    const { t } = useTranslation();
+    if (!items) return null;
+    return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 transition-all animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden border border-gray-100 transform transition-all animate-in zoom-in-95 duration-200">
+                <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 px-8 py-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-white/10 rounded-xl backdrop-blur-md">
+                                <Package className="text-white" size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-white tracking-tight">{t("Sale Items")}</h3>
+                                <p className="text-gray-400 text-sm mt-0.5">
+                                    {saleRef ? `Ref: ${saleRef}` : ""} {saleTotal ? `— Total: ${saleTotal} EGP` : ""}
+                                </p>
+                            </div>
+                        </div>
+                        <button onClick={onCancel} className="p-2 hover:bg-white/10 rounded-full transition-colors group">
+                            <X className="text-gray-400 group-hover:text-white transition-colors" size={20} />
+                        </button>
+                    </div>
+                </div>
+                <div className="p-8 max-h-[60vh] overflow-auto">
+                    {items.length > 0 ? (
+                        <div className="space-y-3">
+                            {items.map((it, idx) => (
+                                <div key={it._id || idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <div className="flex items-center gap-3">
+                                        {it.image && <img src={it.image} alt="" className="w-10 h-10 rounded-lg object-cover border" />}
+                                        <div>
+                                            <p className="text-sm font-bold text-gray-900">{it.name}</p>
+                                            <p className="text-[10px] text-gray-400">{it.quantity} × {it.price}</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm font-black text-gray-900">{it.subtotal} EGP</p>
+                                </div>
+                            ))}
+                            {saleTotal && (
+                                <div className="flex items-center justify-between p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                                    <span className="text-sm font-bold text-amber-700">{t("Total")}</span>
+                                    <span className="text-sm font-black text-amber-700">{saleTotal} EGP</span>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12 text-gray-400">{t("No items found")}</div>
+                    )}
+                </div>
+                <div className="px-8 py-6 bg-gray-50 border-t border-gray-100 flex justify-end">
+                    <button onClick={onCancel} className="px-6 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-black transition-all font-bold text-sm shadow-lg shadow-gray-200 active:scale-95">
+                        {t("Close")}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const Payments = () => {
     const { t, i18n } = useTranslation();
     const isArabic = i18n.language === "ar";
@@ -98,6 +159,7 @@ const Payments = () => {
 
     const [activeTab, setActiveTab] = useState("pending");
     const [selectedFinancials, setSelectedFinancials] = useState(null);
+    const [selectedItems, setSelectedItems] = useState(null);
 
     const tabs = [
         { id: "pending", label: t("Pending"), key: "pending_payments", icon: <Clock size={16} />, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-100" },
@@ -130,9 +192,15 @@ const Payments = () => {
 
     const columns = useMemo(() => [
         {
-            key: "sale_id",
-            header: t("Sale ID"),
-            render: (val) => <span className="font-mono text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">{val}</span>
+            key: "sale_reference",
+            header: t("Sale Reference"),
+            render: (val, item) => (
+                <div className="flex flex-col">
+                    <span className="font-mono text-xs font-bold text-gray-900">{val || item.sale_id}</span>
+                    {item.sale_total && <span className="text-[10px] text-gray-400">{item.sale_total} EGP</span>}
+                    {item.sale_customer?.name && <span className="text-[10px] text-gray-500">{item.sale_customer.name}</span>}
+                </div>
+            )
         },
         {
             key: "amount",
@@ -184,6 +252,19 @@ const Payments = () => {
                     </div>
                 );
             }
+        },
+        {
+            key: "items",
+            header: t("Items"),
+            render: (items, item) => (
+                <button
+                    onClick={(e) => { e.stopPropagation(); setSelectedItems({ items: items || [], saleRef: item.sale_reference || item.sale_id, saleTotal: item.sale_total }); }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-xl text-[11px] font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-200 active:scale-95 group"
+                >
+                    <Package size={12} className="group-hover:scale-110 transition-transform" />
+                    {t("View")} ({(items || []).length})
+                </button>
+            )
         },
         {
             key: "financials",
@@ -264,6 +345,16 @@ const Payments = () => {
                 financials={selectedFinancials}
                 onCancel={() => setSelectedFinancials(null)}
             />
+
+            {/* Items Modal */}
+            {selectedItems && (
+                <ItemsModal
+                    items={selectedItems.items}
+                    saleRef={selectedItems.saleRef}
+                    saleTotal={selectedItems.saleTotal}
+                    onCancel={() => setSelectedItems(null)}
+                />
+            )}
         </div>
     );
 };

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
 import { Eye } from "lucide-react";
@@ -27,9 +27,16 @@ export default function PurchaseReturnList() {
   const [selectedId, setSelectedId] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  const { data: response, loading: getLoading } = useGet(
+  const { data: response, loading: getLoading, refetch } = useGet(
     "api/admin/return-purchase/all-returns",
   );
+
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state?.refresh) {
+      refetch();
+    }
+  }, [location.state?.refresh]);
 
   const { postData, loading: postLoading } = usePost();
 
@@ -69,16 +76,17 @@ export default function PurchaseReturnList() {
 
   const handleGoToCreate = async (e) => {
     e.preventDefault();
-    if (!reference) return;
+    const cleanRef = (reference || "").replace(/^#/, "").trim();
+    if (!cleanRef) return;
 
     const res = await postData(
-      { reference: reference },
+      { reference: cleanRef },
       "api/admin/return-purchase/purchase-for-return",
     );
 
     if (res?.success) {
       setIsModalOpen(false);
-      navigate(`/purchase-return/add/${reference}`);
+      navigate(`/purchase-return/add/${cleanRef}`);
     }
   };
 

@@ -5,134 +5,189 @@ import useGet from "@/hooks/useGet";
 import Loader from "@/components/Loader";
 import DataTable from "@/components/DataTable";
 import {
-    User, CreditCard, History, RotateCcw, ArrowLeft,
-    TrendingUp, Wallet, Clock, ShoppingBag
+  User,
+  CreditCard,
+  History,
+  RotateCcw,
+  ArrowLeft,
+  TrendingUp,
+  Wallet,
+  Clock,
+  ShoppingBag,
+  Package,
 } from "lucide-react";
 
 const CustomerDetails = () => {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const { t, i18n } = useTranslation();
-    const isRTL = i18n.language === "ar";
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
 
-    // استدعاء البيانات من الـ API
-    const { data, loading, error } = useGet(`/api/admin/customer/single-page/${id}`);
-    const [activeTab, setActiveTab] = useState("info");
+  // استدعاء البيانات من الـ API
+  const { data, loading, error } = useGet(
+    `/api/admin/customer/single-page/${id}`,
+  );
+  const { data: ordersData, loading: ordersLoading } = useGet(
+    `/api/admin/customer/${id}/orders`,
+  );
+  const [activeTab, setActiveTab] = useState("info");
 
-    if (loading) return <Loader />;
-    if (error) return <div className="p-6 text-red-500">Error: {error}</div>;
+  if (loading) return <Loader />;
+  if (error) return <div className="p-6 text-red-500">Error: {error}</div>;
 
-    const customerData = data?.customer || {};
-    console.log(data);
-    console.log(customerData);
-    console.log(data.financial_summary);
+  const customerData = data?.customer || {};
+  console.log(data);
+  console.log(customerData);
+  console.log(data.financial_summary);
 
-    const tabs = [
-        { id: "info", label: t("Information"), icon: User },
-        { id: "payments", label: t("PaymentHistory"), icon: History },
-        { id: "returns", label: t("Returns"), icon: RotateCcw },
-    ];
+  const tabs = [
+    { id: "info", label: t("Information"), icon: User },
+    { id: "orders", label: isRTL ? "الطلبات" : "Orders", icon: ShoppingBag },
+    { id: "payments", label: t("PaymentHistory"), icon: History },
+    { id: "returns", label: t("Returns"), icon: RotateCcw },
+  ];
 
-    return (
-        <div className="p-6 bg-[#f8fafc] min-h-screen font-sans">
-            {/* 1. Top Header  */}
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-
-                    <div>
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                            {customerData.customer_name || "-"}
-                        </h1>
-                        <div className="flex items-center gap-2 text-slate-500 text-sm">
-                            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
-                                {customerData.customer_group || customerData.customer_group_id?.name || (typeof customerData.customer_group_id === "string" ? customerData.customer_group_id : null) || (isRTL ? "عام" : "General")}
-                            </span>
-                            <span>•</span>
-                            <span>{customerData.email}</span>
-                        </div>
-                    </div>
-                </div>
+  return (
+    <div className="p-6 bg-[#f8fafc] min-h-screen font-sans">
+      {/* 1. Top Header  */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              {customerData.customer_name || "-"}
+            </h1>
+            <div className="flex items-center gap-2 text-slate-500 text-sm">
+              <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
+                {customerData.customer_group ||
+                  customerData.customer_group_id?.name ||
+                  (typeof customerData.customer_group_id === "string"
+                    ? customerData.customer_group_id
+                    : null) ||
+                  (isRTL ? "عام" : "General")}
+              </span>
+              <span>•</span>
+              <span>{customerData.email}</span>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {/* 2. Fixed Financial Summary Cards (الجزء الثابت) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatCard
-                    title={t("TotalRevenue")}
-                    value={customerData.financial_summary?.total_revenue || 0}
-                    icon={<TrendingUp className="text-emerald-600" />}
-                    color="emerald"
-                />
-                <StatCard
-                    title={t("TotalPaid")}
-                    value={customerData.financial_summary?.total_paid || 0}
-                    icon={<Wallet className="text-blue-600" />}
-                    color="blue"
-                />
-                <StatCard
-                    title={t("OutstandingBalance")}
-                    value={customerData?.financial_summary?.outstanding_balance || 0}
-                    icon={<Clock className="text-red-600" />}
-                    color="red"
-                    isDebt
-                />
-                <StatCard
-                    title={t("TotalOrders")}
-                    value={customerData.cards?.total_orders || 0}
-                    icon={<ShoppingBag className="text-amber-600" />}
-                    color="amber"
-                    noCurrency
-                />
-            </div>
+      {/* 2. Fixed Financial Summary Cards (الجزء الثابت) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard
+          title={t("TotalRevenue")}
+          value={
+            (ordersData?.orders || [])
+              .filter((o) => o.status !== "canceled")
+              .reduce((s, o) => s + Number(o.total || 0), 0) ||
+            customerData.financial_summary?.total_revenue ||
+            0
+          }
+          icon={<TrendingUp className="text-emerald-600" />}
+          color="emerald"
+        />
+        <StatCard
+          title={t("TotalPaid")}
+          value={customerData.financial_summary?.total_paid || 0}
+          icon={<Wallet className="text-blue-600" />}
+          color="blue"
+        />
+        <StatCard
+          title={t("OutstandingBalance")}
+          value={customerData?.financial_summary?.outstanding_balance || 0}
+          icon={<Clock className="text-red-600" />}
+          color="red"
+          isDebt
+        />
+        <StatCard
+          title={t("TotalOrders")}
+          value={
+            (ordersData?.orders || []).length ||
+            customerData.cards?.total_orders ||
+            0
+          }
+          icon={<ShoppingBag className="text-amber-600" />}
+          color="amber"
+          noCurrency
+        />
+      </div>
 
-            {/* 3. Main Content Area with Tabs */}
-            <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                {/* Tabs Navigation */}
-                <div className="flex w-full bg-slate-50/50 border-b border-slate-100 p-2 gap-2">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id
-                                ? "bg-white text-red-600 shadow-sm border border-slate-100"
-                                : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
-                                }`}
-                        >
-                            <tab.icon size={18} />
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
+      {/* 3. Main Content Area with Tabs */}
+      <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+        {/* Tabs Navigation */}
+        <div className="flex w-full bg-slate-50/50 border-b border-slate-100 p-2 gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-all ${
+                activeTab === tab.id
+                  ? "bg-white text-red-600 shadow-sm border border-slate-100"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+              }`}
+            >
+              <tab.icon size={18} />
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-                {/* Tabs Content */}
-                <div className="p-8">
-                    {activeTab === "info" && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                            <div className="lg:col-span-2 space-y-8">
-                                <section>
-                                    <h3 className="text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] mb-4">
-                                        {t("BasicInformation")}
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <InfoField label={t("FullName")} value={customerData.customer_name} />
-                                        <InfoField label={t("PhoneNumber")} value={customerData.phone_number} />
-                                        <InfoField label={t("EmailAddress")} value={customerData.email} />
-                                        <InfoField label={isRTL ? "مجموعة العملاء" : "Customer Group"} value={customerData.customer_group || customerData.customer_group_id?.name || (typeof customerData.customer_group_id === "string" ? customerData.customer_group_id : null) || (isRTL ? "بدون مجموعة" : "None")} />
-                                    </div>
-                                </section>
+        {/* Tabs Content */}
+        <div className="p-8">
+          {activeTab === "info" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              <div className="lg:col-span-2 space-y-8">
+                <section>
+                  <h3 className="text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] mb-4">
+                    {t("BasicInformation")}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <InfoField
+                      label={t("FullName")}
+                      value={customerData.customer_name}
+                    />
+                    <InfoField
+                      label={t("PhoneNumber")}
+                      value={customerData.phone_number}
+                    />
+                    <InfoField
+                      label={t("EmailAddress")}
+                      value={customerData.email}
+                    />
+                    <InfoField
+                      label={isRTL ? "مجموعة العملاء" : "Customer Group"}
+                      value={
+                        customerData.customer_group ||
+                        customerData.customer_group_id?.name ||
+                        (typeof customerData.customer_group_id === "string"
+                          ? customerData.customer_group_id
+                          : null) ||
+                        (isRTL ? "بدون مجموعة" : "None")
+                      }
+                    />
+                  </div>
+                </section>
 
-                                <section>
-                                    <h3 className="text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] mb-4">
-                                        {t("LocationDetails")}
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <InfoField label={t("Address")} value={customerData.address} fullWidth />
-                                        <InfoField label={t("City")} value={customerData.city} />
-                                        <InfoField label={t("Country")} value={customerData.country} />
-                                    </div>
-                                </section>
-                            </div>
+                <section>
+                  <h3 className="text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] mb-4">
+                    {t("LocationDetails")}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <InfoField
+                      label={t("Address")}
+                      value={customerData.address}
+                      fullWidth
+                    />
+                    <InfoField label={t("City")} value={customerData.city} />
+                    <InfoField
+                      label={t("Country")}
+                      value={customerData.country}
+                    />
+                  </div>
+                </section>
+              </div>
 
-                            {/* Sidebar Info
+              {/* Sidebar Info
                             <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
                                 <h3 className="text-slate-800 font-bold mb-4">{t("PointsRewards")}</h3>
                                 <div className="flex items-center justify-between p-4 bg-white rounded-2xl shadow-sm border border-slate-100">
@@ -140,57 +195,190 @@ const CustomerDetails = () => {
                                     <span className="text-2xl font-black text-amber-500">{customerData.total_points_earned || 0}</span>
                                 </div>
                             </div> */}
-                        </div>
-                    )}
-
-                    {activeTab === "payments" && (
-                        <DataTable
-                            data={customerData.payment_history || []}
-                            columns={[
-                                { key: "payment_id", header: "ID" },
-                                { key: "amount", header: "Amount", render: (v) => `${v} EGP` },
-                                { key: "method", header: "Method" },
-                                { key: "date", header: "Date" }
-                            ]}
-                            showActions={false}
-                        />
-                    )}
-
-                    {activeTab === "returns" && (
-                        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                            <RotateCcw size={48} className="mb-4 opacity-20" />
-                            <p className="font-medium">{t("NoReturnsFound")}</p>
-                        </div>
-                    )}
-                </div>
             </div>
+          )}
+
+          {activeTab === "orders" && (
+            <div className="space-y-6">
+              {ordersLoading ? (
+                <Loader />
+              ) : (
+                <>
+                  {/* per-status totals */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {Object.entries(ordersData?.statusTotals || {}).map(
+                      ([status, total]) => (
+                        <div
+                          key={status}
+                          className="bg-slate-50 rounded-2xl p-4 border border-slate-100"
+                        >
+                          <p className="text-[10px] font-black uppercase text-slate-400 mb-1">
+                            {status}
+                          </p>
+                          <p className="text-lg font-black text-slate-800">
+                            {Number(total).toLocaleString()} EGP
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {ordersData?.statusCounts?.[status] || 0}{" "}
+                            {isRTL ? "طلب" : "orders"}
+                          </p>
+                        </div>
+                      ),
+                    )}
+                    {(ordersData?.orders || []).length > 0 && (
+                      <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
+                        <p className="text-[10px] font-black uppercase text-amber-600 mb-1">
+                          {isRTL ? "الإجمالي" : "Total"}
+                        </p>
+                        <p className="text-lg font-black text-amber-700">
+                          {(ordersData?.orders || [])
+                            .reduce((s, o) => s + Number(o.total || 0), 0)
+                            .toLocaleString()}{" "}
+                          EGP
+                        </p>
+                        <p className="text-xs text-amber-600">
+                          {(ordersData?.orders || []).length}{" "}
+                          {isRTL ? "طلب" : "orders"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* pending total highlight */}
+
+                  {/* orders list with products */}
+                  <div className="space-y-4">
+                    {(ordersData?.orders || []).length === 0 && (
+                      <div className="text-center text-slate-400 py-10">
+                        {isRTL ? "لا توجد طلبات" : "No orders"}
+                      </div>
+                    )}
+                    {(ordersData?.orders || []).map((o) => (
+                      <div
+                        key={o._id}
+                        className="border border-slate-100 rounded-2xl p-4 bg-white"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono font-bold text-slate-800">
+                              {o.reference}
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                o.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : o.status === "delivered" ||
+                                      o.status === "completed"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-gray-100 text-gray-700"
+                              }`}
+                            >
+                              {o.status}
+                            </span>
+                            <span className="text-[10px] text-slate-400 uppercase">
+                              {o.source}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-black text-slate-800">
+                              {o.total} EGP
+                            </p>
+                            <p className="text-[10px] text-slate-400">
+                              {o.date
+                                ? new Date(o.date).toLocaleDateString()
+                                : ""}
+                            </p>
+                          </div>
+                        </div>
+                        {(o.items || []).length > 0 && (
+                          <div className="border-t border-slate-50 pt-2 space-y-1">
+                            {(o.items || []).map((it, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between text-xs text-slate-600"
+                              >
+                                <span className="flex items-center gap-2">
+                                  {it.image && (
+                                    <img
+                                      src={it.image}
+                                      alt=""
+                                      className="w-6 h-6 rounded object-cover"
+                                    />
+                                  )}
+                                  {it.name}
+                                </span>
+                                <span>
+                                  {it.quantity} × {it.price} ={" "}
+                                  <strong>{it.subtotal}</strong>
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {activeTab === "payments" && (
+            <DataTable
+              data={customerData.payment_history || []}
+              columns={[
+                { key: "payment_id", header: "ID" },
+                { key: "amount", header: "Amount", render: (v) => `${v} EGP` },
+                { key: "method", header: "Method" },
+                { key: "date", header: "Date" },
+              ]}
+              showActions={false}
+            />
+          )}
+
+          {activeTab === "returns" && (
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+              <RotateCcw size={48} className="mb-4 opacity-20" />
+              <p className="font-medium">{t("NoReturnsFound")}</p>
+            </div>
+          )}
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 // --- المكونات الفرعية للتنظيم ---
 
 const StatCard = ({ title, value, icon, color, noCurrency, isDebt }) => (
-    <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5">
-        <div className={`w-14 h-14 rounded-2xl bg-${color}-50 flex items-center justify-center`}>
-            {icon}
-        </div>
-        <div>
-            <p className="text-slate-400 text-[10px] font-black uppercase tracking-wider mb-1">{title}</p>
-            <p className={`text-xl font-black ${isDebt ? 'text-red-600' : 'text-slate-800'}`}>
-                {value.toLocaleString()} {!noCurrency && "EGP"}
-            </p>
-        </div>
+  <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5">
+    <div
+      className={`w-14 h-14 rounded-2xl bg-${color}-50 flex items-center justify-center`}
+    >
+      {icon}
     </div>
+    <div>
+      <p className="text-slate-400 text-[10px] font-black uppercase tracking-wider mb-1">
+        {title}
+      </p>
+      <p
+        className={`text-xl font-black ${isDebt ? "text-red-600" : "text-slate-800"}`}
+      >
+        {value.toLocaleString()} {!noCurrency && "EGP"}
+      </p>
+    </div>
+  </div>
 );
 
 const InfoField = ({ label, value, fullWidth }) => (
-    <div className={fullWidth ? "md:col-span-2" : ""}>
-        <label className="text-slate-400 text-[10px] font-bold uppercase block mb-1.5">{label}</label>
-        <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 text-slate-700 font-bold">
-            {value || "-"}
-        </div>
+  <div className={fullWidth ? "md:col-span-2" : ""}>
+    <label className="text-slate-400 text-[10px] font-bold uppercase block mb-1.5">
+      {label}
+    </label>
+    <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 text-slate-700 font-bold">
+      {value || "-"}
     </div>
+  </div>
 );
 
 export default CustomerDetails;

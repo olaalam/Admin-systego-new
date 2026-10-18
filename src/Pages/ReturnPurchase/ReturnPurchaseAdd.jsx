@@ -28,6 +28,7 @@ export default function ReturnPurchaseAdd() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id: reference_no } = useParams();
+  const cleanReferenceNo = (reference_no || "").replace(/^#/, "").trim();
 
   const { postData, loading: postLoading } = usePost();
 
@@ -53,7 +54,7 @@ export default function ReturnPurchaseAdd() {
       setIsInitialLoading(true);
 
       const res = await postData(
-        { reference: reference_no },
+        { reference: cleanReferenceNo },
         "api/admin/return-purchase/purchase-for-return",
       );
 
@@ -159,8 +160,8 @@ export default function ReturnPurchaseAdd() {
       setIsInitialLoading(false);
     };
 
-    if (reference_no) fetchInitialData();
-  }, [reference_no]);
+    if (cleanReferenceNo) fetchInitialData();
+  }, [cleanReferenceNo]);
 
   // =========================================================
   // حساب الإجمالي
@@ -221,7 +222,7 @@ export default function ReturnPurchaseAdd() {
 
     if (res?.success) {
       toast.success(t("Return created successfully"));
-      navigate("/purchase-return");
+      navigate("/purchase-return", { state: { refresh: Date.now() } });
     }
   };
 
