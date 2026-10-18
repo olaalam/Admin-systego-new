@@ -88,13 +88,19 @@ const CustomerDetails = () => {
         />
         <StatCard
           title={t("TotalPaid")}
-          value={customerData.financial_summary?.total_paid || 0}
+          value={
+            (ordersData?.statusTotals?.delivered || 0) +
+            (ordersData?.statusTotals?.completed || 0)
+          }
           icon={<Wallet className="text-blue-600" />}
           color="blue"
         />
         <StatCard
           title={t("OutstandingBalance")}
-          value={customerData?.financial_summary?.outstanding_balance || 0}
+          value={
+            (ordersData?.statusTotals?.out_for_delivery || 0) +
+            (ordersData?.statusTotals?.processing || 0)
+          }
           icon={<Clock className="text-red-600" />}
           color="red"
           isDebt
