@@ -1,17 +1,47 @@
 // src/pages/warehouses.jsx
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
+import DeleteDialog from "@/components/DeleteForm";
 import useGet from "@/hooks/useGet";
+import useDelete from "@/hooks/useDelete";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
 import { toast } from "react-toastify";
+import { useTenantInfo } from "@/context/TenantContext";
 
 const WareHouse = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data, loading } = useGet("/api/admin/warehouse");
+  const { features } = useTenantInfo();
+  const { data, loading, refetch } = useGet("/api/admin/warehouse");
+  const { deleteData, loading: deleting } = useDelete("/api/admin/warehouse");
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const warehouses = data?.warehouses || [];
+
+  // 0 (or missing) means unlimited.
+  const allowedBranches =
+    typeof features?.branches === "number" ? features.branches : 0;
+  const atLimit =
+    allowedBranches > 0 && warehouses.length >= allowedBranches;
+
+  const handleAdd = () => {
+    if (atLimit) {
+      toast.error(`${t("BranchLimitReached")} — ${t("UpgradePlanToAddMoreBranches")}`);
+      return;
+    }
+    navigate("/warehouse/add");
+  };
+
+  const handleDelete = async (item) => {
+    try {
+      await deleteData(`/api/admin/warehouse/${item._id}`);
+      refetch();
+    } finally {
+      setDeleteTarget(null);
+    }
+  };
 
   const handleEdit = (item) => {
     if (item.enabled === false) {
@@ -117,6 +147,7 @@ const WareHouse = () => {
         <span className="text-gray-500">{t("Branches")}: </span>
         <span className="font-semibold text-gray-800">
           {warehouses.length}
+          {allowedBranches > 0 ? ` / ${allowedBranches}` : ` / ${t("Unlimited")}`}
         </span>
       </div>
       <DataTable
@@ -124,11 +155,25 @@ const WareHouse = () => {
         columns={columns}
         title={t("Branch Management")}
         onEdit={handleEdit}
+        onAdd={handleAdd}
+        onDelete={(item) => setDeleteTarget(item)}
         itemsPerPage={10}
         searchable={true}
         filterable={true}
         moduleName={AppModules.WAREHOUSE}
       />
+
+      {deleteTarget && (
+        <DeleteDialog
+          title={t("Delete Warehouse")}
+          message={`${t("Are you sure you want to delete warehouse")} "${
+            deleteTarget.name
+          }"?`}
+          onConfirm={() => handleDelete(deleteTarget)}
+          onCancel={() => setDeleteTarget(null)}
+          loading={deleting}
+        />
+      )}
     </div>
   );
 };

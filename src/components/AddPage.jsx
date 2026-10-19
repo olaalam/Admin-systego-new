@@ -396,6 +396,7 @@ const AddPage = ({
                     checked={!!formData[field.key]}
                     onChange={(e) => handleChange(field.key, e.target.checked)}
                     className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                    disabled={field.disabled}
                   />
                 </div>
               ) : field.type === "date" ? (

@@ -483,7 +483,14 @@ export default function AppRoutes() {
         />
         <Route
           path="add"
-          element={<Navigate to="/warehouse" replace />}
+          element={
+            <ProtectedRoute
+              module={AppModules.WAREHOUSE}
+              action={ModuleActions.ADD}
+            >
+              <WareHouseAdd />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="edit/:id"

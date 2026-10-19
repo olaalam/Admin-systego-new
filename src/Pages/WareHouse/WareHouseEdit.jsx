@@ -46,8 +46,16 @@ export default function WareHouseEdit() {
       },
       { key: "phone", label: t("Phone"), required: false },
       { key: "email", label: t("Email"), type: "email", required: false },
+      {
+        key: "Is_Online",
+        label: t("Is Online"),
+        type: "checkbox",
+        required: false,
+        // Only one branch can be online, and a suspended branch cannot.
+        disabled: warehouseMeta.enabled === false,
+      },
     ],
-    [isRTL, t, warehouseMeta.is_managed],
+    [isRTL, t, warehouseMeta.is_managed, warehouseMeta.enabled],
   );
 
   useEffect(() => {
@@ -97,6 +105,7 @@ export default function WareHouseEdit() {
         ar_address: formData.ar_address,
         phone: formData.phone,
         email: formData.email,
+        Is_Online: !!formData.Is_Online,
       };
 
       await putData(payload);

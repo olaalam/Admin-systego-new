@@ -2748,7 +2748,7 @@ i18n.use(initReactI18next).init({
         BranchLimitReached: "Branch limit reached",
         OnlineBranchLimitReached: "Online branch limit reached",
         UpgradePlanToAddMoreBranches:
-          "Upgrade your plan to add more branches.",
+          "To add more branches, upgrade your plan and contact support.",
         Unlimited: "Unlimited",
         "Delete Warehouse": "Delete Warehouse",
         "Are you sure you want to delete warehouse":
@@ -5607,7 +5607,8 @@ i18n.use(initReactI18next).init({
         ContactSupport: "هذا الفرع موقوف — كلم الدعم.",
         BranchLimitReached: "تم الوصول إلى الحد الأقصى للفروع",
         OnlineBranchLimitReached: "تم الوصول إلى الحد الأقصى للفروع الأونلاين",
-        UpgradePlanToAddMoreBranches: "قم بترقية خطتك لإضافة المزيد من الفروع.",
+        UpgradePlanToAddMoreBranches:
+          "لو عايز تضيف فروع تانية اعمل upgrade وكلم الدعم.",
         Unlimited: "غير محدود",
         "Fill in the Branch details": "أدخل تفاصيل الفرع",
         "Failed to fetch warehouse data": "فشل في جلب بيانات المخزن",
