@@ -31,6 +31,9 @@ import CountryEdit from "./Pages/Country/CountryEdit";
 import WareHouse from "./Pages/WareHouse/WareHouse";
 import WareHouseAdd from "./Pages/WareHouse/WareHouseAdd";
 import WareHouseEdit from "./Pages/WareHouse/WareHouseEdit";
+import PickupPoints from "./Pages/PickupPoints/PickupPoints";
+import PickupPointAdd from "./Pages/PickupPoints/PickupPointAdd";
+import PickupPointEdit from "./Pages/PickupPoints/PickupPointEdit";
 import Accounting from "./Pages/Accounting/Accounting";
 import AccountingAdd from "./Pages/Accounting/AccountingAdd";
 import AccountingEdit from "./Pages/Accounting/AccountingEdit";
@@ -476,6 +479,8 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.WAREHOUSE}
               action={ModuleActions.VIEW}
+              requiredFeature="haveEcommerce"
+              featureName="Branches"
             >
               <WareHouse />
             </ProtectedRoute>
@@ -487,6 +492,8 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.WAREHOUSE}
               action={ModuleActions.ADD}
+              requiredFeature="haveEcommerce"
+              featureName="Branches"
             >
               <WareHouseAdd />
             </ProtectedRoute>
@@ -498,6 +505,8 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.WAREHOUSE}
               action={ModuleActions.EDIT}
+              requiredFeature="haveEcommerce"
+              featureName="Branches"
             >
               <WareHouseEdit />
             </ProtectedRoute>
@@ -511,6 +520,48 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
             >
               <TransferWarehouse />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+      {/* ✅ Pickup Points (متاحة مع Ecommerce فقط) */}
+      <Route path="pickup-point">
+        <Route
+          index
+          element={
+            <ProtectedRoute
+              module={AppModules.PICKUP_POINT}
+              action={ModuleActions.VIEW}
+              requiredFeature="haveEcommerce"
+              featureName="Pickup Points"
+            >
+              <PickupPoints />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute
+              module={AppModules.PICKUP_POINT}
+              action={ModuleActions.ADD}
+              requiredFeature="haveEcommerce"
+              featureName="Pickup Points"
+            >
+              <PickupPointAdd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute
+              module={AppModules.PICKUP_POINT}
+              action={ModuleActions.EDIT}
+              requiredFeature="haveEcommerce"
+              featureName="Pickup Points"
+            >
+              <PickupPointEdit />
             </ProtectedRoute>
           }
         />

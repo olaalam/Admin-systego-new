@@ -2767,6 +2767,40 @@ i18n.use(initReactI18next).init({
         "Fill in the warehouse details": "Fill in the warehouse details",
         "Add warehouse": "Add Warehouse",
         "Warehouse Management": "Warehouse Management",
+        // Pickup Points (Ecommerce — online order pickup locations)
+        "Pickup Points": "Pickup Points",
+        "Add Pickup Point": "Add Pickup Point",
+        "Edit Pickup Point": "Edit Pickup Point",
+        "Delete Pickup Point": "Delete Pickup Point",
+        "Pickup point not found": "Pickup point not found",
+        "Failed to update pickup point": "Failed to update pickup point",
+        "Pickup point updated successfully": "Pickup point updated successfully",
+        "Are you sure you want to delete this pickup point":
+          "Are you sure you want to delete this pickup point?",
+        "Create a new pickup point on the map, or pick one of your branches.":
+          "Create a new pickup point on the map, or pick one of your branches.",
+        "Update the pickup point details and location.":
+          "Update the pickup point details and location.",
+        "Choose from Branch (optional)": "Choose from Branch (optional)",
+        "Create new (no branch)": "Create a new pickup point",
+        "Location on Map": "Location on Map",
+        "Click on the map or drag the pin to set the pickup location.":
+          "Click on the map or drag the pin to set the pickup location.",
+        Latitude: "Latitude",
+        Longitude: "Longitude",
+        Location: "Location",
+        "View on Map": "View on Map",
+        "From my branches": "From my branches",
+        "New pickup point": "New pickup point",
+        "Pick a branch to use as a pickup point":
+          "Pick a branch to use as a pickup point",
+        "The branch details will be copied to the pickup point and stay linked to it.":
+          "The branch details will be copied to the pickup point and stay linked to it.",
+        "No branches found": "No branches found",
+        "Add as pickup point": "Add as pickup point",
+        "Adding...": "Adding...",
+        "Create a new pickup point and set its location on the map.":
+          "Create a new pickup point and set its location on the map.",
         "Approved successfully!": "Approved successfully!",
         Expiring: "Expiring",
         Units: "Units",
@@ -3159,6 +3193,40 @@ i18n.use(initReactI18next).init({
         "Delete Warehouse": "حذف المستودع",
         "Add warehouse": "إضافة مستودع",
         "Warehouse Management": "ادارة المستودعات",
+        // نقاط الاستلام (Ecommerce)
+        "Pickup Points": "نقاط الاستلام",
+        "Add Pickup Point": "إضافة نقطة استلام",
+        "Edit Pickup Point": "تعديل نقطة استلام",
+        "Delete Pickup Point": "حذف نقطة استلام",
+        "Pickup point not found": "نقطة الاستلام غير موجودة",
+        "Failed to update pickup point": "فشل في تحديث نقطة الاستلام",
+        "Pickup point updated successfully": "تم تحديث نقطة الاستلام بنجاح",
+        "Are you sure you want to delete this pickup point":
+          "هل أنت متأكد من حذف نقطة الاستلام؟",
+        "Create a new pickup point on the map, or pick one of your branches.":
+          "أنشئ نقطة استلام جديدة على الخريطة، أو اختر من فروعك.",
+        "Update the pickup point details and location.":
+          "عدّل بيانات نقطة الاستلام وموقعها.",
+        "Choose from Branch (optional)": "اختر من الفرع (اختياري)",
+        "Create new (no branch)": "إنشاء نقطة جديدة (من غير فرع)",
+        "Location on Map": "الموقع على الخريطة",
+        "Click on the map or drag the pin to set the pickup location.":
+          "اضغط على الخريطة أو اسحب الدبوس لتحديد موقع الاستلام.",
+        Latitude: "خط العرض",
+        Longitude: "خط الطول",
+        Location: "الموقع",
+        "View on Map": "عرض على الخريطة",
+        "From my branches": "من فروعي",
+        "New pickup point": "نقطة استلام جديدة",
+        "Pick a branch to use as a pickup point":
+          "اختر فرع لاستخدامه كنقطة استلام",
+        "The branch details will be copied to the pickup point and stay linked to it.":
+          "بيانات الفرع هتتنسخ على نقطة الاستلام وهتفضل مربوطة بيه.",
+        "No branches found": "لا توجد فروع",
+        "Add as pickup point": "أضف كنقطة استلام",
+        "Adding...": "جارٍ الإضافة...",
+        "Create a new pickup point and set its location on the map.":
+          "أنشئ نقطة استلام جديدة وحدّد موقعها على الخريطة.",
         "Edit Unit": "تعديل الوحدة",
         "Stock Quantity": "كمية المخزون",
         "Unit not found": "الوحدة غير موجودة",

@@ -35,6 +35,7 @@ export const AppModules = {
   REDEEM_POINTS: "redeem_points",
   MANUFACTURING_LIST: "manufacturing",
   WAREHOUSE: "warehouse",
+  PICKUP_POINT: "pickup_point",
   PRODUCT_WAREHOUSE: "product_warehouse",
   ORDERS_REPORT: "sale_report",
   PRODUCT_REPORT: "product_report",

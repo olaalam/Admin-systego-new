@@ -96,6 +96,7 @@ const modules = [
     name: "Inventory",
     items: [
       { name: "Branch", path: "/warehouse" },
+      { name: "Pickup Points", path: "/pickup-point" },
       { name: "Transfers", path: "/transfer" },
       { name: "Purchase", path: "/purchase" },
       { name: "Returns", path: "/purchase-return" },

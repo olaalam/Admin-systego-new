@@ -118,6 +118,11 @@ const menuItems = [
     icon: Warehouse,
     children: [
       { name: "Branch", path: "/warehouse", module: AppModules.WAREHOUSE },
+      {
+        name: "Pickup Points",
+        path: "/pickup-point",
+        module: AppModules.PICKUP_POINT,
+      },
       { name: "Transfers", path: "/transfer", module: AppModules.TRANSFER },
       { name: "Stock Take", path: "/stocktake", module: AppModules.STOCKTAKE },
       { name: "Purchase", path: "/purchase", module: AppModules.PURCHASE },
@@ -277,6 +282,12 @@ export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen:
 
   const isFeatureLocked = (path) => {
     if (tenantLoading) return false;
+    // Branches and Pickup Points need the Ecommerce feature.
+    if (
+      !features.haveEcommerce &&
+      (path === "/warehouse" || path === "/pickup-point")
+    )
+      return true;
     if (path === "/stocktake" && !features.haveStockTake) return true;
     if (activeModuleGroup?.name === "Reports" && !features.haveReports)
       return true;
