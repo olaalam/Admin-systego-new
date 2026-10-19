@@ -279,16 +279,6 @@ export default function Navbar({ onToggleMobileMenu }) {
             )}
           </div>
 
-          {/* Admin Panel upgrade indicator */}
-          {features?.haveAdminPanel === false && (
-            <span
-              className="hidden sm:flex items-center gap-1 text-[10px] sm:text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg cursor-default select-none shadow-xs"
-              title="Admin Panel requires plan upgrade"
-            >
-              <Lock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-600 flex-shrink-0" />
-              <span>Admin Panel - Upgrade</span>
-            </span>
-          )}
 
           {/* Ø²Ø± Ø±ÙŠÙØ±ÙŠØ´ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù€ Tenant */}
           <button

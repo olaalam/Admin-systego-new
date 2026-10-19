@@ -9,7 +9,6 @@ const TenantContext = createContext({
     havePOS: false,
     haveReports: false,
     haveStockTake: false,
-    haveAdminPanel: true,
     branches: 0,
     online_branches: 0,
   },
@@ -37,7 +36,6 @@ export const TenantProvider = ({ children }) => {
     havePOS: false,
     haveReports: false,
     haveStockTake: false,
-    haveAdminPanel: true,
     branches: 0,
     online_branches: 0,
   });
@@ -62,7 +60,6 @@ export const TenantProvider = ({ children }) => {
             havePOS: Boolean(data.features.havePOS),
             haveReports: Boolean(data.features.haveReports),
             haveStockTake: Boolean(data.features.haveStockTake),
-            haveAdminPanel: data.features.haveAdminPanel !== false,
             branches:
               typeof data.features.branches === "number"
                 ? data.features.branches
@@ -101,7 +98,6 @@ export const TenantProvider = ({ children }) => {
             havePOS: Boolean(data.features.havePOS),
             haveReports: Boolean(data.features.haveReports),
             haveStockTake: Boolean(data.features.haveStockTake),
-            haveAdminPanel: data.features.haveAdminPanel !== false,
             branches:
               typeof data.features.branches === "number"
                 ? data.features.branches
