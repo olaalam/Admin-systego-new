@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import loginImg from "../assets/Login.jpg";
 import usePost from "@/hooks/usePost";
+import { useTenantInfo } from "@/context/TenantContext";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -25,6 +26,7 @@ const formSchema = z.object({
 export default function LoginPage() {
   const navigate = useNavigate();
   const { postData, loading } = usePost("/api/admin/auth/login");
+  const { refreshTenant } = useTenantInfo();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -37,6 +39,15 @@ export default function LoginPage() {
       if (res?.success) {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+
+        // Pull the freshest subscription state so an inactive/expired tenant
+        // immediately lands on the "Payment Required" page.
+        try {
+          await refreshTenant();
+        } catch (refreshErr) {
+          console.warn("Tenant refresh after login failed:", refreshErr);
+        }
+
         navigate("/");
       }
     } catch (err) {
