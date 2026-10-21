@@ -20,6 +20,17 @@ const Transfer = () => {
   const transfers = data?.transfers || [];
   const { putData, loading: putting } = usePut();
 
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const isSuperAdmin = currentUser?.role === "superadmin";
+  const userWarehouseId = isSuperAdmin ? "" : currentUser?.warehouse_id || "";
+
+  // اليوزر غير المرتبط بمخزن (Super Admin / All Warehouses) يستلم أي تحويل،
+  // والمربوط بمخزن يستلم بس التحويلات الداخلة لمخزنه.
+  const canReceive = (transfer) =>
+    !userWarehouseId ||
+    String(transfer.toWarehouseId?._id || transfer.toWarehouseId) ===
+      String(userWarehouseId);
+
   // دوال لحساب الإجماليات
   const getTotal = (array = []) =>
     array.reduce((sum, item) => sum + (item.quantity || 0), 0);
@@ -30,11 +41,33 @@ const Transfer = () => {
 
   const getRejectedQty = (transfer) => getTotal(transfer.rejected_products);
 
-  const handleAction = async (id, warehouseId, status) => {
+  const handleAction = async (transfer, status) => {
     try {
-      await putData({ warehouseId, status }, `/api/admin/transfer/${id}`);
+      const products = (transfer.products || []).map((p) => ({
+        productId: p.productId?._id || p.productId,
+        productPriceId: p.productPriceId?._id || p.productPriceId || null,
+        quantity: p.quantity,
+      }));
+
+      const payload = {
+        warehouseId: transfer.toWarehouseId?._id || transfer.toWarehouseId,
+        status,
+        approved_products: status === "received" ? products : [],
+        rejected_products: status === "rejected" ? products : [],
+      };
+
+      await putData(payload, `/api/admin/transfer/${transfer._id}`);
+
+      toast.success(
+        status === "received" ? t("Transfer received") : t("Transfer rejected"),
+      );
       refetch();
     } catch (err) {
+      toast.error(
+        err.response?.data?.error?.message ||
+          err.response?.data?.message ||
+          t("Failed to update transfer status"),
+      );
       console.error("Action error:", err);
     }
   };
@@ -126,35 +159,38 @@ const Transfer = () => {
       header: t("Quantities"),
       render: (_, item) => renderQuantities(item),
     },
-    // {
-    //   header: t("Approve/Reject"),
-    //   render: (_, item) => (
-    //     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-    //       {item.status === "pending" && (
-    //         <>
-    //           <button
-    //             onClick={() => handleAction(item._id, item.toWarehouseId?._id, "received")}
-    //             className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition-colors font-bold text-xs"
-    //             title={t("Receive")}
-    //             disabled={putting}
-    //           >
-    //             <CheckCircle size={14} />
-    //             {t("Receive")}
-    //           </button>
-    //           <button
-    //             onClick={() => handleAction(item._id, item.toWarehouseId?._id, "rejected")}
-    //             className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition-colors font-bold text-xs"
-    //             title={t("Reject")}
-    //             disabled={putting}
-    //           >
-    //             <XCircle size={14} />
-    //             {t("Reject")}
-    //           </button>
-    //         </>
-    //       )}
-    //     </div>
-    //   )
-    // }
+    {
+      header: t("Approve/Reject"),
+      filterable: false,
+      render: (_, item) =>
+        item.status === "pending" && canReceive(item) ? (
+          <div
+            className="flex items-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => handleAction(item, "received")}
+              className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition-colors font-bold text-xs"
+              title={t("Receive")}
+              disabled={putting}
+            >
+              <CheckCircle size={14} />
+              {t("Receive")}
+            </button>
+            <button
+              onClick={() => handleAction(item, "rejected")}
+              className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition-colors font-bold text-xs"
+              title={t("Reject")}
+              disabled={putting}
+            >
+              <XCircle size={14} />
+              {t("Reject")}
+            </button>
+          </div>
+        ) : (
+          <span className="text-gray-300">—</span>
+        ),
+    },
   ];
 
   if (loading) return <Loader />;

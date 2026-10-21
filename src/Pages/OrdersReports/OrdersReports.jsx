@@ -12,9 +12,12 @@ import {
     ArrowUpRight,
     Eye,
     Percent,
-    Receipt
+    Receipt,
+    Wallet
 } from "lucide-react";
 import useGet from "@/hooks/useGet";
+import useBranchPosOptions from "@/hooks/useBranchPosOptions";
+import BranchPosFilter from "@/components/BranchPosFilter";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";
@@ -40,10 +43,19 @@ const OrdersReports = () => {
         endDate: today
     });
 
+    // فلتر الفروع (Warehouse) + نقاط البيع (POS = Cashier)
+    const [filters, setFilters] = useState({
+        warehouse_id: "",
+        cashier_id: ""
+    });
+    const { warehouses, cashiers } = useBranchPosOptions();
+
     const { data: reportData, loading, error, refetch } = useGet("/api/admin/orders/report", {
         params: {
             startDate: dates.startDate,
-            endDate: dates.endDate
+            endDate: dates.endDate,
+            warehouse_id: filters.warehouse_id || null,
+            cashier_id: filters.cashier_id || null
         }
     });
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -53,7 +65,9 @@ const OrdersReports = () => {
         refetch({
             params: {
                 startDate: dates.startDate,
-                endDate: dates.endDate
+                endDate: dates.endDate,
+                warehouse_id: filters.warehouse_id || null,
+                cashier_id: filters.cashier_id || null
             }
         });
     };
@@ -92,6 +106,49 @@ const OrdersReports = () => {
                     <span className="text-[9px] text-gray-400 uppercase">EGP</span>
                 </div>
             )
+        },
+        {
+            key: "discount",
+            header: t("Discount"),
+            render: (val, item) => {
+                const totalDiscount = Number(val ?? item?.discount_amount ?? 0);
+                if (!totalDiscount) {
+                    return <span className="text-gray-300">—</span>;
+                }
+                return (
+                    <div className="flex flex-col">
+                        <span className="font-black text-rose-500">
+                            -{totalDiscount.toLocaleString()}
+                        </span>
+                        {Number(item?.free_discount) > 0 && (
+                            <span className="text-[10px] text-gray-400 font-semibold">
+                                {isArabic ? "منها يدوي" : "Manual"}: {Number(item.free_discount).toLocaleString()}
+                            </span>
+                        )}
+                        {Number(item?.coupon_amount) > 0 && (
+                            <span className="text-[10px] text-gray-400 font-semibold">
+                                + {isArabic ? "كوبون" : "Coupon"}: {Number(item.coupon_amount).toLocaleString()}
+                            </span>
+                        )}
+                    </div>
+                );
+            }
+        },
+        {
+            key: "service_fee_total",
+            header: t("Service Fee"),
+            render: (val) => {
+                const fees = Number(val || 0);
+                if (!fees) {
+                    return <span className="text-gray-300">—</span>;
+                }
+                return (
+                    <div className="flex items-center gap-1">
+                        <span className="text-xs text-gray-400 font-bold">+</span>
+                        <span className="font-bold text-amber-600">{fees.toLocaleString()}</span>
+                    </div>
+                );
+            }
         },
         {
             key: "paid_amount",
@@ -144,6 +201,16 @@ const OrdersReports = () => {
 
     const summary = reportData?.summary || {};
 
+    // لو الخصم متقسّم (خصم مختار / يدوي / كوبون) منعرضش سطر "Discount" الإجمالي
+    // عشان مايبقاش عندنا خصمين بنفس الاسم — بنعرض التفاصيل بس
+    const selectedOrderDiscount = Number(
+        selectedOrder?.discount_amount ?? selectedOrder?.discount ?? 0
+    );
+    const hasDiscountBreakdown =
+        Number(selectedOrder?.order_discount_amount) > 0 ||
+        Number(selectedOrder?.free_discount) > 0 ||
+        Number(selectedOrder?.coupon_amount) > 0;
+
     const handleExport = (dataToExport) => {
         // 1. التأكد من وجود بيانات
         if (!dataToExport?.length) {
@@ -156,9 +223,12 @@ const OrdersReports = () => {
             [t("Reference")]: order.reference,
             [t("Date")]: new Date(order.date).toLocaleString(isArabic ? 'ar-EG' : 'en-US'),
             [t("Status")]: order.order_pending === 0 ? t("Completed") : t("Pending"),
-            [t("Total")]: order.total_amount || 0,
+            [t("Total")]: order.total || 0,
+            [t("Discount")]: -(order.discount || 0),
+            [t("Service Fee")]: order.service_fee_total || 0,
+            [t("Grand Total")]: order.grand_total || 0,
             [t("Paid")]: order.paid_amount || 0,
-            [t("Due")]: order.due_amount || 0,
+            [t("Remaining")]: order.remaining_amount || 0,
             [t("Customer")]: order.customer_id?.name || t("Unknown"),
             [t("Phone")]: order.customer_id?.phone || "",
             [t("Warehouse")]: order.warehouse_id?.name || t("Unknown"),
@@ -206,6 +276,16 @@ const OrdersReports = () => {
                                 className="border-none focus-visible:ring-0 shadow-none w-40"
                             />
                         </div>
+                        <div className="h-4 w-px bg-gray-200" />
+                        <div className="flex items-center gap-2 px-2">
+                            <BranchPosFilter
+                                value={filters}
+                                onChange={(patch) => setFilters(prev => ({ ...prev, ...patch }))}
+                                warehouses={warehouses}
+                                cashiers={cashiers}
+                                selectClassName="bg-transparent text-sm font-medium focus:outline-none px-2 py-1 cursor-pointer min-w-[150px]"
+                            />
+                        </div>
                         <Button
                             onClick={fetchReport}
                             disabled={loading}
@@ -218,7 +298,7 @@ const OrdersReports = () => {
                 </div>
 
                 {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 tracking-tight">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-6 tracking-tight">
                     <SummaryCard
                         title={t("Total Sales")}
                         value={summary.totalAmount}
@@ -242,6 +322,16 @@ const OrdersReports = () => {
                         color="text-rose-600"
                         bgColor="bg-rose-50"
                         suffix="EGP"
+                        prefix={Number(summary.totalDiscount) > 0 ? "-" : ""}
+                    />
+                    <SummaryCard
+                        title={t("Total Service Fees")}
+                        value={summary.totalServiceFees}
+                        icon={<Wallet size={24} />}
+                        color="text-amber-600"
+                        bgColor="bg-amber-50"
+                        suffix="EGP"
+                        prefix={Number(summary.totalServiceFees) > 0 ? "+" : ""}
                     />
                     <SummaryCard
                         title={t("Total Tax")}
@@ -331,9 +421,44 @@ const OrdersReports = () => {
                                     <DetailSection title={t("Financial Summary")} highlight>
                                         <DetailItem label={t("Total")} value={`${(selectedOrder.total || 0).toLocaleString()} EGP`} />
                                         <DetailItem label={t("Tax Rate")} value={`${selectedOrder.tax_rate}%`} />
-                                        <DetailItem label={t("Tax Amount")} value={`${(selectedOrder.tax_amount || 0).toLocaleString()} EGP`} />
-                                        <DetailItem label={t("Discount")} value={`${(selectedOrder.discount || 0).toLocaleString()} EGP`} />
-                                        <DetailItem label={t("Shipping")} value={`${(selectedOrder.shipping || 0).toLocaleString()} EGP`} />
+                                        <DetailItem label={t("Tax Amount")} value={`+${(selectedOrder.tax_amount || 0).toLocaleString()} EGP`} color="text-red-600" />
+                                        {!hasDiscountBreakdown && selectedOrderDiscount > 0 && (
+                                            <DetailItem label={t("Discount")} value={`-${selectedOrderDiscount.toLocaleString()} EGP`} color="text-rose-500" />
+                                        )}
+                                        {Number(selectedOrder.order_discount_amount) > 0 && (
+                                            <DetailItem
+                                                label={`${t("Discount")}${selectedOrder.order_discount?.name ? ` — ${selectedOrder.order_discount.name}` : ""}`}
+                                                value={`-${Number(selectedOrder.order_discount_amount).toLocaleString()} EGP`}
+                                                color="text-rose-500"
+                                            />
+                                        )}
+                                        {Number(selectedOrder.free_discount) > 0 && (
+                                            <DetailItem
+                                                label={isArabic ? "خصم يدوي" : "Manual Discount"}
+                                                value={`-${Number(selectedOrder.free_discount).toLocaleString()} EGP`}
+                                                color="text-rose-500"
+                                            />
+                                        )}
+                                        {Number(selectedOrder.coupon_amount) > 0 && (
+                                            <DetailItem
+                                                label={`${isArabic ? "خصم الكوبون" : "Coupon Discount"}${selectedOrder.coupon_id ? ` (${selectedOrder.coupon_id})` : ""}`}
+                                                value={`-${Number(selectedOrder.coupon_amount).toLocaleString()} EGP`}
+                                                color="text-rose-500"
+                                            />
+                                        )}
+                                        {Number(selectedOrder.gift_card_amount) > 0 && (
+                                            <DetailItem
+                                                label={isArabic ? "كارت هدية" : "Gift Card"}
+                                                value={`-${Number(selectedOrder.gift_card_amount).toLocaleString()} EGP`}
+                                                color="text-rose-500"
+                                            />
+                                        )}
+                                        <DetailItem
+                                            label={t("Service Fee")}
+                                            value={`+${(selectedOrder.service_fee_total || 0).toLocaleString()} EGP`}
+                                            color="text-amber-600"
+                                        />
+                                        <DetailItem label={t("Shipping")} value={`+${(selectedOrder.shipping || 0).toLocaleString()} EGP`} color="text-amber-600" />
                                         <div className="pt-4 mt-2 border-t border-gray-100">
                                             <DetailItem label={t("Grand Total")} value={`${(selectedOrder.grand_total || 0).toLocaleString()} EGP`} isBold large />
                                             <DetailItem label={t("Paid Amount")} value={`${(selectedOrder.paid_amount || 0).toLocaleString()} EGP`} color="text-blue-600" />
@@ -380,7 +505,7 @@ const DetailItem = ({ label, value, isBold = false, large = false, color = "text
     </div>
 );
 
-const SummaryCard = ({ title, value, icon, color, bgColor, suffix = "", isNumber = false }) => {
+const SummaryCard = ({ title, value, icon, color, bgColor, suffix = "", isNumber = false, prefix = "" }) => {
     return (
         <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden hover:shadow-md transition-shadow">
             <CardContent className="p-6">
@@ -394,7 +519,7 @@ const SummaryCard = ({ title, value, icon, color, bgColor, suffix = "", isNumber
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{title}</p>
                     <div className="flex items-baseline gap-1">
                         <h3 className="text-2xl font-black text-gray-900">
-                            {isNumber ? value || 0 : (value || 0).toLocaleString()}
+                            {prefix}{isNumber ? value || 0 : (value || 0).toLocaleString()}
                         </h3>
                         {suffix && <span className="text-[10px] font-bold text-gray-400 uppercase">{suffix}</span>}
                     </div>

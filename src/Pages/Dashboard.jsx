@@ -11,6 +11,7 @@ import {
   BarChart2, Loader2, CalendarDays, Activity,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import BranchPosFilter from "@/components/BranchPosFilter";
 
 /* ────────── helpers ────────── */
 const fmt = (n) =>
@@ -210,14 +211,19 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
+  const [warehouseId, setWarehouseId] = useState("");
   const [apiUrl, setApiUrl] = useState("/api/admin/dashboard");
   const { data, loading, error } = useGet(apiUrl);
+
+  // الفروع جاية مع نفس رد الداشبورد
+  const branches = data?.branches || [];
 
   const handleFilter = () => {
     let url = "/api/admin/dashboard";
     const params = new URLSearchParams();
     if (start) params.append("start_date", start);
     if (end) params.append("end_date", end);
+    if (warehouseId) params.append("warehouse_id", warehouseId);
     const qs = params.toString();
     setApiUrl(qs ? `${url}?${qs}` : url);
   };
@@ -225,6 +231,7 @@ export default function Dashboard() {
   const handleClear = () => {
     setStart("");
     setEnd("");
+    setWarehouseId("");
     setApiUrl("/api/admin/dashboard");
   };
 
@@ -451,6 +458,16 @@ export default function Dashboard() {
               className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
             />
           </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] uppercase font-bold text-gray-400 ml-1">{t("Warehouse")}</span>
+            <BranchPosFilter
+              showPos={false}
+              value={{ warehouse_id: warehouseId }}
+              onChange={(patch) => setWarehouseId(patch.warehouse_id || "")}
+              warehouses={branches}
+              selectClassName="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer min-w-[160px]"
+            />
+          </div>
           <div className="flex items-center gap-2 self-end mb-[2px]">
             <button
               onClick={handleFilter}
@@ -458,7 +475,7 @@ export default function Dashboard() {
             >
               Filter
             </button>
-            {(start || end) && (
+            {(start || end || warehouseId) && (
               <button
                 onClick={handleClear}
                 className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95"

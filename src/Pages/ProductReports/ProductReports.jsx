@@ -46,8 +46,8 @@ const ProductReports = () => {
     const { data: selectionData } = useGet("/api/admin/product-report/selection");
     const { data: reportData, loading, refetch } = useGet("/api/admin/product-report", {
         params: {
-            startDate: filters.start_date,
-            endDate: filters.end_date,
+            start_date: filters.start_date,
+            end_date: filters.end_date,
             category_id: filters.category_id || null,
             product_id: filters.product_id || null,
             warehouse_id: filters.warehouse_id || null,

@@ -19,6 +19,8 @@ import {
     MinusCircle
 } from "lucide-react";
 import useGet from "@/hooks/useGet";
+import useBranchPosOptions from "@/hooks/useBranchPosOptions";
+import BranchPosFilter from "@/components/BranchPosFilter";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";
@@ -42,13 +44,18 @@ const FinancialReports = () => {
 
     const [filters, setFilters] = useState({
         startDate: monthAgo,
-        endDate: today
+        endDate: today,
+        warehouse_id: "",
+        cashier_id: ""
     });
+    const { warehouses, cashiers } = useBranchPosOptions();
 
     const { data: reportData, loading, refetch } = useGet("/api/admin/finicial-report", {
         params: {
-            startDate: filters.startDate,
-            endDate: filters.endDate
+            start_date: filters.startDate,
+            end_date: filters.endDate,
+            warehouse_id: filters.warehouse_id || null,
+            cashier_id: filters.cashier_id || null
         }
     });
 
@@ -59,7 +66,9 @@ const FinancialReports = () => {
         refetch({
             params: {
                 start_date: filters.startDate,
-                end_date: filters.endDate
+                end_date: filters.endDate,
+                warehouse_id: filters.warehouse_id || null,
+                cashier_id: filters.cashier_id || null
             }
         });
     };
@@ -188,6 +197,16 @@ const FinancialReports = () => {
                                 value={filters.endDate}
                                 onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
                                 className="border-none focus-visible:ring-0 shadow-none w-36 text-sm p-0 h-8"
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-1 px-1 border-r border-gray-100">
+                            <BranchPosFilter
+                                value={filters}
+                                onChange={(patch) => setFilters(prev => ({ ...prev, ...patch }))}
+                                warehouses={warehouses}
+                                cashiers={cashiers}
+                                selectClassName="bg-transparent text-sm font-medium focus:outline-none px-2 py-1 cursor-pointer min-w-[140px]"
                             />
                         </div>
 

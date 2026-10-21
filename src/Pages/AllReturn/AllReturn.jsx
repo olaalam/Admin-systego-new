@@ -13,6 +13,8 @@ import {
   Hash,
 } from "lucide-react";
 import useGet from "@/hooks/useGet";
+import useBranchPosOptions from "@/hooks/useBranchPosOptions";
+import BranchPosFilter from "@/components/BranchPosFilter";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";
@@ -42,6 +44,7 @@ const AllReturn = () => {
     warehouse_id: null,
     cashier_id: null,
   });
+  const { warehouses, cashiers } = useBranchPosOptions();
 
   const { data: responseData, loading, refetch } = useGet(
     "/api/admin/return-sale/all-returns",
@@ -236,6 +239,16 @@ const AllReturn = () => {
                   setFilters((prev) => ({ ...prev, end_date: e.target.value }))
                 }
                 className="border-none focus-visible:ring-0 shadow-none w-36 text-sm p-0 h-8"
+              />
+            </div>
+
+            <div className="flex items-center gap-1 px-1 lg:col-span-2">
+              <BranchPosFilter
+                value={filters}
+                onChange={(patch) => setFilters((prev) => ({ ...prev, ...patch }))}
+                warehouses={warehouses}
+                cashiers={cashiers}
+                selectClassName="bg-transparent text-sm font-medium focus:outline-none px-2 py-1 cursor-pointer min-w-[140px]"
               />
             </div>
 

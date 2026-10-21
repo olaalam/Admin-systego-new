@@ -20,13 +20,31 @@ import {
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
 import usePut from "@/hooks/usePut";
+import useBranchPosOptions from "@/hooks/useBranchPosOptions";
+import BranchPosFilter from "@/components/BranchPosFilter";
 
 
 const CashierShift = () => {
     const { t, i18n } = useTranslation();
     const isArabic = i18n.language === "ar";
     const { putData } = usePut();
-    const { data: shiftData, loading, error, refetch } = useGet("/api/admin/cashiershift");
+
+    // فلتر الفروع (Warehouse) + نقاط البيع (POS = Cashier)
+    const [filters, setFilters] = useState({
+        warehouse_id: "",
+        cashier_id: "",
+    });
+    const { warehouses, cashiers } = useBranchPosOptions();
+
+    const apiUrl = useMemo(() => {
+        const params = new URLSearchParams();
+        if (filters.warehouse_id) params.append("warehouse_id", filters.warehouse_id);
+        if (filters.cashier_id) params.append("cashier_id", filters.cashier_id);
+        const qs = params.toString();
+        return qs ? `/api/admin/cashiershift?${qs}` : "/api/admin/cashiershift";
+    }, [filters]);
+
+    const { data: shiftData, loading, error, refetch } = useGet(apiUrl);
 
     const columns = useMemo(() => [
         {
@@ -271,6 +289,17 @@ const CashierShift = () => {
                             </div>
                         </div>
                     )}
+                </div>
+
+                {/* Filters: Branch + POS */}
+                <div className="mb-6 flex flex-wrap items-center gap-3 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+                    <BranchPosFilter
+                        value={filters}
+                        onChange={(patch) => setFilters(prev => ({ ...prev, ...patch }))}
+                        warehouses={warehouses}
+                        cashiers={cashiers}
+                        selectClassName="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer min-w-[160px]"
+                    />
                 </div>
 
                 {loading ? (
