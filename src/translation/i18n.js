@@ -2709,6 +2709,11 @@ i18n.use(initReactI18next).init({
         "Completed List": "Completed List",
         "Stock Quantity": "Stock Quantity",
         "View Transfer": "View Transfer",
+        "Delete Transfer": "Delete Transfer",
+        "Are you sure you want to delete this transfer? This action cannot be undone.":
+          "Are you sure you want to delete this transfer? This action cannot be undone.",
+        "Transfer deleted successfully": "Transfer deleted successfully",
+        "Failed to delete transfer": "Failed to delete transfer",
         unauthorized_access: "Unauthorized Access",
         unauthorized_description:
           "You don't have permission to access this page.",
@@ -5664,6 +5669,11 @@ i18n.use(initReactI18next).init({
         "Pending List": "قائمة المعلقة",
         "Completed List": "قائمة المكتملة",
         "View Transfer": "عرض التحويل",
+        "Delete Transfer": "حذف التحويل",
+        "Are you sure you want to delete this transfer? This action cannot be undone.":
+          "هل أنت متأكد من حذف هذا التحويل؟ لا يمكن التراجع بعد الحذف.",
+        "Transfer deleted successfully": "تم حذف التحويل بنجاح",
+        "Failed to delete transfer": "فشل حذف التحويل",
         unauthorized_access: "وصول غير مصرح به",
         unauthorized_description: "ليس لديك صلاحية للوصول إلى هذه الصفحة.",
         Errorloadingunits: "خطأ في تحميل الوحدات",

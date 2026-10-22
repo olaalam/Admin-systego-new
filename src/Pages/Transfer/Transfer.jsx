@@ -9,7 +9,9 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
 import usePut from "@/hooks/usePut";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, Trash2 } from "lucide-react";
+import DeleteDialog from "@/components/DeleteForm";
+import { hasPermission } from "@/lib/checkPermission";
 
 const Transfer = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/transfer");
@@ -20,9 +22,56 @@ const Transfer = () => {
   const transfers = data?.transfers || [];
   const { putData, loading: putting } = usePut();
 
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
   const isSuperAdmin = currentUser?.role === "superadmin";
   const userWarehouseId = isSuperAdmin ? "" : currentUser?.warehouse_id || "";
+  const canDeletePermission = hasPermission(AppModules.TRANSFER, "delete");
+
+  // التحويل المستلَم مينفعش يتمسح (المخزون اتحرك)،
+  // وغير السوبر أدمن لازم يكون طرف في التحويل.
+  const canDelete = (transfer) => {
+    if (!canDeletePermission) return false;
+    if (transfer.status === "received") return false;
+
+    if (!userWarehouseId) return true;
+
+    const fromId = String(
+      transfer.fromWarehouseId?._id || transfer.fromWarehouseId || "",
+    );
+    const toId = String(
+      transfer.toWarehouseId?._id || transfer.toWarehouseId || "",
+    );
+
+    return fromId === String(userWarehouseId) || toId === String(userWarehouseId);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+
+    setDeleting(true);
+    try {
+      const res = await api.delete(`/api/admin/transfer/${deleteTarget._id}`);
+
+      if (res.data?.success === false) {
+        throw new Error(res.data?.error?.message || "Delete failed");
+      }
+
+      toast.success(t("Transfer deleted successfully"));
+      setDeleteTarget(null);
+      refetch();
+    } catch (err) {
+      toast.error(
+        err.response?.data?.error?.message ||
+          err.message ||
+          t("Failed to delete transfer"),
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // اليوزر غير المرتبط بمخزن (Super Admin / All Warehouses) يستلم أي تحويل،
   // والمربوط بمخزن يستلم بس التحويلات الداخلة لمخزنه.
@@ -215,6 +264,19 @@ const Transfer = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.TRANSFER}
+        extraActions={(item) =>
+          canDelete(item) ? (
+            <button
+              onClick={() => setDeleteTarget(item)}
+              className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded transition-colors"
+              title={t("Delete")}
+            >
+              <Trash2 size={16} />
+            </button>
+          ) : (
+            <span className="text-gray-300">—</span>
+          )
+        }
         filters={[
           {
             key: "status",
@@ -228,6 +290,20 @@ const Transfer = () => {
           },
         ]}
       />
+
+      {deleteTarget && (
+        <DeleteDialog
+          title={t("Delete Transfer")}
+          message={t(
+            "Are you sure you want to delete this transfer? This action cannot be undone.",
+          )}
+          confirmText={t("Delete")}
+          cancelText={t("Cancel")}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+          loading={deleting}
+        />
+      )}
     </div>
   );
 };
