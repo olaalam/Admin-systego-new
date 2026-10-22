@@ -282,12 +282,7 @@ export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen:
 
   const isFeatureLocked = (path) => {
     if (tenantLoading) return false;
-    // Branches and Pickup Points need the Ecommerce feature.
-    if (
-      !features.haveEcommerce &&
-      (path === "/warehouse" || path === "/pickup-point")
-    )
-      return true;
+    // Branches and Pickup Points are always available (never plan-locked).
     if (path === "/stocktake" && !features.haveStockTake) return true;
     if (activeModuleGroup?.name === "Reports" && !features.haveReports)
       return true;

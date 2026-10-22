@@ -479,8 +479,6 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.WAREHOUSE}
               action={ModuleActions.VIEW}
-              requiredFeature="haveEcommerce"
-              featureName="Branches"
             >
               <WareHouse />
             </ProtectedRoute>
@@ -492,8 +490,6 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.WAREHOUSE}
               action={ModuleActions.ADD}
-              requiredFeature="haveEcommerce"
-              featureName="Branches"
             >
               <WareHouseAdd />
             </ProtectedRoute>
@@ -505,8 +501,6 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.WAREHOUSE}
               action={ModuleActions.EDIT}
-              requiredFeature="haveEcommerce"
-              featureName="Branches"
             >
               <WareHouseEdit />
             </ProtectedRoute>
@@ -532,8 +526,6 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.PICKUP_POINT}
               action={ModuleActions.VIEW}
-              requiredFeature="haveEcommerce"
-              featureName="Pickup Points"
             >
               <PickupPoints />
             </ProtectedRoute>
@@ -545,8 +537,6 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.PICKUP_POINT}
               action={ModuleActions.ADD}
-              requiredFeature="haveEcommerce"
-              featureName="Pickup Points"
             >
               <PickupPointAdd />
             </ProtectedRoute>
@@ -558,8 +548,6 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.PICKUP_POINT}
               action={ModuleActions.EDIT}
-              requiredFeature="haveEcommerce"
-              featureName="Pickup Points"
             >
               <PickupPointEdit />
             </ProtectedRoute>
