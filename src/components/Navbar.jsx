@@ -9,31 +9,32 @@ import usePost from "@/hooks/usePost";
 import { useTenantInfo } from "@/context/TenantContext";
 import { toast } from "react-toastify";
 import logo from "@/assets/logo.jpg";
+
 export default function Navbar({ onToggleMobileMenu }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isControlPanel = location.pathname === "/";
   const { t, i18n } = useTranslation();
+  const isArabic = i18n.language === "ar";
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState(searchParams.get("q") || "");
   const inputRef = useRef(null);
 
-  // Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ù€ Hook Ø§Ù„Ø®Ø§Øµ Ø¨Ø§Ù„Ù€ Post Ù„Ø¹Ù…Ù„ Ø§Ù„Ù€ API Calls
+  // hook خاص بعمل طلبات POST
   const { postData, loading: apiLoading } = usePost();
 
-  // Ø¬Ù„Ø¨ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù€ Tenant Ùˆ Ø§Ù„Ù€ features
+  // جلب بيانات المؤسسة والميزات
   const { features, refreshTenant } = useTenantInfo();
   const [isRefreshingTenant, setIsRefreshingTenant] = useState(false);
 
-  // Ø­Ø§Ù„Ø© Ù„Ø¹Ø±Ø¶ Ø§Ù„Ù€ Loader Ø§Ù„ÙƒØ¨ÙŠØ± ÙˆÙ‚Øª Ø§Ù„ØªØ­Ø¯ÙŠØ«
+  // حالة عرض شاشة التحميل أثناء التحديث
   const [isUpdating, setIsUpdating] = useState(false);
-
 
   const handleBack = () => navigate(-1);
 
-  // Open/close search
+  // فتح / إغلاق البحث
   const openSearch = () => {
     setSearchOpen(true);
     setTimeout(() => inputRef.current?.focus(), 50);
@@ -53,7 +54,7 @@ export default function Navbar({ onToggleMobileMenu }) {
     }
   };
 
-  // Reset when leaving Control Panel
+  // إعادة التهيئة عند الخروج من لوحة التحكم
   useEffect(() => {
     if (!isControlPanel) {
       setSearchOpen(false);
@@ -70,26 +71,27 @@ export default function Navbar({ onToggleMobileMenu }) {
   const handleLanguage = (event) => {
     const newLang = event.target.value;
     i18n.changeLanguage(newLang);
-    localStorage.setItem('language', newLang);
-    document.body.dir = newLang === 'ar' ? 'rtl' : 'ltr';
+    localStorage.setItem("language", newLang);
+    document.body.dir = newLang === "ar" ? "rtl" : "ltr";
   };
-  // 1. Ø¶Ø¹ÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ù…ØªØºÙŠØ±Ø§Øª Ù‡Ù†Ø§ (Ø®Ø§Ø±Ø¬ Ø£ÙŠ Ø¯Ø§Ù„Ø©) Ù„ÙƒÙŠ ÙŠØ±Ø§Ù‡Ø§ Ø§Ù„Ù€ return
-  const hostname = window.location.hostname;
-  const parts = hostname.split('.');
 
-  // Ø´Ø±Ø· Ø§Ù„Ù„ÙˆÙƒØ§Ù„ Ù‡ÙˆØ³Øª ÙˆØ§Ù„Ù€ Subdomain
+  // بيانات النطاق الحالي (لوكال / سب دومين)
+  const hostname = window.location.hostname;
+  const parts = hostname.split(".");
+
   const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
-  const isSubdomain = parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'systego';
+  const isSubdomain =
+    parts.length > 2 && parts[0] !== "www" && parts[0] !== "systego";
   const isMainDomain = hostname === "systego.net";
   const showMasterRefreshBtn = isLocal || isMainDomain;
-  // Ø§Ù„Ù…ØªØºÙŠØ± Ø§Ù„Ø°ÙŠ Ø³Ù†Ø³ØªØ®Ø¯Ù…Ù‡ ÙÙŠ Ø§Ù„Ø£Ø³ÙÙ„ Ù„Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„Ø²Ø±Ø§Ø±
+  // يظهر زر التحديث في اللوكال والسب دومين فقط
   const showUpdateBtn = isLocal || isSubdomain;
 
   /**
-   * Ø¯Ø§Ù„Ø© Ù„Ø¬Ù„Ø¨ Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù…Ù† Ø§Ù„Ø±Ø§Ø¨Ø·
+   * جلب اسم العميل من الرابط
    */
   const getClientPayload = () => {
-    // Ù†Ø³ØªØ®Ø¯Ù… Ù†ÙØ³ Ø§Ù„Ù…Ù†Ø·Ù‚ Ø§Ù„Ù„ÙŠ Ø­Ø¯Ø¯Ù†Ø§Ù‡ ÙÙˆÙ‚
+    // نفس المنطق المستخدم بالأعلى
     if (isLocal) {
       return { clientName: "alexmuscle" };
     }
@@ -104,16 +106,15 @@ export default function Navbar({ onToggleMobileMenu }) {
       setIsUpdating(true);
       const payload = getClientPayload();
 
-      // 1. Ø·Ù„Ø¨ ÙØ­Øµ Ø§Ù„Ù†Ø³Ø®Ø© (Check Version)
+      // 1. فحص النسخة (Check Version)
       const checkData = await postData(payload, "/api/admin/version-updater");
 
       if (checkData?.success && checkData?.data?.result?.success) {
-
-        // 2. Ø·Ù„Ø¨ Ø§Ù„Ù…Ø²Ø§Ù…Ù†Ø© Ø§Ù„ÙØ¹Ù„ÙŠ Ù„Ù„Ø¬Ù‡ØªÙŠÙ† (Sync) Ù„Ø¶Ù…Ø§Ù† Ø¹Ø¯Ù… ÙˆØ¬ÙˆØ¯ Ø£ÙŠ ÙÙ‚Ø¯ ÙÙŠ Ø§Ù„Ù…Ù„ÙØ§Øª
+        // 2. مزامنة الملفات بين الجهتين (Sync)
         const syncData = await postData(payload, "/api/admin/version-updater/sync");
 
         if (syncData) {
-          // Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø± Ù‚Ù„ÙŠÙ„Ø§Ù‹ Ù„ÙŠÙ‚Ø±Ø£ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø±Ø³Ø§Ù„Ø© Ø§Ù„Ù†Ø¬Ø§Ø­ Ù…Ù† Ø§Ù„Ù€ Toast Ø«Ù… Ø¹Ù…Ù„ Reload
+          // الانتظار قليلاً ليقرأ المستخدم رسالة النجاح ثم إعادة التحميل
           setTimeout(() => {
             window.location.reload();
           }, 1500);
@@ -128,19 +129,22 @@ export default function Navbar({ onToggleMobileMenu }) {
       setIsUpdating(false);
     }
   };
-  // Ø¯Ø§Ù„Ø© ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ø§Ø³ØªØ±
+
+  // تحديث الماستر
   const handleRefreshMaster = async () => {
     try {
       setIsUpdating(true);
 
-      // Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø·Ù„Ø¨ Ù…Ø¹ Ø§Ù„Ù€ API Key ÙÙŠ Ø§Ù„Ù€ Headers
-      // Ù…Ù„Ø§Ø­Ø¸Ø©: ØªØ£ÙƒØ¯ÙŠ Ø£Ù† usePost ØªØ¯Ø¹Ù… ØªÙ…Ø±ÙŠØ± Ø§Ù„Ù€ HeadersØŒ Ø¥Ø°Ø§ ÙƒØ§Ù†Øª Ù„Ø§ ØªØ¯Ø¹Ù…Ù‡Ø§
-      // Ù‚Ø¯ ØªØ­ØªØ§Ø¬ÙŠÙ† Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… fetch Ù…Ø¨Ø§Ø´Ø±Ø© Ø£Ùˆ ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ù€ hook
-      const response = await postData({}, "https://updater.systego.net/api/update/refresh-master", {
-        headers: {
-          "x-api-key": import.meta.env.VITE_REFRESH_MASTER_KEY
-        }
-      });
+      // إرسال الطلب مع الـ API Key في الهيدر
+      const response = await postData(
+        {},
+        "https://updater.systego.net/api/update/refresh-master",
+        {
+          headers: {
+            "x-api-key": import.meta.env.VITE_REFRESH_MASTER_KEY,
+          },
+        },
+      );
 
       if (response) {
         console.log("Master Refreshed Successfully");
@@ -152,22 +156,22 @@ export default function Navbar({ onToggleMobileMenu }) {
     }
   };
 
-  // Ø¯Ø§Ù„Ø© Ø±ÙŠÙØ±ÙŠØ´ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù€ Tenant
+  // تحديث بيانات المؤسسة
   const handleRefreshTenant = async () => {
     try {
       setIsRefreshingTenant(true);
       await refreshTenant();
       toast.success(
-        i18n.language === "ar"
-          ? "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø¤Ø³Ø³Ø© ÙˆØ§Ù„Ø§Ø´ØªØ±Ø§Ùƒ Ø¨Ù†Ø¬Ø§Ø­"
-          : "Tenant info refreshed successfully"
+        isArabic
+          ? "تم تحديث بيانات المؤسسة والاشتراك بنجاح"
+          : "Tenant info refreshed successfully",
       );
     } catch (error) {
       console.error("Refresh Tenant failed:", error);
       toast.error(
-        i18n.language === "ar"
-          ? "ÙØ´Ù„ ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø¤Ø³Ø³Ø©"
-          : "Failed to refresh tenant info"
+        isArabic
+          ? "فشل تحديث بيانات المؤسسة"
+          : "Failed to refresh tenant info",
       );
     } finally {
       setIsRefreshingTenant(false);
@@ -177,36 +181,34 @@ export default function Navbar({ onToggleMobileMenu }) {
   const handleGoToPOS = () => {
     if (!features?.havePOS) {
       toast.warning(
-        i18n.language === "ar"
-          ? "Ù†Ø¸Ø§Ù… Ù†Ù‚Ø§Ø· Ø§Ù„Ø¨ÙŠØ¹ (POS) ØºÙŠØ± Ù…ØªØ§Ø­ ÙÙŠ Ø¨Ø§Ù‚ØªÙƒ Ø§Ù„Ø­Ø§Ù„ÙŠØ©"
-          : "POS is not available in your current package"
+        isArabic
+          ? "نظام نقاط البيع (POS) غير متاح في باقتك الحالية"
+          : "POS is not available in your current package",
       );
       return;
     }
-    // Ø¨ÙŠØ¬ÙŠØ¨ Ø§Ù„Ù€ origin Ø§Ù„Ø­Ø§Ù„ÙŠ ÙˆÙŠØ¶ÙŠÙ Ø¹Ù„ÙŠÙ‡ Ø§Ù„Ù…Ø³Ø§Ø±
+    // فتح نقطة البيع في تاب جديدة
     const posUrl = `${window.location.origin}/point-of-sale`;
-    // '_blank' Ø¨ØªØ®Ù„ÙŠ Ø§Ù„Ù…ØªØµÙØ­ ÙŠÙØªØ­ Ø§Ù„Ø±Ø§Ø¨Ø· ÙÙŠ ØªØ§Ø¨ Ø¬Ø¯ÙŠØ¯Ø©
-    window.open(posUrl, '_blank');
+    window.open(posUrl, "_blank");
   };
 
   return (
     <>
       <nav className="bg-white shadow-md px-3 sm:px-6 py-2.5 sm:py-3 flex justify-between items-center relative z-10 gap-2">
-
-        {/* Left side */}
+        {/* يسار الشريط */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           {!isControlPanel && onToggleMobileMenu && (
             <button
               onClick={onToggleMobileMenu}
               className="md:hidden p-1.5 hover:bg-gray-100 rounded-lg text-slate-700"
-              title="Menu"
+              title={isArabic ? "القائمة" : "Menu"}
             >
               <Menu className="w-5 h-5" />
             </button>
           )}
 
           {isControlPanel ? (
-            /* Search area - only on Control Panel */
+            /* البحث - في لوحة التحكم فقط */
             searchOpen ? (
               <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 w-48 sm:w-64 transition-all">
                 <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 flex-shrink-0" />
@@ -232,23 +234,27 @@ export default function Navbar({ onToggleMobileMenu }) {
               </button>
             )
           ) : (
-            /* Back button - on all other pages */
-            <button onClick={handleBack} className="flex items-center gap-1.5 sm:gap-2 text-gray-700 hover:text-gray-900 p-1">
+            /* زر الرجوع - في باقي الصفحات */
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-1.5 sm:gap-2 text-gray-700 hover:text-gray-900 p-1"
+            >
               <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-secondary rtl:rotate-180" />
-              <span className="text-xs sm:text-sm font-medium text-secondary hidden xs:inline">{t("navbar.back")}</span>
+              <span className="text-xs sm:text-sm font-medium text-secondary hidden xs:inline">
+                {t("navbar.back")}
+              </span>
             </button>
           )}
         </div>
 
-        {/* Center: Logo */}
+        {/* المنتصف: اللوجو */}
         <div className="flex items-center justify-center flex-shrink-0">
           <img src={logo} alt="SysteGo Logo" className="h-8 sm:h-12 w-auto object-contain" />
         </div>
 
-        {/* Right side actions */}
+        {/* يمين الشريط */}
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-
-          {/* Ø²Ø± POS ÙˆØ´Ø§Ø±Ø© Ø§Ù„ØªØ±Ù‚ÙŠØ© Ø¥Ø°Ø§ ÙƒØ§Ù†Øª Ø§Ù„Ù…ÙŠØ²Ø© ØºÙŠØ± Ù…ØªÙˆÙØ±Ø© */}
+          {/* زر POS وشارة الترقية إذا كانت الميزة غير متوفرة */}
           <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={handleGoToPOS}
@@ -260,96 +266,114 @@ export default function Navbar({ onToggleMobileMenu }) {
               }`}
               title={
                 !features?.havePOS
-                  ? (i18n.language === "ar" ? "Ù†Ø¸Ø§Ù… Ù†Ù‚Ø§Ø· Ø§Ù„Ø¨ÙŠØ¹ (POS) ØºÙŠØ± Ù…ØªØ§Ø­ ÙÙŠ Ø¨Ø§Ù‚ØªÙƒ - ÙŠØªØ·Ù„Ø¨ ØªØ±Ù‚ÙŠØ©" : "POS requires plan upgrade")
+                  ? isArabic
+                    ? "نظام نقاط البيع (POS) غير متاح في باقتك - يتطلب ترقية"
+                    : "POS requires plan upgrade"
                   : "POS"
               }
             >
-              {!features?.havePOS && <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 flex-shrink-0" />}
+              {!features?.havePOS && (
+                <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 flex-shrink-0" />
+              )}
               <span>POS</span>
             </button>
 
             {!features?.havePOS && (
               <span
                 className="hidden sm:flex items-center gap-1 text-[10px] sm:text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg cursor-default select-none shadow-xs"
-              title="This feature requires a plan upgrade"
+                title={isArabic ? "هذه الميزة تتطلب ترقية الباقة" : "This feature requires a plan upgrade"}
               >
                 <Lock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-600 flex-shrink-0" />
-                <span>{i18n.language === "ar" ? "ØªØ±Ù‚ÙŠØ©" : "Upgrade"}</span>
+                <span>{isArabic ? "ترقية" : "Upgrade"}</span>
               </span>
             )}
           </div>
 
-
-          {/* Ø²Ø± Ø±ÙŠÙØ±ÙŠØ´ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù€ Tenant */}
+          {/* زر تحديث بيانات المؤسسة */}
           <button
             onClick={handleRefreshTenant}
             disabled={isRefreshingTenant}
             className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 cursor-pointer disabled:opacity-50 transition-colors p-1 sm:p-1.5 hover:bg-emerald-50 rounded-lg"
-              title="Refresh Tenant Info"
+            title={isArabic ? "تحديث بيانات المؤسسة" : "Refresh Tenant Info"}
           >
-            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshingTenant ? "animate-spin" : ""}`} />
-            <span className="hidden md:inline text-[10px] font-bold">TENANT</span>
+            <RefreshCw
+              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshingTenant ? "animate-spin" : ""}`}
+            />
+            <span className="hidden md:inline text-[10px] font-bold">
+              {isArabic ? "المؤسسة" : "TENANT"}
+            </span>
           </button>
 
-          {/* Ø²Ø± Ø§Ù„ØªØ­Ø¯ÙŠØ« - ÙŠØ¸Ù‡Ø± ÙÙŠ Ø§Ù„Ù€ localhost ÙˆØ§Ù„Ù€ subdomains ÙÙ‚Ø· */}
+          {/* زر التحديث - يظهر في اللوكال والسب دومين فقط */}
           {showUpdateBtn && (
             <button
               onClick={handleUpdateVersion}
               disabled={isUpdating || apiLoading}
               className="flex items-center gap-1 text-secondary hover:text-blue-600 cursor-pointer disabled:opacity-50 p-1 rounded-lg hover:bg-slate-50"
-              title="Update Version"
+              title={isArabic ? "تحديث الإصدار" : "Update Version"}
             >
-              <RefreshCw className={`w-3.5 h-3.5 sm:w-5 sm:h-5 ${(isUpdating || apiLoading) ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`w-3.5 h-3.5 sm:w-5 sm:h-5 ${isUpdating || apiLoading ? "animate-spin" : ""}`}
+              />
             </button>
           )}
 
-          {/* Ø²Ø± ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ø§Ø³ØªØ± Ø§Ù„Ø¬Ø¯ÙŠØ¯ */}
+          {/* زر تحديث الماستر */}
           {showMasterRefreshBtn && (
             <button
               onClick={handleRefreshMaster}
               disabled={isUpdating || apiLoading}
               className="flex items-center gap-1 text-orange-500 hover:text-orange-600 cursor-pointer disabled:opacity-50 p-1 sm:p-1.5 rounded-lg hover:bg-orange-50"
-              title="Refresh Master (Demos)"
+              title={isArabic ? "تحديث الماستر (العروض التجريبية)" : "Refresh Master (Demos)"}
             >
-              <RefreshCw className={`w-3.5 h-3.5 sm:w-5 sm:h-5 ${(isUpdating || apiLoading) ? "animate-spin" : ""}`} />
-              <span className="hidden md:inline text-[10px] font-bold">MASTER</span>
+              <RefreshCw
+                className={`w-3.5 h-3.5 sm:w-5 sm:h-5 ${isUpdating || apiLoading ? "animate-spin" : ""}`}
+              />
+              <span className="hidden md:inline text-[10px] font-bold">
+                {isArabic ? "الماستر" : "MASTER"}
+              </span>
             </button>
           )}
 
-          {/* Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª */}
+          {/* قائمة الإشعارات */}
           {hasPermission("notification", "View") && <NotificationDropdown />}
 
-          {/* Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ù„ØºØ© */}
+          {/* اختيار اللغة */}
           <select
             onChange={handleLanguage}
             value={i18n.language}
             className="bg-transparent text-secondary font-semibold text-xs sm:text-sm px-1 sm:px-2 py-1 outline-none cursor-pointer"
           >
-            <option value='ar'>AR</option>
-            <option value='en'>EN</option>
+            <option value="ar">العربية</option>
+            <option value="en">English</option>
           </select>
 
-          {/* Ø²Ø± ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬ */}
-          <button onClick={handleLogout} className="flex items-center gap-1 sm:gap-2 text-secondary hover:text-gray-900 cursor-pointer p-1">
+          {/* زر تسجيل الخروج */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1 sm:gap-2 text-secondary hover:text-gray-900 cursor-pointer p-1"
+          >
             <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline text-xs sm:text-sm font-medium">{t("navbar.logout")}</span>
+            <span className="hidden sm:inline text-xs sm:text-sm font-medium">
+              {t("navbar.logout")}
+            </span>
           </button>
         </div>
       </nav>
 
-      {/* Ø´Ø§Ø´Ø© Ø§Ù„ØªØ­Ù…ÙŠÙ„ Ø§Ù„ÙƒØ§Ù…Ù„Ø© Ø£Ø«Ù†Ø§Ø¡ Ø¹Ù…Ù„ÙŠØ© Ø§Ù„ØªØ­Ø¯ÙŠØ« */}
+      {/* شاشة التحميل الكاملة أثناء التحديث */}
       {(isUpdating || apiLoading) && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="flex flex-col items-center p-8 bg-white rounded-xl shadow-2xl">
             <RefreshCw className="w-12 h-12 text-secondary animate-spin mb-4" />
             <p className="text-lg font-bold text-gray-800">
-              {i18n.language === 'ar' ? 'Ø¬Ø§Ø±ÙŠ ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù†Ø¸Ø§Ù…ØŒ Ø¨Ø±Ø¬Ø§Ø¡ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±...' : 'Updating system, please wait...'}
+              {isArabic
+                ? "جارٍ تحديث النظام، برجاء الانتظار..."
+                : "Updating system, please wait..."}
             </p>
           </div>
         </div>
       )}
-
     </>
   );
 }
-
