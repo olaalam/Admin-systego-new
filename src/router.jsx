@@ -143,6 +143,7 @@ import GeideaAdd from "./Pages/Geidea/GeideaAdd";
 import GeideaEdit from "./Pages/Geidea/GeideaEdit";
 import Payable from "./Pages/Payable/Payable";
 import Recevible from "./Pages/Recevible/Recevible";
+import Installments from "./Pages/Installments/Installments";
 import Ledger from "./Pages/Ledger/Ledger";
 import Reserve from "./Pages/Reserve/Reserve";
 import Fawry from "./Pages/Fawry/Fawry";
@@ -1904,6 +1905,20 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
             >
               <Recevible />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      <Route path="installments">
+        <Route
+          index
+          element={
+            <ProtectedRoute
+              module={AppModules.ADMIN}
+              action={ModuleActions.VIEW}
+            >
+              <Installments />
             </ProtectedRoute>
           }
         />

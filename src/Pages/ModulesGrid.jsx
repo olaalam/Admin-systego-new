@@ -56,6 +56,7 @@ const modules = [
       { name: "Payment Ecommerce", path: "/payment-eco" },
       { name: "Payable", path: "/payable" },
       { name: "Recevible", path: "/recevible" },
+      { name: "Installments", path: "/installments" },
       { name: "Ledger", path: "/ledger" },
     ],
     icon: CreditCard,

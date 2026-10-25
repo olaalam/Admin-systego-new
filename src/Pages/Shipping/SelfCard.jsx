@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const SelfCard = ({ form, setForm, onSave, saving, onlineWarehouse }) => {
+const SelfCard = ({ form, setForm, onSave, saving, pickupPoints = [] }) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const navigate = useNavigate();
@@ -98,14 +98,14 @@ const SelfCard = ({ form, setForm, onSave, saving, onlineWarehouse }) => {
           </div>
         )}
 
-        {/* ═══════ Pickup Warehouse Info ═══════ */}
+        {/* ═══════ Pickup Points ═══════ */}
         <div className="pt-3 border-t border-gray-100">
           <Label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <MapPin size={12} />
-            {t("Pickup_Source") || "Pickup Source"}
+            {t("Pickup_Points") || "Pickup Points"}
           </Label>
 
-          {onlineWarehouse ? (
+          {pickupPoints.length > 0 ? (
             <div className="p-3 bg-green-50 border border-green-100 rounded-lg">
               <div className="flex items-start gap-2">
                 <Check
@@ -113,21 +113,39 @@ const SelfCard = ({ form, setForm, onSave, saving, onlineWarehouse }) => {
                   className="text-green-600 mt-0.5 flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-xs text-green-900 truncate">
-                    {onlineWarehouse.name}
+                  <p className="font-semibold text-xs text-green-900">
+                    {pickupPoints.length}{" "}
+                    {t("Available_Pickup_Points") || "pickup point(s)"}
                   </p>
-                  <p className="text-[10px] text-green-700 truncate mt-0.5">
-                    {onlineWarehouse.address}
-                  </p>
+                  <div className="mt-1 space-y-1">
+                    {pickupPoints.slice(0, 3).map((point) => (
+                      <div key={point._id} className="min-w-0">
+                        <p className="text-[10px] text-green-800 font-semibold truncate">
+                          {isRTL
+                            ? point.ar_name || point.name
+                            : point.name || point.ar_name}
+                        </p>
+                        <p className="text-[10px] text-green-700 truncate">
+                          {isRTL
+                            ? point.ar_address || point.address
+                            : point.address || point.ar_address}
+                        </p>
+                      </div>
+                    ))}
+                    {pickupPoints.length > 3 && (
+                      <p className="text-[10px] font-semibold text-green-700">
+                        +{pickupPoints.length - 3}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* ✅ زرار Change */}
               <button
-                onClick={() => navigate("/warehouse")}
+                onClick={() => navigate("/pickup-point")}
                 className="mt-2.5 w-full text-[10px] font-bold text-green-700 hover:text-white hover:bg-green-600 border border-green-300 rounded-md py-1.5 transition-colors"
               >
-                {t("Change_Warehouse") || "Change Warehouse →"}
+                {t("Change_Pickup_Point") || "Manage Pickup Points →"}
               </button>
             </div>
           ) : (
@@ -139,20 +157,20 @@ const SelfCard = ({ form, setForm, onSave, saving, onlineWarehouse }) => {
                 />
                 <div className="flex-1">
                   <p className="font-semibold text-xs text-orange-900">
-                    {t("No_online_warehouse") || "No online warehouse"}
+                    {t("No_pickup_points") || "No pickup points"}
                   </p>
                   <p className="text-[10px] text-orange-700 mt-0.5">
-                    {t("Mark_a_warehouse_as_online") ||
-                      "Mark a warehouse as online first"}
+                    {t("Add_pickup_point_first") ||
+                      "Add a pickup point first"}
                   </p>
                 </div>
               </div>
 
               <button
-                onClick={() => navigate("/warehouse")}
+                onClick={() => navigate("/pickup-point")}
                 className="mt-2.5 w-full text-[10px] font-bold text-white bg-orange-600 hover:bg-orange-700 rounded-md py-1.5 transition-colors"
               >
-                {t("Go_to_Warehouses") || "Go to Warehouses →"}
+                {t("Go_to_Pickup_Points") || "Go to Pickup Points →"}
               </button>
             </div>
           )}

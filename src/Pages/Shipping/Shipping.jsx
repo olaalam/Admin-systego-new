@@ -22,7 +22,7 @@ const Shipping = () => {
     refetch: refetchSettings,
   } = useGet("/api/admin/shipping/settings");
 
-  const { data: warehouseData } = useGet("/api/admin/warehouse");
+  const { data: pickupPointData } = useGet("/api/admin/pickup-point");
 
   const { putData, loading: savingSettings } = usePut(
     "/api/admin/shipping/settings",
@@ -118,10 +118,10 @@ const Shipping = () => {
     });
   }, [settingsData]);
 
-  const warehouses = warehouseData?.warehouses || warehouseData || [];
-  const onlineWarehouse = Array.isArray(warehouses)
-    ? warehouses.find((w) => w.Is_Online === true)
-    : null;
+  const pickupPoints = pickupPointData?.pickupPoints || [];
+  const activePickupPoints = Array.isArray(pickupPoints)
+    ? pickupPoints.filter((point) => point?.is_active !== false)
+    : [];
 
   const handleActiveMethodChange = async (val) => {
     setActiveMethod(val);
@@ -275,7 +275,7 @@ const Shipping = () => {
           setForm={setSelfForm}
           onSave={handleSaveSelf}
           saving={savingSettings}
-          onlineWarehouse={onlineWarehouse}
+          pickupPoints={activePickupPoints}
         />
         <BostaCard
           form={bostaForm}
