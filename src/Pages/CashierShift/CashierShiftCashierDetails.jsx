@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useGet from "@/hooks/useGet";
 import { Link } from "react-router-dom";
@@ -25,11 +25,11 @@ const CashierShiftCashierDetails = () => {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
 
-  // حالة فلاتر التاريخ
+  // Ø­Ø§Ù„Ø© ÙÙ„Ø§ØªØ± Ø§Ù„ØªØ§Ø±ÙŠØ®
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // بناء رابط الـ API مع الـ Query Parameters
+  // Ø¨Ù†Ø§Ø¡ Ø±Ø§Ø¨Ø· Ø§Ù„Ù€ API Ù…Ø¹ Ø§Ù„Ù€ Query Parameters
   const queryParams = new URLSearchParams();
   if (startDate) queryParams.append("start_date", startDate);
   if (endDate) queryParams.append("end_date", endDate);
@@ -39,7 +39,7 @@ const CashierShiftCashierDetails = () => {
 
   const { data, loading, error } = useGet(apiEndpoint);
 
-  // استخراج بيانات الكاشير (تم إضافة cashierman)
+  // Ø§Ø³ØªØ®Ø±Ø§Ø¬ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„ÙƒØ§Ø´ÙŠØ± (ØªÙ… Ø¥Ø¶Ø§ÙØ© cashierman)
   const cashier = useMemo(() => {
     if (!data) return null;
     return (
@@ -53,7 +53,7 @@ const CashierShiftCashierDetails = () => {
     );
   }, [data]);
 
-  // استخراج الشيفتات
+  // Ø§Ø³ØªØ®Ø±Ø§Ø¬ Ø§Ù„Ø´ÙŠÙØªØ§Øª
   const shifts = useMemo(() => {
     if (!data) return [];
     return data.shifts || data.data?.shifts || data.shift || [];
@@ -70,7 +70,7 @@ const CashierShiftCashierDetails = () => {
   };
 
   const formatDate = (value) => {
-    if (!value) return "—";
+    if (!value) return "â€”";
     return new Date(value).toLocaleString(isArabic ? "ar-EG" : "en-US", {
       day: "2-digit",
       month: "short",
@@ -80,7 +80,7 @@ const CashierShiftCashierDetails = () => {
     });
   };
 
-  // إعداد أعمدة الجدول متوافقة مع الـ Keys الجدد من الباك إند
+  // Ø¥Ø¹Ø¯Ø§Ø¯ Ø£Ø¹Ù…Ø¯Ø© Ø§Ù„Ø¬Ø¯ÙˆÙ„ Ù…ØªÙˆØ§ÙÙ‚Ø© Ù…Ø¹ Ø§Ù„Ù€ Keys Ø§Ù„Ø¬Ø¯Ø¯ Ù…Ù† Ø§Ù„Ø¨Ø§Ùƒ Ø¥Ù†Ø¯
   const columns = useMemo(
     () => [
       {
@@ -119,7 +119,7 @@ const CashierShiftCashierDetails = () => {
           return (
             <div className="flex items-center gap-2">
               <ArrowUpRight size={14} className="text-emerald-500" />
-              <span className="font-black text-gray-900">{formatCurrency(amount)} <span className="text-[9px] text-gray-400">EGP</span></span>
+              <span className="font-black text-gray-900">{formatCurrency(amount)} <span className="text-[9px] text-gray-400">{t("EGP")}</span></span>
             </div>
           );
         },
@@ -132,7 +132,7 @@ const CashierShiftCashierDetails = () => {
           return (
             <div className="flex items-center gap-2">
               <ArrowDownLeft size={14} className="text-rose-500" />
-              <span className="font-black text-gray-900">{formatCurrency(amount)} <span className="text-[9px] text-gray-400">EGP</span></span>
+              <span className="font-black text-gray-900">{formatCurrency(amount)} <span className="text-[9px] text-gray-400">{t("EGP")}</span></span>
             </div>
           );
         },
@@ -147,7 +147,7 @@ const CashierShiftCashierDetails = () => {
         header: t("Return Amount"),
         render: (val, row) => {
           const amount = val ?? row.total_returns;
-          return <span className="font-black text-gray-900">{formatCurrency(amount)} <span className="text-[9px] text-gray-400">EGP</span></span>;
+          return <span className="font-black text-gray-900">{formatCurrency(amount)} <span className="text-[9px] text-gray-400">{t("EGP")}</span></span>;
         },
       },
       {
@@ -158,7 +158,7 @@ const CashierShiftCashierDetails = () => {
           return (
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-gray-900 text-white">
               <Wallet size={14} />
-              <span className="font-black text-xs">{formatCurrency(amount)} <span className="text-[9px] text-gray-200">EGP</span></span>
+              <span className="font-black text-xs">{formatCurrency(amount)} <span className="text-[9px] text-gray-200">{t("EGP")}</span></span>
             </div>
           );
         },
@@ -177,7 +177,7 @@ const CashierShiftCashierDetails = () => {
     [t, isArabic]
   );
 
-  // الاعتماد على summary القادمة من الباك إند أولاً
+  // Ø§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯ Ø¹Ù„Ù‰ summary Ø§Ù„Ù‚Ø§Ø¯Ù…Ø© Ù…Ù† Ø§Ù„Ø¨Ø§Ùƒ Ø¥Ù†Ø¯ Ø£ÙˆÙ„Ø§Ù‹
   const stats = useMemo(() => {
     const summary = data?.summary;
     const open = shifts.filter((item) => item.status === "open").length;
@@ -312,7 +312,7 @@ const CashierShiftCashierDetails = () => {
                   </div>
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">{t("Total Sales")}</p>
-                    <p className="text-2xl font-black text-gray-900 mt-1">{formatCurrency(stats.totalSales)} <span className="text-xs text-gray-400">EGP</span></p>
+                    <p className="text-2xl font-black text-gray-900 mt-1">{formatCurrency(stats.totalSales)} <span className="text-xs text-gray-400">{t("EGP")}</span></p>
                   </div>
                 </div>
               </div>
@@ -324,7 +324,7 @@ const CashierShiftCashierDetails = () => {
                   </div>
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-700">{t("Total Expenses")}</p>
-                    <p className="text-2xl font-black text-gray-900 mt-1">{formatCurrency(stats.totalExpenses)} <span className="text-xs text-gray-400">EGP</span></p>
+                    <p className="text-2xl font-black text-gray-900 mt-1">{formatCurrency(stats.totalExpenses)} <span className="text-xs text-gray-400">{t("EGP")}</span></p>
                   </div>
                 </div>
               </div>
@@ -336,7 +336,7 @@ const CashierShiftCashierDetails = () => {
                   </div>
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.2em] text-white/70">{t("Net Cash")}</p>
-                    <p className="text-2xl font-black mt-1">{formatCurrency(stats.netCash)} <span className="text-xs text-gray-300">EGP</span></p>
+                    <p className="text-2xl font-black mt-1">{formatCurrency(stats.netCash)} <span className="text-xs text-gray-300">{t("EGP")}</span></p>
                   </div>
                 </div>
               </div>

@@ -5,7 +5,7 @@ import useGet from "@/hooks/useGet";
 import { Loader2, ReceiptText, Calendar, Package } from "lucide-react";
 
 export default function PurchaseReturnsModal({ purchaseId, isOpen, onClose }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // مناداة الـ API الخاص بجلب المرتجعات لفاتورة معينة
   const { data: res, loading } = useGet(
@@ -41,10 +41,12 @@ export default function PurchaseReturnsModal({ purchaseId, isOpen, onClose }) {
                 <div className="flex flex-wrap gap-4 mb-4">
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     <Calendar size={14} />
-                    {new Date(ret.date).toLocaleDateString()}
+                    {new Date(ret.date).toLocaleDateString(
+                      i18n.language === "ar" ? "ar-EG" : "en-US",
+                    )}
                   </div>
                   <div className="text-xs font-bold text-gray-700">
-                    {t("Total Returned")}: {ret.total_amount} EGP
+                    {t("Total Returned")}: {ret.total_amount} {t("EGP")}
                   </div>
                 </div>
 
@@ -61,7 +63,9 @@ export default function PurchaseReturnsModal({ purchaseId, isOpen, onClose }) {
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-gray-500">{t("Qty")}: <span className="text-black font-bold">{item.returned_quantity}</span></p>
-                        <p className="font-bold text-gray-600">{item.subtotal} EGP</p>
+                        <p className="font-bold text-gray-600">
+                          {item.subtotal} {t("EGP")}
+                        </p>
                       </div>
                     </div>
                   ))}

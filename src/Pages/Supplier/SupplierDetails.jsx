@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     ArrowLeft,
     ShoppingCart,
@@ -63,6 +64,7 @@ const supplierData = {
 };
 
 const SupplierDetailsPage = () => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState("Info");
     const tabs = ["Info", "Financial", "Purchases", "Payments", "Products", "Returns"];
 
@@ -77,7 +79,7 @@ const SupplierDetailsPage = () => {
         };
         return (
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[status] || "bg-gray-100 text-gray-700"}`}>
-                {status}
+                {t(status)}
             </span>
         );
     };

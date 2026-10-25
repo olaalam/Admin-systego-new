@@ -38,6 +38,24 @@ const getOrderDisplayStatus = (order) => {
   return isBosta ? order.bostaShipment?.status || order.status : order.status;
 };
 
+// Some carriers return their own status casing (e.g. "Delivered"), while the
+// dashboard filters use the store's snake_case values. Keep both in one filter.
+const STATUS_GROUPS = {
+  pending: ["pending", "PendingPickup"],
+  delivered: ["delivered", "Delivered"],
+  returned: ["returned", "Returned"],
+  failed_to_deliver: ["failed_to_deliver", "Failed to deliver"],
+  out_for_delivery: ["out_for_delivery", "Out for delivery"],
+  canceled: ["canceled", "Cancelled"],
+};
+
+const matchesStatus = (orderStatus, filter) => {
+  if (!filter || filter === "all") return true;
+  const status = String(orderStatus || "");
+  const group = STATUS_GROUPS[filter];
+  return group ? group.includes(status) : status === filter;
+};
+
 const STATUS_STYLES = {
   pending: "bg-amber-50 text-amber-700 border-amber-200/60",
   confirmed: "bg-blue-50 text-blue-700 border-blue-200/60",
@@ -263,7 +281,9 @@ const FinancialsModal = ({ order, onCancel, loadingDetails, refetch }) => {
               </p>
               <span className="text-xs font-bold text-slate-800">
                 {order.createdAt
-                  ? new Date(order.createdAt).toLocaleString()
+                  ? new Date(order.createdAt).toLocaleString(
+                      isArabic ? "ar-EG" : "en-US",
+                    )
                   : "---"}
               </span>
             </div>
@@ -277,7 +297,7 @@ const FinancialsModal = ({ order, onCancel, loadingDetails, refetch }) => {
             <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 flex items-start gap-3">
               <Info size={16} className="text-indigo-600 shrink-0 mt-0.5" />
               <p className="text-xs font-semibold text-indigo-900 leading-relaxed">
-                {order.statusDescription}
+                {t(order.statusDescription)}
               </p>
             </div>
           )}
@@ -545,7 +565,7 @@ const FinancialsModal = ({ order, onCancel, loadingDetails, refetch }) => {
                     : order.paymentMethod?.name}
                 </span>
                 <span className="text-[10px] text-slate-400 font-semibold uppercase">
-                  ({order.paymentGateway})
+                  ({order.paymentGateway ? t(order.paymentGateway) : "—"})
                 </span>
               </div>
             </div>
@@ -823,16 +843,16 @@ const PaymentEco = () => {
   const displayData = useMemo(() => {
     if (!responseData?.orders) return [];
     if (activeTab === "all") return responseData.orders;
-    return responseData.orders.filter(
-      (order) => getOrderDisplayStatus(order) === activeTab,
+    return responseData.orders.filter((order) =>
+      matchesStatus(getOrderDisplayStatus(order), activeTab),
     );
   }, [responseData, activeTab]);
 
   const getStatusCount = (status) => {
     if (!responseData?.orders) return 0;
     if (status === "all") return responseData.orders.length;
-    return responseData.orders.filter(
-      (order) => getOrderDisplayStatus(order) === status,
+    return responseData.orders.filter((order) =>
+      matchesStatus(getOrderDisplayStatus(order), status),
     ).length;
   };
 
@@ -924,7 +944,7 @@ const PaymentEco = () => {
               <div className="flex flex-col gap-1 w-fit">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase bg-orange-50 text-orange-600 border border-orange-200/60 shadow-sm">
                   <Truck size={11} className="text-orange-500" />
-                  Bosta
+                  {t("Bosta")}
                 </span>
                 {bosta && (
                   <span
@@ -943,7 +963,7 @@ const PaymentEco = () => {
               <div className="flex flex-col gap-1 w-fit">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase bg-indigo-50 text-indigo-600 border border-indigo-200/60 shadow-sm">
                   <User size={11} className="text-indigo-500" />
-                  Self Delivery
+                  {t("Self Delivery")}
                 </span>
                 {dm ? (
                   <span
@@ -1123,7 +1143,7 @@ const PaymentEco = () => {
                   {t("Pending")}
                 </p>
                 <p className="text-base font-black text-slate-900">
-                  {getStatusCount("pending") + getStatusCount("PendingPickup")}
+                  {getStatusCount("pending")}
                 </p>
               </div>
             </div>
@@ -1136,7 +1156,7 @@ const PaymentEco = () => {
                   {t("Delivered")}
                 </p>
                 <p className="text-base font-black text-slate-900">
-                  {getStatusCount("delivered") + getStatusCount("Delivered")}
+                  {getStatusCount("delivered")}
                 </p>
               </div>
             </div>

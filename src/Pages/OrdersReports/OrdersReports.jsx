@@ -412,7 +412,7 @@ const OrdersReports = () => {
                                     <DetailSection title={t("Staff & Shift")}>
                                         <DetailItem label={t("Cashier")} value={selectedOrder.cashier_id?.username} />
                                         <DetailItem label={t("Shift Start")} value={selectedOrder.shift_id?.start_time ? new Date(selectedOrder.shift_id.start_time).toLocaleString() : "—"} />
-                                        <DetailItem label={t("Shift Status")} value={selectedOrder.shift_id?.status} />
+                                        <DetailItem label={t("Shift Status")} value={t(selectedOrder.shift_id?.status) || "—"} />
                                     </DetailSection>
                                 </div>
 

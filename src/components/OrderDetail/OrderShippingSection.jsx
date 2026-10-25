@@ -377,7 +377,7 @@ const OrderShippingSection = ({ order, refetch }) => {
                 />
                 <InfoRow
                   label={t("Courier Status")}
-                  value={bosta.status || "N/A"}
+                  value={t(bosta.status || "N/A")}
                 />
                 {bosta.cod > 0 && (
                   <InfoRow

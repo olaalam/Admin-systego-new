@@ -954,7 +954,7 @@ const PurchaseEdit = () => {
                       : "text-gray-400"
                   }`}
                 >
-                  {t(m.toUpperCase())}
+                  {t(m)}
                 </button>
               ))}
             </div>
@@ -1087,7 +1087,7 @@ const PurchaseEdit = () => {
                         type="number"
                         id="q_amt"
                         className="w-32 border border-orange-200 rounded-xl p-2.5 text-sm"
-                        placeholder="Amount"
+                        placeholder={t("Amount")}
                       />
                       <button
                         type="button"

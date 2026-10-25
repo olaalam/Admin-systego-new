@@ -253,7 +253,7 @@ const CreateDailyPickupModal = ({ open, onClose, onCreated }) => {
                               </p>
                             )}
                             <p className="text-[9px] text-slate-400 uppercase font-bold">
-                              {s.status}
+                              {t(s.status)}
                             </p>
                           </div>
                         </div>

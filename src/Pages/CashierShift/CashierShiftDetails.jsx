@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useGet from "@/hooks/useGet";
 import { useTranslation } from "react-i18next";
@@ -29,10 +29,10 @@ const CashierShiftDetails = () => {
   const isArabic = i18n.language === "ar";
   const [activeTab, setActiveTab] = useState("sales");
 
-  // طلب البيانات من الـ API
+  // Ø·Ù„Ø¨ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ù…Ù† Ø§Ù„Ù€ API
   const { data: responseData, loading, error } = useGet(`/api/admin/admin/shifts/${id}/details`);
 
-  // استخراج الكائنات من داخل data
+  // Ø§Ø³ØªØ®Ø±Ø§Ø¬ Ø§Ù„ÙƒØ§Ø¦Ù†Ø§Øª Ù…Ù† Ø¯Ø§Ø®Ù„ data
   const data = responseData?.data || responseData;
   const shift = data?.shift;
   const summary = data?.summary;
@@ -48,7 +48,7 @@ const CashierShiftDetails = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "—";
+    if (!dateString) return "â€”";
     return new Date(dateString).toLocaleString(isArabic ? "ar-EG" : "en-US", {
       day: "2-digit",
       month: "short",
@@ -58,16 +58,16 @@ const CashierShiftDetails = () => {
     });
   };
 
-  // تنسيق مدة الشيفت (من milliseconds إلى ساعات ودقائق)
+  // ØªÙ†Ø³ÙŠÙ‚ Ù…Ø¯Ø© Ø§Ù„Ø´ÙŠÙØª (Ù…Ù† milliseconds Ø¥Ù„Ù‰ Ø³Ø§Ø¹Ø§Øª ÙˆØ¯Ù‚Ø§Ø¦Ù‚)
   const formatDuration = (ms) => {
-    if (!ms) return "—";
+    if (!ms) return "â€”";
     const totalMinutes = Math.floor(ms / (1000 * 60));
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     return `${hours}h ${minutes}m`;
   };
 
-  // أعمدة جدول المبيعات
+  // Ø£Ø¹Ù…Ø¯Ø© Ø¬Ø¯ÙˆÙ„ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª
   const saleColumns = useMemo(
     () => [
       {
@@ -75,7 +75,7 @@ const CashierShiftDetails = () => {
         header: t("Reference"),
         render: (val) => (
           <span className="font-mono text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
-            {val || "—"}
+            {val || "â€”"}
           </span>
         ),
       },
@@ -93,7 +93,7 @@ const CashierShiftDetails = () => {
         header: t("Total Amount"),
         render: (val) => (
           <span className="font-black text-gray-900">
-            {formatCurrency(val)} <span className="text-[9px] text-gray-400">EGP</span>
+            {formatCurrency(val)} <span className="text-[9px] text-gray-400">{t("EGP")}</span>
           </span>
         ),
       },
@@ -119,7 +119,7 @@ const CashierShiftDetails = () => {
     [t, isArabic]
   );
 
-  // أعمدة جدول المصروفات
+  // Ø£Ø¹Ù…Ø¯Ø© Ø¬Ø¯ÙˆÙ„ Ø§Ù„Ù…ØµØ±ÙˆÙØ§Øª
   const expenseColumns = useMemo(
     () => [
       {
@@ -139,7 +139,7 @@ const CashierShiftDetails = () => {
         header: t("Amount"),
         render: (val) => (
           <span className="font-black text-rose-600">
-            -{formatCurrency(val)} <span className="text-[9px] text-gray-400">EGP</span>
+            -{formatCurrency(val)} <span className="text-[9px] text-gray-400">{t("EGP")}</span>
           </span>
         ),
       },
@@ -148,7 +148,7 @@ const CashierShiftDetails = () => {
         header: t("Account"),
         render: (val) => (
           <span className="text-[11px] font-bold text-gray-600 uppercase tracking-tight bg-gray-100 px-2.5 py-1 rounded-lg border border-gray-200">
-            {val?.name || "—"}
+            {val?.name || "â€”"}
           </span>
         ),
       },
@@ -165,7 +165,7 @@ const CashierShiftDetails = () => {
     [t, isArabic]
   );
 
-  // أعمدة جدول المرتجعات
+  // Ø£Ø¹Ù…Ø¯Ø© Ø¬Ø¯ÙˆÙ„ Ø§Ù„Ù…Ø±ØªØ¬Ø¹Ø§Øª
   const returnColumns = useMemo(
     () => [
       {
@@ -173,7 +173,7 @@ const CashierShiftDetails = () => {
         header: t("Return Ref"),
         render: (val) => (
           <span className="font-mono text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-100">
-            {val || "—"}
+            {val || "â€”"}
           </span>
         ),
       },
@@ -182,7 +182,7 @@ const CashierShiftDetails = () => {
         header: t("Original Sale Ref"),
         render: (val) => (
           <span className="font-mono text-xs text-gray-600 bg-gray-50 px-2 py-0.5 rounded border border-gray-200">
-            {val || "—"}
+            {val || "â€”"}
           </span>
         ),
       },
@@ -191,7 +191,7 @@ const CashierShiftDetails = () => {
         header: t("Returned Amount"),
         render: (val) => (
           <span className="font-black text-rose-600">
-            {formatCurrency(val)} <span className="text-[9px] text-gray-400">EGP</span>
+            {formatCurrency(val)} <span className="text-[9px] text-gray-400">{t("EGP")}</span>
           </span>
         ),
       },
@@ -200,7 +200,7 @@ const CashierShiftDetails = () => {
         header: t("Refund Method"),
         render: (val) => (
           <span className="text-xs font-semibold text-gray-700 capitalize bg-gray-100 px-2.5 py-1 rounded-lg">
-            {val ? val.replace("_", " ") : "—"}
+            {val ? val.replace("_", " ") : "â€”"}
           </span>
         ),
       },
@@ -328,7 +328,7 @@ const CashierShiftDetails = () => {
             </div>
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t("Total Revenue")}</p>
             <h3 className="text-3xl font-black text-gray-900">
-              {formatCurrency(summary?.total_sales_amount)} <span className="text-sm font-medium text-gray-400">EGP</span>
+              {formatCurrency(summary?.total_sales_amount)} <span className="text-sm font-medium text-gray-400">{t("EGP")}</span>
             </h3>
           </div>
 
@@ -344,7 +344,7 @@ const CashierShiftDetails = () => {
             </div>
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t("Total Expenses")}</p>
             <h3 className="text-3xl font-black text-gray-900">
-              {formatCurrency(summary?.total_expenses_amount)} <span className="text-sm font-medium text-gray-400">EGP</span>
+              {formatCurrency(summary?.total_expenses_amount)} <span className="text-sm font-medium text-gray-400">{t("EGP")}</span>
             </h3>
           </div>
 
@@ -360,7 +360,7 @@ const CashierShiftDetails = () => {
             </div>
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t("Total Returns")}</p>
             <h3 className="text-3xl font-black text-gray-900">
-              {formatCurrency(summary?.total_returns_amount)} <span className="text-sm font-medium text-gray-400">EGP</span>
+              {formatCurrency(summary?.total_returns_amount)} <span className="text-sm font-medium text-gray-400">{t("EGP")}</span>
             </h3>
           </div>
 
@@ -376,7 +376,7 @@ const CashierShiftDetails = () => {
             </div>
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t("Net Cash")}</p>
             <h3 className="text-3xl font-black text-white">
-              {formatCurrency(summary?.net_cash)} <span className="text-sm font-medium text-gray-500">EGP</span>
+              {formatCurrency(summary?.net_cash)} <span className="text-sm font-medium text-gray-500">{t("EGP")}</span>
             </h3>
           </div>
         </div>
@@ -491,7 +491,7 @@ const CashierShiftDetails = () => {
                       </div>
                       <div className="text-right">
                         <span className="text-3xl font-black text-white">{formatCurrency(summary?.net_cash)}</span>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase mt-0.5">EGP</p>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase mt-0.5">{t("EGP")}</p>
                       </div>
                     </div>
                   </div>

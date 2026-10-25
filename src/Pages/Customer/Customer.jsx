@@ -184,7 +184,7 @@ const Customer = () => {
                         STATUS_COLORS[status] || "bg-gray-100 text-gray-800"
                       }
                     >
-                      {status}: {count}
+                      {t(status)}: {count}
                     </Badge>
                   ))}
                   {orders.length > 0 && (
@@ -209,7 +209,7 @@ const Customer = () => {
                             "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {o.status}
+                          {t(o.status)}
                         </span>
                         <span className="font-semibold">{o.total ?? "-"}</span>
                       </div>
@@ -271,7 +271,7 @@ const Customer = () => {
                         STATUS_COLORS[status] || "bg-gray-100 text-gray-800"
                       }
                     >
-                      {status}: {count} (
+                      {t(status)}: {count} (
                       {(ordersCustomer.statusTotals || {})[status] || 0})
                     </Badge>
                   ),
@@ -321,7 +321,7 @@ const Customer = () => {
                                 "bg-gray-100 text-gray-800"
                               }`}
                             >
-                              {o.status}
+                              {t(o.status)}
                             </span>
                           </td>
                           <td className="px-3 py-2 text-right">

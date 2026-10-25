@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Settings2, Edit, Hash, Calendar, Fingerprint, Clock, Activity } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import AddPage from "@/components/AddPage";
 import useGet from "@/hooks/useGet";
 import usePut from "@/hooks/usePut";
 
 const Decimal = () => {
+    const { t, i18n } = useTranslation();
+    const isArabic = i18n.language?.startsWith("ar");
     const [isEditing, setIsEditing] = useState(false);
     const [decimalData, setDecimalData] = useState(null);
 
@@ -36,12 +39,12 @@ const Decimal = () => {
         const response = await putData(payload);
 
         if (response?.success) {
-            toast.success("Settings updated successfully");
+            toast.success(t("Settings updated successfully"));
             setIsEditing(false);
             refetch(); // تحديث البيانات المعروضة فوراً
         } else {
             // إضافة عرض الخطأ من الـ Response اللي بعتيه
-            const errorMessage = response?.error?.message || response?.message || "Update failed";
+            const errorMessage = response?.error?.message || response?.message || t("Update failed");
             toast.error(errorMessage);
         }
     };
@@ -49,20 +52,20 @@ const Decimal = () => {
     const fields = [
         {
             key: "decimal_places",
-            label: "Decimal Places",
+            label: t("Decimal Places"),
             type: "number",
-            placeholder: "e.g. 2 or 3",
+            placeholder: t("e.g. 2 or 3"),
             min: 0,
             max: 3,
             required: true,
-            validate: (value) => (value >= 0 && value <= 3) || "Value must be between 0 and 3",
+            validate: (value) => (value >= 0 && value <= 3) || t("Value must be between 0 and 3"),
             inputMode: "numeric",
         },
     ];
 
     const formatDate = (dateString) => {
-        if (!dateString) return "N/A";
-        return new Intl.DateTimeFormat('en-US', {
+        if (!dateString) return t("N/A");
+        return new Intl.DateTimeFormat(isArabic ? "ar-EG" : "en-US", {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -74,14 +77,14 @@ const Decimal = () => {
     if (isEditing) {
         return (
             <AddPage
-                title="Edit Decimal Settings"
-                description="Modify the system-wide decimal precision settings."
+                title={t("Edit Decimal Settings")}
+                description={t("Modify the system-wide decimal precision settings.")}
                 fields={fields}
                 initialData={{ decimal_places: decimalData?.decimal_places }}
                 onSubmit={handleUpdate}
                 onCancel={() => setIsEditing(false)}
                 loading={updating} // نستخدم الـ loading الخاص بـ usePut
-                submitButtonText="Save Changes"
+                submitButtonText={t("Save Changes")}
             />
         );
     }
@@ -95,10 +98,10 @@ const Decimal = () => {
                         <div className="p-2 bg-red-100 rounded-lg">
                             <Settings2 className="text-red-600" size={28} />
                         </div>
-                        System Settings
+                        {t("System Settings")}
                     </h1>
-                    <p className="text-gray-500 mt-1 ml-1 pl-12">
-                        View and manage global decimal precision
+                    <p className="text-gray-500 mt-1 ms-1 ps-12">
+                        {t("View and manage global decimal precision")}
                     </p>
                 </div>
                 <button
@@ -106,21 +109,21 @@ const Decimal = () => {
                     className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-md hover:shadow-lg font-medium"
                 >
                     <Edit size={18} />
-                    Edit Settings
+                    {t("Edit Settings")}
                 </button>
             </div>
 
             {isLoading ? (
                 <div className="flex flex-col items-center justify-center p-20 space-y-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
                     <Activity className="animate-spin text-red-500" size={40} />
-                    <p className="text-gray-500 font-medium">Loading settings data...</p>
+                    <p className="text-gray-500 font-medium">{t("Loading settings data...")}</p>
                 </div>
             ) : (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
                     <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                        <h2 className="font-semibold text-gray-800 text-lg">Configuration Details</h2>
+                        <h2 className="font-semibold text-gray-800 text-lg">{t("Configuration Details")}</h2>
                         <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold tracking-wide uppercase">
-                            Active
+                            {t("Active")}
                         </span>
                     </div>
 
@@ -133,13 +136,13 @@ const Decimal = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">
-                                        Decimal Places
+                                        {t("Decimal Places")}
                                     </p>
                                     <div className="flex items-baseline gap-2">
                                         <p className="text-5xl font-extrabold text-gray-900">
                                             {decimalData?.decimal_places ?? 0}
                                         </p>
-                                        <span className="text-lg font-medium text-gray-400">Digits</span>
+                                        <span className="text-lg font-medium text-gray-400">{t("Digits")}</span>
                                     </div>
                                 </div>
                             </div>
@@ -151,7 +154,7 @@ const Decimal = () => {
                                         <Calendar size={20} />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-medium text-gray-500">Last Updated</p>
+                                        <p className="text-xs font-medium text-gray-500">{t("Last Updated")}</p>
                                         <p className="text-sm font-semibold text-gray-900">
                                             {formatDate(decimalData?.updatedAt)}
                                         </p>
@@ -163,7 +166,7 @@ const Decimal = () => {
                                         <Clock size={20} />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-medium text-gray-500">Created At</p>
+                                        <p className="text-xs font-medium text-gray-500">{t("Created At")}</p>
                                         <p className="text-sm font-semibold text-gray-900">
                                             {formatDate(decimalData?.createdAt)}
                                         </p>
@@ -177,7 +180,7 @@ const Decimal = () => {
                             <div className="flex flex-wrap items-center justify-center sm:justify-between gap-4 text-xs text-gray-500 font-mono">
                                 <div className="flex items-center gap-2">
                                     <Fingerprint size={14} className="text-gray-400" />
-                                    <span>ID: {decimalData?._id || "N/A"}</span>
+                                    <span>{t("ID")}: {decimalData?._id || t("N/A")}</span>
                                 </div>
 
                             </div>

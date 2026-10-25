@@ -122,7 +122,7 @@ const Cashier = () => {
       key: "warehouse_id",
       header: t("Warehouse"),
       filterable: false,
-      render: (_, row) => row.warehouse_id?.name || <span className="text-gray-400">No Warehouse</span>,
+      render: (_, row) => row.warehouse_id?.name || <span className="text-gray-400">{t("No Warehouse")}</span>,
     },
     {
       key: "status",
@@ -142,22 +142,22 @@ const Cashier = () => {
     {
       key: "printer_type",
       header: t("PrinterType"),
-      render: (type) => type || <span className="text-gray-400">No Type</span>,
+      render: (type) => type || <span className="text-gray-400">{t("No Type")}</span>,
     },
     {
       key: "printer_IP",
       header: t("PrinterIP"),
-      render: (ip) => ip || <span className="text-gray-400">No IP</span>,
+      render: (ip) => ip || <span className="text-gray-400">{t("No IP")}</span>,
     },
     {
       key: "printer_port",
       header: t("PrinterPort"),
-      render: (port) => port || <span className="text-gray-400">No Port</span>,
+      render: (port) => port || <span className="text-gray-400">{t("No Port")}</span>,
     },
     {
       key: "printer_name",
       header: t("PrinterName"),
-      render: (name) => name || <span className="text-gray-400">No Name</span>,
+      render: (name) => name || <span className="text-gray-400">{t("No Name")}</span>,
     },
   ];
 
@@ -176,11 +176,11 @@ const Cashier = () => {
         data={cashiers}
         columns={columns}
         title={t("CashierManagement")}
-        addButtonText="Add Cashier"
+        addButtonText={t("Add Cashier")}
         addPath="add"
         editPath={(item) => `edit/${item._id}`}
-        onAdd={() => alert("Add new brand clicked!")}
-        onEdit={(item) => alert(`Edit ${item.name}`)}
+        onAdd={() => {}}
+        onEdit={() => {}}
         onDelete={(item) => setDeleteTarget(item)}
         searchable={true}
         filterable={true}
@@ -234,14 +234,16 @@ const Cashier = () => {
                   <div>
                     <p className="font-bold text-gray-800">{account.name}</p>
                     <div className="flex gap-2 mt-1">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${account.status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                        {account.status ? "Active" : "Inactive"}
-                      </span>
-                      {account.in_POS && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">POS</span>}
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full ${account.status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                            {account.status ? t("Active") : t("Inactive")}
+                          </span>
+                      {account.in_POS && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{t("POS")}</span>}
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-red-600 font-bold text-lg">${account.balance?.toFixed(2)}</p>
+                    <p className="text-red-600 font-bold text-lg">
+                      {account.balance?.toFixed(2)} {t("EGP")}
+                    </p>
                   </div>
                 </div>
               ))}

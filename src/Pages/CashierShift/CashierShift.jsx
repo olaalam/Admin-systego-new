@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
@@ -29,7 +29,7 @@ const CashierShift = () => {
     const isArabic = i18n.language === "ar";
     const { putData } = usePut();
 
-    // فلتر الفروع (Warehouse) + نقاط البيع (POS = Cashier)
+    // ÙÙ„ØªØ± Ø§Ù„ÙØ±ÙˆØ¹ (Warehouse) + Ù†Ù‚Ø§Ø· Ø§Ù„Ø¨ÙŠØ¹ (POS = Cashier)
     const [filters, setFilters] = useState({
         warehouse_id: "",
         cashier_id: "",
@@ -87,18 +87,18 @@ const CashierShift = () => {
             render: (status, item) => {
                 const isOpen = status === 'open';
 
-                // دالة مخصصة للإغلاق فقط
+                // Ø¯Ø§Ù„Ø© Ù…Ø®ØµØµØ© Ù„Ù„Ø¥ØºÙ„Ø§Ù‚ ÙÙ‚Ø·
                 const handleCloseShift = async () => {
-                    // إذا كانت مغلقة بالفعل لا نفعل شيئاً
+                    // Ø¥Ø°Ø§ ÙƒØ§Ù†Øª Ù…ØºÙ„Ù‚Ø© Ø¨Ø§Ù„ÙØ¹Ù„ Ù„Ø§ Ù†ÙØ¹Ù„ Ø´ÙŠØ¦Ø§Ù‹
                     if (!isOpen) return;
 
                     try {
-                        // نرسل دائماً status: 'closed' للمسار المحدد
+                        // Ù†Ø±Ø³Ù„ Ø¯Ø§Ø¦Ù…Ø§Ù‹ status: 'closed' Ù„Ù„Ù…Ø³Ø§Ø± Ø§Ù„Ù…Ø­Ø¯Ø¯
                         await putData({ status: 'closed' }, `/api/admin/cashiershift/close/${item._id}`);
 
                         toast.success(t("shift_closed_successfully"));
 
-                        // تحديث البيانات ليعكس الحالة الجديدة بدون إعادة تحميل البروجكت
+                        // ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ù„ÙŠØ¹ÙƒØ³ Ø§Ù„Ø­Ø§Ù„Ø© Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø© Ø¨Ø¯ÙˆÙ† Ø¥Ø¹Ø§Ø¯Ø© ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¨Ø±ÙˆØ¬ÙƒØª
                         refetch();
                     } catch (err) {
                         toast.error(t("failed_to_close_shift"));
@@ -107,10 +107,10 @@ const CashierShift = () => {
 
                 return (
                     <div className="flex items-center gap-3">
-                        {/* تعديل الزر ليكون قابلاً للضغط فقط إذا كانت الوردية مفتوحة */}
+                        {/* ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø²Ø± Ù„ÙŠÙƒÙˆÙ† Ù‚Ø§Ø¨Ù„Ø§Ù‹ Ù„Ù„Ø¶ØºØ· ÙÙ‚Ø· Ø¥Ø°Ø§ ÙƒØ§Ù†Øª Ø§Ù„ÙˆØ±Ø¯ÙŠØ© Ù…ÙØªÙˆØ­Ø© */}
                         <button
                             onClick={handleCloseShift}
-                            disabled={!isOpen} // تعطيل الزر إذا كانت الوردية مغلقة
+                            disabled={!isOpen} // ØªØ¹Ø·ÙŠÙ„ Ø§Ù„Ø²Ø± Ø¥Ø°Ø§ ÙƒØ§Ù†Øª Ø§Ù„ÙˆØ±Ø¯ÙŠØ© Ù…ØºÙ„Ù‚Ø©
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${isOpen ? 'bg-emerald-500 hover:bg-emerald-600 cursor-pointer' : 'bg-gray-200 cursor-not-allowed'
                                 }`}
                             title={isOpen ? t("Click to close shift") : t("Shift is already closed")}
@@ -123,7 +123,7 @@ const CashierShift = () => {
                             />
                         </button>
 
-                        {/* عرض النص المقابل للحالة */}
+                        {/* Ø¹Ø±Ø¶ Ø§Ù„Ù†Øµ Ø§Ù„Ù…Ù‚Ø§Ø¨Ù„ Ù„Ù„Ø­Ø§Ù„Ø© */}
                         <span className={`text-[10px] font-black uppercase ${isOpen ? 'text-emerald-600' : 'text-gray-400'}`}>
                             {t(status)}
                         </span>
@@ -137,7 +137,7 @@ const CashierShift = () => {
             render: (val) => (
                 <div className="flex items-center gap-1.5">
                     <ArrowUpRight size={14} className="text-emerald-500" />
-                    <span className="font-black text-gray-900">{val?.toLocaleString()} <span className="text-[9px] text-gray-400">EGP</span></span>
+                    <span className="font-black text-gray-900">{val?.toLocaleString()} <span className="text-[9px] text-gray-400">{t("EGP")}</span></span>
                 </div>
             )
         },
@@ -147,7 +147,7 @@ const CashierShift = () => {
             render: (val) => (
                 <div className="flex items-center gap-1.5">
                     <ArrowDownLeft size={14} className="text-rose-500" />
-                    <span className="font-black text-gray-900">{val?.toLocaleString()} <span className="text-[9px] text-gray-400">EGP</span></span>
+                    <span className="font-black text-gray-900">{val?.toLocaleString()} <span className="text-[9px] text-gray-400">{t("EGP")}</span></span>
                 </div>
             )
         },
@@ -167,7 +167,7 @@ const CashierShift = () => {
             render: (val) => (
                 <div className="flex items-center gap-1.5">
                     <ArrowDownLeft size={14} className="text-blue-500" />
-                    <span className="font-black text-gray-900">{val?.toLocaleString() ?? 0} <span className="text-[9px] text-gray-400">EGP</span></span>
+                    <span className="font-black text-gray-900">{val?.toLocaleString() ?? 0} <span className="text-[9px] text-gray-400">{t("EGP")}</span></span>
                 </div>
             )
         },
@@ -177,7 +177,7 @@ const CashierShift = () => {
             render: (val) => (
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-900 rounded-xl w-fit">
                     <Wallet size={14} className="text-red-400" />
-                    <span className="font-black text-white text-xs">{val?.toLocaleString()} <span className="text-[9px] text-gray-400 uppercase">EGP</span></span>
+                    <span className="font-black text-white text-xs">{val?.toLocaleString()} <span className="text-[9px] text-gray-400 uppercase">{t("EGP")}</span></span>
                 </div>
             )
         },
@@ -187,12 +187,12 @@ const CashierShift = () => {
             render: (start, item) => (
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-xs">
-                        <span className="p-1 bg-emerald-50 text-emerald-600 rounded">In</span>
+                        <span className="p-1 bg-emerald-50 text-emerald-600 rounded">{t("In")}</span>
                         <span className="font-semibold text-gray-700">{new Date(start).toLocaleString(isArabic ? 'ar-EG' : 'en-US', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                     {item.end_time && (
                         <div className="flex items-center gap-2 text-xs">
-                            <span className="p-1 bg-rose-50 text-rose-600 rounded">Out</span>
+                            <span className="p-1 bg-rose-50 text-rose-600 rounded">{t("Out")}</span>
                             <span className="font-semibold text-gray-500">{new Date(item.end_time).toLocaleString(isArabic ? 'ar-EG' : 'en-US', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                     )}
@@ -202,13 +202,13 @@ const CashierShift = () => {
     ], [t, isArabic, putData]);
 
     const handleExport = (dataToExport) => {
-        // 1. التأكد من وجود بيانات
+        // 1. Ø§Ù„ØªØ£ÙƒØ¯ Ù…Ù† ÙˆØ¬ÙˆØ¯ Ø¨ÙŠØ§Ù†Ø§Øª
         if (!dataToExport?.length) {
             toast.error(t("Nodatafound"));
             return;
         }
 
-        // 2. تحويل البيانات لشكل مناسب للـ Excel (Mapping)
+        // 2. ØªØ­ÙˆÙŠÙ„ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ù„Ø´ÙƒÙ„ Ù…Ù†Ø§Ø³Ø¨ Ù„Ù„Ù€ Excel (Mapping)
         const worksheetData = dataToExport.map((shift) => ({
             [t("Cashier")]: shift.cashier_id?.name || t("Unknown"),
             [t("Cashier Man")]: shift.cashierman_id?.username || t("Unknown"),
@@ -225,12 +225,12 @@ const CashierShift = () => {
                 : "",
         }));
 
-        // 3. إنشاء الـ Workbook والـ Worksheet
+        // 3. Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ù€ Workbook ÙˆØ§Ù„Ù€ Worksheet
         const ws = XLSX.utils.json_to_sheet(worksheetData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Shifts");
 
-        // 4. تحميل الملف باسم معبر
+        // 4. ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ù„Ù Ø¨Ø§Ø³Ù… Ù…Ø¹Ø¨Ø±
         XLSX.writeFile(wb, `cashier_shifts_${new Date().toISOString().slice(0, 10)}.xlsx`);
     };
 

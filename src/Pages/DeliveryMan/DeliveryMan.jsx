@@ -32,7 +32,7 @@ const DeliveryMan = () => {
     { key: "name", header: t("Name"), filterable: false },
     { key: "email", header: t("Email"), filterable: false },
     { key: "phone_number", header: t("phone"), filterable: false },
-    { key: "status", header: t("Status"), filterable: false },
+    { key: "status", header: t("Status"), filterable: false, render: (status) => t(status === "active" || status === true ? "Active" : "Inactive") },
   ];
 
   if (loading) return <Loader />;
