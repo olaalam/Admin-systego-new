@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import AddPage from "@/components/AddPage"; // المكون الذي أرفقته
+import React, { useState, useMemo } from "react";
+import AddPage from "@/components/AddPage";
 import useGet from "@/hooks/useGet";
 import usePost from "@/hooks/usePost";
 import Loader from "@/components/Loader";
@@ -10,26 +10,39 @@ const PermissionAdd = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  // جلب البيانات الأساسية لبناء قائمة الصلاحيات
-  const { data: permissionData, loading: getLoading } = useGet("/api/admin/permission/modules-actions");
+  // حالة البحث (تُعرّف خارج fields حتى لا يُعاد إنشاءها كل render)
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const { data: permissionData, loading: getLoading } = useGet(
+    "/api/admin/permission/modules-actions",
+  );
   const { postData, loading: postLoading } = usePost("/api/admin/permission");
 
-  // استخراج الموديولز المتاحة من الـ API
   const availableModules = permissionData?.modules || [];
 
+  // فلترة الموديولات حسب اسم الموديول أو اسم أي action بداخله
+  const filteredModules = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return availableModules;
+    return availableModules.filter(
+      (m) =>
+        (m.label || m.name || "").toLowerCase().includes(term) ||
+        (m.actions || []).some((a) =>
+          (a.name || "").toLowerCase().includes(term),
+        ),
+    );
+  }, [availableModules, searchTerm]);
+
   const handleFormSubmit = async (formData) => {
-    // تجهيز البيانات بالشكل الذي يتوقعه الـ API
     const payload = {
       name: formData.name,
       status: formData.status ? "active" : "inactive",
-      permissions: formData.permissions, // هذه ستأتي من الـ custom render
+      permissions: formData.permissions,
     };
-
     await postData(payload);
     navigate("/permission");
   };
 
-  // تعريف الحقول لمرسلها لـ AddPage
   const fields = [
     {
       key: "name",
@@ -50,6 +63,17 @@ const PermissionAdd = () => {
       required: true,
       render: (formData, setFormData) => (
         <div className="mt-4">
+          {/* 🔍 Search by name */}
+          <div className="mb-4">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={t("Search by module name...")}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+            />
+          </div>
+
           {/* خيار تحديد الكل */}
           <div className="mb-6 flex items-center gap-2 bg-gray-50 p-3 rounded-lg border">
             <input
@@ -58,71 +82,114 @@ const PermissionAdd = () => {
               className="w-5 h-5 accent-red-600 cursor-pointer"
               onChange={(e) => {
                 if (e.target.checked) {
-                  const all = availableModules.map(m => ({
+                  const all = availableModules.map((m) => ({
                     module: m.name,
-                    actions: m.actions.map(a => a.name)
+                    actions: m.actions.map((a) => a.name),
                   }));
-                  setFormData(prev => ({ ...prev, permissions: all }));
+                  setFormData((prev) => ({ ...prev, permissions: all }));
                 } else {
-                  setFormData(prev => ({ ...prev, permissions: [] }));
+                  setFormData((prev) => ({ ...prev, permissions: [] }));
                 }
               }}
             />
-            <label htmlFor="selectAll" className="font-bold text-gray-700 cursor-pointer">
+            <label
+              htmlFor="selectAll"
+              className="font-bold text-gray-700 cursor-pointer"
+            >
               {t("Select All Permissions")}
             </label>
           </div>
 
-          {/* شبكة الكروت (التي طلبتيها) */}
+          {/* شبكة الكروت */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {availableModules.map((m) => {
-              const currentModule = (formData.permissions || []).find(p => p.module === m.name);
-              const isAllSelected = currentModule?.actions.length === m.actions.length;
+            {filteredModules.length === 0 && (
+              <div className="col-span-full text-center text-gray-500 py-6">
+                {t("No modules match your search")}
+              </div>
+            )}
+
+            {filteredModules.map((m) => {
+              const currentModule = (formData.permissions || []).find(
+                (p) => p.module === m.name,
+              );
+              const isAllSelected =
+                currentModule?.actions.length === m.actions.length;
 
               return (
-                <div key={m.id} className="border rounded-xl p-4 shadow-sm bg-white">
+                <div
+                  key={m.id}
+                  className="border rounded-xl p-4 shadow-sm bg-white"
+                >
                   <div className="flex items-center gap-2 mb-3 border-b pb-2">
                     <input
                       type="checkbox"
-                      checked={isAllSelected}
+                      checked={isAllSelected || false}
                       className="w-4 h-4 accent-red-600"
                       onChange={(e) => {
-                        const otherModules = (formData.permissions || []).filter(p => p.module !== m.name);
+                        const otherModules = (
+                          formData.permissions || []
+                        ).filter((p) => p.module !== m.name);
                         if (e.target.checked) {
-                          setFormData(prev => ({
+                          setFormData((prev) => ({
                             ...prev,
-                            permissions: [...otherModules, { module: m.name, actions: m.actions.map(a => a.name) }]
+                            permissions: [
+                              ...otherModules,
+                              {
+                                module: m.name,
+                                actions: m.actions.map((a) => a.name),
+                              },
+                            ],
                           }));
                         } else {
-                          setFormData(prev => ({ ...prev, permissions: otherModules }));
+                          setFormData((prev) => ({
+                            ...prev,
+                            permissions: otherModules,
+                          }));
                         }
                       }}
                     />
-                    <h3 className="font-bold text-sm uppercase text-gray-800">{m.label || m.name}</h3>
+                    <h3 className="font-bold text-sm uppercase text-gray-800">
+                      {m.label || m.name}
+                    </h3>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     {m.actions.map((act) => (
-                      <label key={act.id} className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer hover:text-red-600">
+                      <label
+                        key={act.id}
+                        className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer hover:text-red-600"
+                      >
                         <input
                           type="checkbox"
-                          checked={currentModule?.actions.includes(act.name) || false}
+                          checked={
+                            currentModule?.actions.includes(act.name) || false
+                          }
                           className="w-3.5 h-3.5 accent-red-600"
                           onChange={(e) => {
-                            const otherModules = (formData.permissions || []).filter(p => p.module !== m.name);
-                            let newActions = currentModule ? [...currentModule.actions] : [];
+                            const otherModules = (
+                              formData.permissions || []
+                            ).filter((p) => p.module !== m.name);
+                            let newActions = currentModule
+                              ? [...currentModule.actions]
+                              : [];
 
                             if (e.target.checked) {
                               newActions.push(act.name);
                             } else {
-                              newActions = newActions.filter(a => a !== act.name);
+                              newActions = newActions.filter(
+                                (a) => a !== act.name,
+                              );
                             }
 
-                            setFormData(prev => ({
+                            setFormData((prev) => ({
                               ...prev,
-                              permissions: newActions.length > 0
-                                ? [...otherModules, { module: m.name, actions: newActions }]
-                                : otherModules
+                              permissions:
+                                newActions.length > 0
+                                  ? [
+                                      ...otherModules,
+                                      { module: m.name, actions: newActions },
+                                    ]
+                                  : otherModules,
                             }));
                           }}
                         />
@@ -145,7 +212,9 @@ const PermissionAdd = () => {
     <div className="p-6">
       <AddPage
         title={t("Add New Role")}
-        description={t("Define role name and assign specific permissions for each module.")}
+        description={t(
+          "Define role name and assign specific permissions for each module.",
+        )}
         fields={fields}
         onSubmit={handleFormSubmit}
         onCancel={() => navigate(-1)}

@@ -1166,6 +1166,7 @@ export default function AppRoutes() {
           <ProtectedRoute
             module={AppModules.PRODUCT}
             action={ModuleActions.VIEW}
+            adminOnly
           >
             <Barcode />
           </ProtectedRoute>
@@ -1751,16 +1752,14 @@ export default function AppRoutes() {
         />
       </Route>
 
-      <Route path="data">
-        <Route
-          index
-          element={
-            <ProtectedRoute>
-              <DomainData />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
+      <Route
+        path="data"
+        element={
+          <ProtectedRoute adminOnly>
+            <DomainData />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="shipping">
         <Route

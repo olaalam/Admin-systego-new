@@ -59,6 +59,7 @@ export const AppModules = {
   WASTED: "wasted",
   ECOMMERCE: "ecommerce",
   DELIVERY_MAN: "delivery_man",
+  INSTALLMENTS: "installments",
 };
 
 export const ModuleActions = {
