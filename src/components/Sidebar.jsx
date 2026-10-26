@@ -26,7 +26,12 @@ import { AppModules, ModuleActions } from "@/config/modules";
 import { useTenantInfo } from "@/context/TenantContext";
 
 const menuItems = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "/analytics" },
+  {
+    name: "Dashboard",
+    icon: LayoutDashboard,
+    path: "/analytics",
+    adminOnly: true,
+  },
   {
     name: "Product Management",
     icon: Layers,
@@ -173,31 +178,37 @@ const menuItems = [
         name: "Cashier Shifts",
         path: "/cashier-shift",
         module: AppModules.CASHIER_SHIFT_REPORT,
+        adminOnly: true,
       },
       {
         name: "Orders Report",
         path: "/orders-reports",
         module: AppModules.ORDERS_REPORT,
+        adminOnly: true,
       },
       {
         name: "Product Report",
         path: "/product-reports",
         module: AppModules.PRODUCT_REPORT,
+        adminOnly: true,
       },
       {
         name: "Financial Report",
         path: "/financial-reports",
         module: AppModules.FINANCIAL_REPORT,
+        adminOnly: true,
       },
       {
         name: "Product Movement Report",
         path: "/product-movement-report",
         module: AppModules.PRODUCT_MOVEMENT,
+        adminOnly: true,
       },
       {
         name: "All Returns",
         path: "/all-returns",
         module: AppModules.ALL_RETURNS,
+        adminOnly: true,
       },
     ],
   },
@@ -320,7 +331,9 @@ export default function Sidebar({
         canViewModule(child.module, child.adminOnly),
       )
     : activeModuleGroup
-      ? [{ name: activeModuleGroup.name, path: activeModuleGroup.path }]
+      ? canViewModule(activeModuleGroup.module, activeModuleGroup.adminOnly)
+        ? [{ name: activeModuleGroup.name, path: activeModuleGroup.path }]
+        : []
       : [];
 
   // Filtered by search

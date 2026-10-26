@@ -182,7 +182,11 @@ export default function AppRoutes() {
       <Route
         path="/analytics"
         element={
-          <ProtectedRoute module={AppModules.HOME} action={ModuleActions.VIEW}>
+          <ProtectedRoute
+            module={AppModules.HOME}
+            action={ModuleActions.VIEW}
+            adminOnly
+          >
             <Dashboard />
           </ProtectedRoute>
         }
@@ -1535,6 +1539,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <CashierShift />
             </ProtectedRoute>
@@ -1548,6 +1553,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <CashierShiftCashierDetails />
             </ProtectedRoute>
@@ -1561,6 +1567,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <CashierShiftDetails />
             </ProtectedRoute>
@@ -1577,6 +1584,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <OrdersReports />
             </ProtectedRoute>
@@ -1593,6 +1601,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <ProductReports />
             </ProtectedRoute>
@@ -1608,6 +1617,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <ProductMovementReport />
             </ProtectedRoute>
@@ -1624,6 +1634,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <FinancialReports />
             </ProtectedRoute>
@@ -2035,6 +2046,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <AllReturn />
             </ProtectedRoute>

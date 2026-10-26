@@ -23,7 +23,12 @@ const modules = [
   {
     name: "Dashboard",
     items: [
-      { name: "Dashboard", path: "/analytics", moduleKey: AppModules.HOME },
+      {
+        name: "Dashboard",
+        path: "/analytics",
+        moduleKey: AppModules.HOME,
+        adminOnly: true,
+      },
     ],
     icon: LayoutDashboard,
     path: "/analytics",
@@ -207,31 +212,37 @@ const modules = [
         name: "Cashier Shifts",
         path: "/cashier-shift",
         moduleKey: AppModules.CASHIER_SHIFT_REPORT,
+        adminOnly: true,
       },
       {
         name: "Orders Report",
         path: "/orders-reports",
         moduleKey: AppModules.ORDERS_REPORT,
+        adminOnly: true,
       },
       {
         name: "Product Report",
         path: "/product-reports",
         moduleKey: AppModules.PRODUCT_REPORT,
+        adminOnly: true,
       },
       {
         name: "Financial Report",
         path: "/financial-reports",
         moduleKey: AppModules.FINANCIAL_REPORT,
+        adminOnly: true,
       },
       {
         name: "Product Movement Report",
         path: "/product-movement-report",
         moduleKey: AppModules.PRODUCT_MOVEMENT,
+        adminOnly: true,
       },
       {
         name: "All Returns",
         path: "/all-returns",
         moduleKey: AppModules.ALL_RETURNS,
+        adminOnly: true,
       },
     ],
     icon: BarChart3,
