@@ -2147,6 +2147,7 @@ i18n.use(initReactI18next).init({
         NoVariation: "No Variation",
         "Available in all warehouses": "Available in all warehouses",
         "All Warehouses": "All Warehouses",
+        "My Warehouse": "My Warehouse",
         "Select Specific Warehouses": "Select Specific Warehouses",
         "Please select at least one warehouse":
           "Please select at least one warehouse",
@@ -2233,6 +2234,9 @@ i18n.use(initReactI18next).init({
         Company: "Company",
         EditProfile: "Edit Profile",
         SaveChanges: "Save Changes",
+        NewPassword: "New Password",
+        LeaveBlankToKeepCurrentPassword:
+          "Leave it empty to keep the current password",
         Deleteprofile: "Delete Profile",
         DeleteprofileMessage: "Are you sure you want to delete this profile?",
         profilenotfound: "Profile not found",
@@ -4794,6 +4798,7 @@ i18n.use(initReactI18next).init({
         "Select Warehouse": "اختر المستودع",
         "All Cashiers": "كل الكاشيرات",
         "All Warehouses": "كل المستودعات",
+        "My Warehouse": "فرعي",
         "All Categories": "كل الفئات",
         "All Products": "كل المنتجات",
         "Product Details": "تفاصيل المنتج",
@@ -5531,6 +5536,9 @@ i18n.use(initReactI18next).init({
         Company: "الشركة",
         EditProfile: "تعديل الملف الشخصي",
         SaveChanges: "حفظ التغييرات",
+        NewPassword: "كلمة مرور جديدة",
+        LeaveBlankToKeepCurrentPassword:
+          "اتركها فارغة للإبقاء على كلمة المرور الحالية",
         Deleteprofile: "حذف الملف الشخصي",
         DeleteprofileMessage: "هل أنت متأكد من حذف هذا الملف الشخصي؟",
         profilenotfound: "الملف الشخصي غير موجود",

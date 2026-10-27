@@ -8,6 +8,7 @@ import useDelete from "@/hooks/useDelete";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 import api from "@/api/api";
 import { toast } from "react-toastify";
 
@@ -17,6 +18,8 @@ const StockTake = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isRTL = i18n.language === "ar";
+  // 🔐 صلاحيات الجرد
+  const canDelete = hasPermission(AppModules.STOCKTAKE, "delete");
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [cancelling, setCancelling] = useState(false);
@@ -37,7 +40,7 @@ const StockTake = () => {
         <span className={`px-3 py-1 rounded-full text-xs font-medium ${config.bg}`}>
           {config.label}
         </span>
-        {status === "processing" && (
+        {status === "processing" && canDelete && (
           <button
             type="button"
             onClick={(e) => {

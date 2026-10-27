@@ -17,6 +17,8 @@ import usePut from "@/hooks/usePut";
 import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AppModules } from "@/config/modules";
+import { hasAnyPermission } from "@/lib/checkPermission";
 
 const currency = (value) => Number(value || 0).toFixed(2);
 
@@ -59,6 +61,10 @@ export default function InstallmentPlanDetails({ planId, onClose, onChanged }) {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
   const navigate = useNavigate();
+
+  // 🔐 صلاحيات تعديل/إلغاء خطة الأقساط
+  const canEditPlan = hasAnyPermission([AppModules.INSTALLMENTS, AppModules.ADMIN, AppModules.POS], "edit");
+  const canDeletePlan = hasAnyPermission([AppModules.INSTALLMENTS, AppModules.ADMIN, AppModules.POS], "delete");
 
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -687,6 +693,7 @@ export default function InstallmentPlanDetails({ planId, onClose, onChanged }) {
                         const isCancelled = item.status === "cancelled";
                         const isPaid = item.status === "paid";
                         const canCollect =
+                          canEditPlan &&
                           plan.status !== "cancelled" &&
                           !isCancelled &&
                           !isPaid &&
@@ -733,7 +740,8 @@ export default function InstallmentPlanDetails({ planId, onClose, onChanged }) {
                                     <Wallet size={16} />
                                   </button>
                                 )}
-                                {!isCancelled &&
+                                {canEditPlan &&
+                                  !isCancelled &&
                                   plan.status !== "cancelled" && (
                                     <button
                                       type="button"
@@ -764,7 +772,7 @@ export default function InstallmentPlanDetails({ planId, onClose, onChanged }) {
             {/* Footer */}
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                {plan.status === "active" && (
+                {plan.status === "active" && canDeletePlan && (
                   <Button
                     type="button"
                     variant="outline"

@@ -7,6 +7,7 @@ import useDelete from "@/hooks/useDelete";
 import api from "@/api/api";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 import { ArrowRightLeft } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -37,6 +38,9 @@ const Accounting = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/bank_account");
   const { deleteData, deleting } = useDelete("/api/admin/bank_account/delete");
   const { t } = useTranslation();
+
+  // 🔐 صلاحيات الحسابات المالية
+  const canEdit = hasPermission(AppModules.FINANCIAL_ACCOUNT, "edit");
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [updatingDefault, setUpdatingDefault] = useState(false);
@@ -153,24 +157,34 @@ const Accounting = () => {
     {
       key: "status",
       header: t("Status"),
-      render: (status, item) => (
-        <DefaultSwitch
-          isDefault={!!status}
-          onChange={() => handleToggleStatus(item)}
-          loading={updatingDefault}
-        />
-      ),
+      render: (status, item) =>
+        canEdit ? (
+          <DefaultSwitch
+            isDefault={!!status}
+            onChange={() => handleToggleStatus(item)}
+            loading={updatingDefault}
+          />
+        ) : (
+          <span className="text-xs font-semibold text-gray-600">
+            {status ? t("On") : t("Off")}
+          </span>
+        ),
     },
     {
       key: "in_POS",
       header: t("ShowinPOS"),
-      render: (in_POS, item) => (
-        <DefaultSwitch
-          isDefault={!!in_POS}
-          onChange={() => handleTogglePOS(item)}
-          loading={updatingPOS}
-        />
-      ),
+      render: (in_POS, item) =>
+        canEdit ? (
+          <DefaultSwitch
+            isDefault={!!in_POS}
+            onChange={() => handleTogglePOS(item)}
+            loading={updatingPOS}
+          />
+        ) : (
+          <span className="text-xs font-semibold text-gray-600">
+            {in_POS ? t("On") : t("Off")}
+          </span>
+        ),
     },
   ];
 
@@ -192,22 +206,24 @@ const Accounting = () => {
         onEdit={(item) => alert(`Edit bank account: ${item.account_no}`)}
         onDelete={(item) => setDeleteTarget(item)}
         // ✅ تمرير زر التحويل الجديد للـ DataTable
-        extraActions={(item) => (
-          <button
-            onClick={() => setTransferTarget(item)}
-            className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded transition-colors"
-            title={t("Transfer")}
-          >
-            <ArrowRightLeft size={16} />
-          </button>
-        )}
+        extraActions={(item) =>
+          canEdit ? (
+            <button
+              onClick={() => setTransferTarget(item)}
+              className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded transition-colors"
+              title={t("Transfer")}
+            >
+              <ArrowRightLeft size={16} />
+            </button>
+          ) : null
+        }
         addButtonText={t("AddFinancialAccount")}
         addPath="add"
         editPath={(item) => `edit/${item._id}`}
         itemsPerPage={10}
         searchable={true}
         filterable={true}
-        moduleName={AppModules.ACCOUNTING}
+        moduleName={AppModules.FINANCIAL_ACCOUNT}
         filters={[
           {
             key: "status",

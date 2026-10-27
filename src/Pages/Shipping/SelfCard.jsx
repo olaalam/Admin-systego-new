@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const SelfCard = ({ form, setForm, onSave, saving, pickupPoints = [] }) => {
+const SelfCard = ({ form, setForm, onSave, saving, pickupPoints = [], canEdit = true }) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const navigate = useNavigate();
@@ -179,14 +179,16 @@ const SelfCard = ({ form, setForm, onSave, saving, pickupPoints = [] }) => {
 
       {/* ═══════ Footer ═══════ */}
       <div className="p-4 bg-gray-50 border-t border-gray-100">
-        <Button
-          onClick={onSave}
-          disabled={saving}
-          className="w-full bg-red-600 hover:bg-red-700 text-white"
-        >
-          <Save size={15} className="me-2" />
-          {saving ? t("Saving") || "Saving..." : t("Save") || "Save"}
-        </Button>
+        {canEdit ? (
+          <Button
+            onClick={onSave}
+            disabled={saving}
+            className="w-full bg-red-600 hover:bg-red-700 text-white"
+          >
+            <Save size={15} className="me-2" />
+            {saving ? t("Saving") || "Saving..." : t("Save") || "Save"}
+          </Button>
+        ) : null}
       </div>
     </div>
   );

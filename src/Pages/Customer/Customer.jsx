@@ -5,6 +5,7 @@ import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 import { useNavigate } from "react-router-dom";
 import { Eye, Trash2, Edit, Phone, Mail, MapPin } from "lucide-react";
 import {
@@ -46,6 +47,11 @@ const Customer = () => {
   const isRTL = i18n.language === "ar";
   const customers = data?.customers || [];
 
+  // 🔐 صلاحيات العميل
+  const canAdd = hasPermission(AppModules.CUSTOMER, "add");
+  const canEdit = hasPermission(AppModules.CUSTOMER, "edit");
+  const canDelete = hasPermission(AppModules.CUSTOMER, "delete");
+
   const handleDelete = async (item) => {
     try {
       await deleteData(`/api/admin/customer/${item._id}`);
@@ -70,7 +76,9 @@ const Customer = () => {
         <h1 className="text-2xl font-bold text-gray-800">
           {t("customer_management")}
         </h1>
-        <Button onClick={() => navigate("add")}>{t("add_customer")}</Button>
+        {canAdd && (
+          <Button onClick={() => navigate("add")}>{t("add_customer")}</Button>
+        )}
       </div>
 
       {customers.length === 0 && (
@@ -111,20 +119,24 @@ const Customer = () => {
                   >
                     <Eye className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={() => navigate(`edit/${c._id}`)}
-                    className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600 transition-colors"
-                    title={t("edit")}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setDeleteTarget(c)}
-                    className="p-1.5 rounded-md hover:bg-red-50 text-red-600 transition-colors"
-                    title={t("delete")}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {canEdit && (
+                    <button
+                      onClick={() => navigate(`edit/${c._id}`)}
+                      className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600 transition-colors"
+                      title={t("edit")}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={() => setDeleteTarget(c)}
+                      className="p-1.5 rounded-md hover:bg-red-50 text-red-600 transition-colors"
+                      title={t("delete")}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
 

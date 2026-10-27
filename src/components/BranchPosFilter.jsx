@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { getStoredUser } from "@/lib/checkPermission";
 
 const normalizeId = (value) =>
   value && typeof value === "object" ? value._id : value;
@@ -30,28 +31,44 @@ export default function BranchPosFilter({
   const branchId = normalizeId(value.warehouse_id) || "";
   const cashierId = normalizeId(value.cashier_id) || "";
 
+  // 🔒 المستخدم المربوط بفرع: الفلتر بيبقى مقفول على فرعه ومفيش "كل الفروع".
+  //    الأدمن اللي مش مربوط بفرع بيختار براحته زي الأول.
+  const storedUser = getStoredUser();
+  const lockedBranchId = storedUser?.warehouse_id
+    ? String(storedUser.warehouse_id)
+    : "";
+  const effectiveBranchId = lockedBranchId || branchId;
+
+  const hasLockedOption = warehouses.some(
+    (warehouse) => String(normalizeId(warehouse._id)) === lockedBranchId,
+  );
+
   // نعرض بس نقاط البيع التابعة للفرع المختار
   const filteredCashiers = cashiers.filter((cashier) => {
-    if (!branchId) return true;
-    return String(normalizeId(cashier.warehouse_id)) === String(branchId);
+    if (!effectiveBranchId) return true;
+    return String(normalizeId(cashier.warehouse_id)) === String(effectiveBranchId);
   });
 
   return (
     <>
       <select
         aria-label={t("Warehouse")}
-        value={branchId}
+        value={effectiveBranchId}
         onChange={(e) =>
           onChange({ warehouse_id: e.target.value, cashier_id: "" })
         }
-        className={selectClassName}
+        className={`${selectClassName} ${lockedBranchId ? "cursor-not-allowed opacity-70" : ""}`}
+        disabled={!!lockedBranchId}
       >
-        <option value="">{t("All Warehouses")}</option>
+        {!lockedBranchId && <option value="">{t("All Warehouses")}</option>}
         {warehouses.map((warehouse) => (
           <option key={warehouse._id} value={warehouse._id}>
             {warehouse.name}
           </option>
         ))}
+        {lockedBranchId && !hasLockedOption && (
+          <option value={lockedBranchId}>{t("My Warehouse")}</option>
+        )}
       </select>
 
       {showPos && (

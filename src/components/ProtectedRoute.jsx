@@ -39,9 +39,11 @@ export default function ProtectedRoute({
   }
 
   // 4. Check Authorization (Permission?)
-  // If module and action are passed, we validate them
+  // If module and action are passed, we validate them.
+  // module ممكن يكون اسم واحد أو مصفوفة أسماء (يكفي صلاحية واحدة منها)
   if (module && action) {
-    const isAllowed = hasPermission(module, action);
+    const modules = Array.isArray(module) ? module : [module];
+    const isAllowed = modules.some((m) => hasPermission(m, action));
     if (!isAllowed) {
       return <Navigate to="/unauthorized" replace />;
     }

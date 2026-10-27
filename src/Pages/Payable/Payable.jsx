@@ -5,10 +5,13 @@ import { DollarSign, X } from "lucide-react";
 import { toast } from "react-toastify";
 import useGet from "@/hooks/useGet";
 import usePost from "@/hooks/usePost";
+import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 
 export default function Payable() {
     const { t, i18n } = useTranslation();
     const lang = i18n.language;
+    const canAdd = hasPermission(AppModules.PAYABLE, "add");
 
     // States للنافذة المنبثقة (Modal)
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -115,7 +118,7 @@ export default function Payable() {
                 moduleName="payable" // للتحكم في الصلاحيات إن وجدت داخل الـ DataTable
                 // إضافة زر الدفع في خانة الـ Actions
                 extraActions={(item) =>
-                    item.can_add_transaction ? (
+                    canAdd && item.can_add_transaction ? (
                         <button
                             onClick={() => handleOpenTransactionModal(item)}
                             className="text-green-600 hover:text-green-800 p-2 hover:bg-green-50 rounded transition-colors"

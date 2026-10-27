@@ -311,7 +311,7 @@ const CashierShift = () => {
                             columns={columns}
                             title={t("Shift Records")}
                             showActions={false}
-                            moduleName={AppModules.CASHIER_SHIFT}
+                            moduleName={AppModules.CASHIER_SHIFT_REPORT}
                             filterable={true}
                             searchable={true}
                             onExport={handleExport}

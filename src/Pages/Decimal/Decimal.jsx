@@ -5,10 +5,13 @@ import { useTranslation } from "react-i18next";
 import AddPage from "@/components/AddPage";
 import useGet from "@/hooks/useGet";
 import usePut from "@/hooks/usePut";
+import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 
 const Decimal = () => {
     const { t, i18n } = useTranslation();
     const isArabic = i18n.language?.startsWith("ar");
+    const canEdit = hasPermission(AppModules.DECIMAL_SETTING, "edit");
     const [isEditing, setIsEditing] = useState(false);
     const [decimalData, setDecimalData] = useState(null);
 
@@ -104,6 +107,7 @@ const Decimal = () => {
                         {t("View and manage global decimal precision")}
                     </p>
                 </div>
+                {canEdit && (
                 <button
                     onClick={() => setIsEditing(true)}
                     className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-md hover:shadow-lg font-medium"
@@ -111,6 +115,7 @@ const Decimal = () => {
                     <Edit size={18} />
                     {t("Edit Settings")}
                 </button>
+                )}
             </div>
 
             {isLoading ? (

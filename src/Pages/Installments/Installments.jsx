@@ -8,6 +8,8 @@ import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import InstallmentPlanDetails from "./InstallmentPlanDetails";
+import { AppModules } from "@/config/modules";
+import { hasPermission, hasAnyPermission } from "@/lib/checkPermission";
 
 const currency = (value) => Number(value || 0).toFixed(2);
 
@@ -23,6 +25,12 @@ const statusClass = (status) => {
 export default function Installments() {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
+
+  // 🔐 صلاحيات التقسيط (installments أو Admin أو POS للتوافق القديم)
+  const canEdit = hasAnyPermission(
+    [AppModules.INSTALLMENTS, AppModules.ADMIN, AppModules.POS],
+    "edit",
+  );
 
   const statusLabel = (status) => {
     if (status === "completed") return t("installments.statuses.completed");
@@ -125,6 +133,7 @@ export default function Installments() {
         </p>
       </div>
 
+      {canEdit && (
       <form
         onSubmit={handleSave}
         className="bg-white border border-gray-200 rounded-2xl p-5 grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -231,6 +240,7 @@ export default function Installments() {
           </Button>
         </div>
       </form>
+      )}
 
       <div className="bg-white border border-gray-200 rounded-2xl p-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">

@@ -171,10 +171,11 @@ export default function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
 
       {/* ✅ Main Pages محمية */}
+      {/* صفحة اختيار الموديولات: متاحة لأي مستخدم مسجل، وهي نفسها بتخفي العناصر غير المسموح بها */}
       <Route
         path="/"
         element={
-          <ProtectedRoute module={AppModules.HOME} action={ModuleActions.VIEW}>
+          <ProtectedRoute>
             <ModulesGrid />
           </ProtectedRoute>
         }
@@ -183,9 +184,8 @@ export default function AppRoutes() {
         path="/analytics"
         element={
           <ProtectedRoute
-            module={AppModules.HOME}
+            module={[AppModules.HOME, AppModules.Dashboard]}
             action={ModuleActions.VIEW}
-            adminOnly
           >
             <Dashboard />
           </ProtectedRoute>
@@ -1925,7 +1925,11 @@ export default function AppRoutes() {
           index
           element={
             <ProtectedRoute
-              module={AppModules.ADMIN}
+              module={[
+                AppModules.INSTALLMENTS,
+                AppModules.ADMIN,
+                AppModules.POS,
+              ]}
               action={ModuleActions.VIEW}
             >
               <Installments />

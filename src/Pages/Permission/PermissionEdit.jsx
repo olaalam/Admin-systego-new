@@ -7,9 +7,10 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
 const PermissionEdit = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
+  const isArabic = i18n.language === "ar";
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -41,7 +42,7 @@ const PermissionEdit = () => {
     }
   }, [roleData, initialFormData]);
 
-  // فلترة الموديولات حسب البحث
+  // فلترة الموديولات حسب الاسم المعروض أو التقني أو اسم أي action بداخله
   const filteredPermissions = useMemo(() => {
     const list = roleData?.permissions || [];
     const term = searchTerm.trim().toLowerCase();
@@ -49,11 +50,33 @@ const PermissionEdit = () => {
     return list.filter(
       (m) =>
         (m.module || "").toLowerCase().includes(term) ||
+        (m.label || "").toLowerCase().includes(term) ||
+        (m.label_ar || "").toLowerCase().includes(term) ||
         (m.actions || []).some((a) =>
           (a.action || "").toLowerCase().includes(term),
         ),
     );
   }, [roleData, searchTerm]);
+
+  const moduleLabel = (m) =>
+    isArabic
+      ? m.label_ar || m.label || m.module
+      : m.label || m.module;
+
+  const ACTION_LABELS = {
+    View: { en: "View", ar: "عرض" },
+    Add: { en: "Add", ar: "إضافة" },
+    Edit: { en: "Edit", ar: "تعديل" },
+    Delete: { en: "Delete", ar: "حذف" },
+    Status: { en: "Status", ar: "تفعيل / إيقاف" },
+  };
+
+  const actionLabel = (name) =>
+    ACTION_LABELS[name]
+      ? isArabic
+        ? ACTION_LABELS[name].ar
+        : ACTION_LABELS[name].en
+      : name;
 
   const handleFormSubmit = async (formData) => {
     const payload = {
@@ -130,105 +153,137 @@ const PermissionEdit = () => {
               </label>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-7">
               {filteredPermissions.length === 0 && (
-                <div className="col-span-full text-center text-gray-500 py-6">
+                <div className="text-center text-gray-500 py-6">
                   {t("No modules match your search")}
                 </div>
               )}
 
-              {filteredPermissions.map((m) => {
-                const moduleInState = currentPermissions.find(
-                  (p) => p.module === m.module,
+              {(roleData?.groups?.length
+                ? roleData.groups
+                : [{ key: "all", en: "All", ar: "الكل" }]
+              ).map((group) => {
+                const items = filteredPermissions.filter(
+                  (m) =>
+                    (roleData?.groups?.length ? m.group : "all") === group.key,
                 );
-                const isModuleFull =
-                  moduleInState?.actions.length === m.actions.length;
+                if (!items.length) return null;
 
                 return (
-                  <div
-                    key={m.id || m.module || m.name}
-                    className="border rounded-xl p-4 shadow-sm bg-white border-gray-100 hover:border-red-100 transition-colors"
-                  >
-                    <div className="flex items-center gap-2 mb-3 border-b pb-2 border-gray-50">
-                      <input
-                        type="checkbox"
-                        checked={isModuleFull || false}
-                        className="w-4 h-4 accent-red-600 cursor-pointer"
-                        onChange={(e) => {
-                          const otherModules = currentPermissions.filter(
-                            (p) => p.module !== m.module,
-                          );
-                          if (e.target.checked) {
-                            setFormData({
-                              ...formData,
-                              permissions: [
-                                ...otherModules,
-                                {
-                                  module: m.module,
-                                  actions: m.actions.map((a) => a.action),
-                                },
-                              ],
-                            });
-                          } else {
-                            setFormData({
-                              ...formData,
-                              permissions: otherModules,
-                            });
-                          }
-                        }}
-                      />
-                      <h3 className="font-bold text-sm text-gray-800 uppercase">
-                        {m.module.replace("_", " ")}
-                      </h3>
-                    </div>
+                  <div key={group.key}>
+                    <h3 className="mb-3 flex items-center gap-2 text-sm font-black text-gray-700">
+                      <span className="h-2 w-2 rounded-full bg-red-600" />
+                      {isArabic ? group.ar : group.en}
+                      <span className="text-xs font-medium text-gray-400">
+                        ({items.length})
+                      </span>
+                    </h3>
 
-                    <div className="grid grid-cols-2 gap-2">
-                      {m.actions.map((act, actIdx) => (
-                        <label
-                          key={act.id || act.action || act.name || actIdx}
-                          className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer hover:text-red-600"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={
-                              moduleInState?.actions.includes(act.action) ||
-                              false
-                            }
-                            className="w-4 h-4 accent-red-600"
-                            onChange={(e) => {
-                              const otherModules = currentPermissions.filter(
-                                (p) => p.module !== m.module,
-                              );
-                              let newActions = moduleInState
-                                ? [...moduleInState.actions]
-                                : [];
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {items.map((m) => {
+                        const moduleInState = currentPermissions.find(
+                          (p) => p.module === m.module,
+                        );
+                        const isModuleFull =
+                          moduleInState?.actions.length === m.actions.length;
 
-                              if (e.target.checked) {
-                                newActions.push(act.action);
-                              } else {
-                                newActions = newActions.filter(
-                                  (a) => a !== act.action,
-                                );
-                              }
-
-                              setFormData({
-                                ...formData,
-                                permissions:
-                                  newActions.length > 0
-                                    ? [
+                        return (
+                          <div
+                            key={m.id || m.module || m.name}
+                            className="border rounded-xl p-4 shadow-sm bg-white border-gray-100 hover:border-red-100 transition-colors"
+                          >
+                            <div className="flex items-center gap-2 mb-3 border-b pb-2 border-gray-50">
+                              <input
+                                type="checkbox"
+                                checked={isModuleFull || false}
+                                className="w-4 h-4 accent-red-600 cursor-pointer"
+                                onChange={(e) => {
+                                  const otherModules = currentPermissions.filter(
+                                    (p) => p.module !== m.module,
+                                  );
+                                  if (e.target.checked) {
+                                    setFormData({
+                                      ...formData,
+                                      permissions: [
                                         ...otherModules,
                                         {
                                           module: m.module,
-                                          actions: newActions,
+                                          actions: m.actions.map((a) => a.action),
                                         },
-                                      ]
-                                    : otherModules,
-                              });
-                            }}
-                          />
-                          {act.action}
-                        </label>
-                      ))}
+                                      ],
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      permissions: otherModules,
+                                    });
+                                  }
+                                }}
+                              />
+                              <div className="min-w-0">
+                                <h3 className="font-bold text-sm text-gray-800 truncate">
+                                  {moduleLabel(m)}
+                                </h3>
+                                <span className="text-[10px] font-mono text-gray-400">
+                                  {m.module}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              {m.actions.map((act, actIdx) => (
+                                <label
+                                  key={act.id || act.action || act.name || actIdx}
+                                  className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer hover:text-red-600"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={
+                                      moduleInState?.actions.includes(
+                                        act.action,
+                                      ) || false
+                                    }
+                                    className="w-4 h-4 accent-red-600"
+                                    onChange={(e) => {
+                                      const otherModules =
+                                        currentPermissions.filter(
+                                          (p) => p.module !== m.module,
+                                        );
+                                      let newActions = moduleInState
+                                        ? [...moduleInState.actions]
+                                        : [];
+
+                                      if (e.target.checked) {
+                                        newActions.push(act.action);
+                                      } else {
+                                        newActions = newActions.filter(
+                                          (a) => a !== act.action,
+                                        );
+                                      }
+
+                                      setFormData({
+                                        ...formData,
+                                        permissions:
+                                          newActions.length > 0
+                                            ? [
+                                                ...otherModules,
+                                                {
+                                                  module: m.module,
+                                                  actions: newActions,
+                                                },
+                                              ]
+                                            : otherModules,
+                                      });
+                                    }}
+                                  />
+                                  {actionLabel(act.action)}
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );

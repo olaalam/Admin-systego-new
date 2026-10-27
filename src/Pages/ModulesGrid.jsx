@@ -26,8 +26,7 @@ const modules = [
       {
         name: "Dashboard",
         path: "/analytics",
-        moduleKey: AppModules.HOME,
-        adminOnly: true,
+        moduleKey: [AppModules.HOME, AppModules.Dashboard],
       },
     ],
     icon: LayoutDashboard,
@@ -94,7 +93,7 @@ const modules = [
       {
         name: "Installments",
         path: "/installments",
-        moduleKey: AppModules.ADMIN,
+        moduleKey: [AppModules.INSTALLMENTS, AppModules.ADMIN, AppModules.POS],
       },
       { name: "Ledger", path: "/ledger", moduleKey: AppModules.LEDGER },
     ],

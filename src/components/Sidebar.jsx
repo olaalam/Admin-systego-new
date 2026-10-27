@@ -30,7 +30,7 @@ const menuItems = [
     name: "Dashboard",
     icon: LayoutDashboard,
     path: "/analytics",
-    adminOnly: true,
+    module: [AppModules.HOME, AppModules.Dashboard],
   },
   {
     name: "Product Management",
@@ -81,7 +81,7 @@ const menuItems = [
       {
         name: "Installments",
         path: "/installments",
-        module: AppModules.ADMIN,
+        module: [AppModules.INSTALLMENTS, AppModules.ADMIN, AppModules.POS],
       },
       { name: "Ledger", path: "/ledger", module: AppModules.LEDGER },
     ],

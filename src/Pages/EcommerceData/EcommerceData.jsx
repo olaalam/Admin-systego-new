@@ -6,6 +6,7 @@ import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 import {
   CheckCircle,
   XCircle,
@@ -216,7 +217,7 @@ const EcommerceData = () => {
         itemsPerPage={10}
         searchable
         filterable
-        moduleName="Ecommerce"
+        moduleName={AppModules.ECOMMERCE}
         filters={[
           {
             key: "status",

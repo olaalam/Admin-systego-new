@@ -249,7 +249,7 @@ const Attribute = () => {
         itemsPerPage={10}
         searchable={true}
         filterable={true}
-        moduleName={AppModules.ATTRIBUTE}
+        moduleName={AppModules.VARIATION}
       />
 
       {/* Delete Dialog */}

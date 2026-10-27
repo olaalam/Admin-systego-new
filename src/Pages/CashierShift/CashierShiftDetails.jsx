@@ -441,7 +441,7 @@ const CashierShiftDetails = () => {
                   title={t("Sales Invoices")}
                   showActions={false}
                   pagination={true}
-                  moduleName={AppModules.CASHIER_SHIFT}
+                  moduleName={AppModules.CASHIER_SHIFT_REPORT}
                 />
               </div>
             )}
@@ -455,7 +455,7 @@ const CashierShiftDetails = () => {
                     title={t("Expenses Sheet")}
                     showActions={false}
                     pagination={true}
-                    moduleName={AppModules.CASHIER_SHIFT}
+                    moduleName={AppModules.CASHIER_SHIFT_REPORT}
                   />
                 </div>
 
@@ -507,7 +507,7 @@ const CashierShiftDetails = () => {
                   title={t("Returns Sheet")}
                   showActions={false}
                   pagination={true}
-                  moduleName={AppModules.CASHIER_SHIFT}
+                  moduleName={AppModules.CASHIER_SHIFT_REPORT}
                 />
               </div>
             )}

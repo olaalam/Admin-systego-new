@@ -5,6 +5,7 @@ import DeleteDialog from "@/components/DeleteForm";
 import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import api from "@/api/api";
+import { AppModules } from "@/config/modules";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -730,6 +731,7 @@ const Wasted = () => {
           data={wastedItems}
           columns={columns}
           title={t("Wasted")}
+          moduleName={AppModules.WASTED}
           addButtonText={t("Add Wasted")}
           onAdd={() => navigate("add")}
           addPath="add"

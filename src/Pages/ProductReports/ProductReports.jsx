@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { AppModules } from "@/config/modules";
+import { getStoredUser } from "@/lib/checkPermission";
 import {
     Dialog,
     DialogContent,
@@ -30,6 +31,12 @@ import {
 const ProductReports = () => {
     const { t, i18n } = useTranslation();
     const isArabic = i18n.language === "ar";
+
+    // 🔒 المستخدم المربوط بفرع: التقرير بيبقى لفرعه بس (السيرفر بيفرضه كمان)
+    const storedUser = getStoredUser();
+    const lockedWarehouseId = storedUser?.warehouse_id
+        ? String(storedUser.warehouse_id)
+        : "";
 
     // Default dates (today)
     const today = new Date().toISOString().split('T')[0];
@@ -222,18 +229,27 @@ const ProductReports = () => {
 
                         {/* Selections */}
                         <select
-                            className="bg-transparent text-sm font-medium focus:outline-none px-2 py-1"
-                            value={filters.warehouse_id || ""}
+                            className="bg-transparent text-sm font-medium focus:outline-none px-2 py-1 disabled:opacity-70 disabled:cursor-not-allowed"
+                            value={lockedWarehouseId || filters.warehouse_id || ""}
+                            disabled={!!lockedWarehouseId}
                             onChange={(e) => setFilters(prev => ({
                                 ...prev,
                                 warehouse_id: e.target.value,
                                 cashier_id: null // Reset cashier when warehouse changes
                             }))}
                         >
-                            <option value="">{t("All Warehouses")}</option>
+                            {!lockedWarehouseId && (
+                                <option value="">{t("All Warehouses")}</option>
+                            )}
                             {selectionData?.warehouses?.map(w => (
                                 <option key={w._id} value={w._id}>{w.name}</option>
                             ))}
+                            {lockedWarehouseId &&
+                                !(selectionData?.warehouses || []).some(
+                                    w => String(w._id) === lockedWarehouseId
+                                ) && (
+                                    <option value={lockedWarehouseId}>{t("My Warehouse")}</option>
+                                )}
                         </select>
 
                         <select

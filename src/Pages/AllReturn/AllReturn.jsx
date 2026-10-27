@@ -296,7 +296,7 @@ const AllReturn = () => {
               title={t("All Sales Returns")}
               showActions={false}
               searchable={true}
-              moduleName={AppModules.PRODUCT_REPORT}
+              moduleName={AppModules.ALL_RETURNS}
               onRowClick={handleViewDetails}
 
             />

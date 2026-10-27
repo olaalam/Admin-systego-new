@@ -16,6 +16,8 @@ import {
   Layers,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 
 /* ─────────────────── Constants ─────────────────── */
 const POPULAR_FONTS = [
@@ -200,7 +202,7 @@ function TabBtn({ active, icon: Icon, label, badge, onClick }) {
   );
 }
 
-function SectionRow({ section, onToggle, t, isRTL }) {
+function SectionRow({ section, onToggle, t, isRTL, canEdit }) {
   return (
     <div
       className={`flex items-center justify-between px-5 py-4 transition-all duration-200 ${section.enabled ? "bg-white" : "bg-gray-50/60"}`}
@@ -232,11 +234,13 @@ function SectionRow({ section, onToggle, t, isRTL }) {
             ? t("storeSettings.customize.on")
             : t("storeSettings.customize.off")}
         </span>
-        <Toggle
-          checked={section.enabled}
-          onChange={() => onToggle(section.key)}
-          isRTL={isRTL}
-        />
+        {canEdit ? (
+          <Toggle
+            checked={section.enabled}
+            onChange={() => onToggle(section.key)}
+            isRTL={isRTL}
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -325,12 +329,14 @@ function ThemePreviewModal({ theme, loading, onClose, onApply, t }) {
               >
                 {t("storeSettings.themePreview.close")}
               </button>
-              <button
-                onClick={onApply}
-                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 text-white"
-              >
-                {t("storeSettings.themePreview.applyTheme")}
-              </button>
+              {onApply && (
+                <button
+                  onClick={onApply}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 text-white"
+                >
+                  {t("storeSettings.themePreview.applyTheme")}
+                </button>
+              )}
             </div>
           </>
         )}
@@ -344,6 +350,9 @@ function ThemePreviewModal({ theme, loading, onClose, onApply, t }) {
 export default function Ecommerce() {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
+
+  // 🔐 صلاحيات المتجر الإلكتروني
+  const canEdit = hasPermission(AppModules.ECOMMERCE, "edit");
 
   const {
     data: settingsRes,
@@ -580,28 +589,32 @@ export default function Ecommerce() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={handleReset}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm font-medium hover:bg-white/20 transition-all active:scale-95"
-            >
-              <RotateCcw className="w-4 h-4" />
-              {t("storeSettings.reset")}
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white text-indigo-700 text-sm font-bold hover:bg-indigo-50 shadow-lg transition-all active:scale-95"
-            >
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              {isSaving
-                ? t("storeSettings.saving")
-                : t("storeSettings.saveChanges")}
-            </button>
+            {canEdit && (
+              <>
+                <button
+                  onClick={handleReset}
+                  disabled={isSaving}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm font-medium hover:bg-white/20 transition-all active:scale-95"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  {t("storeSettings.reset")}
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white text-indigo-700 text-sm font-bold hover:bg-indigo-50 shadow-lg transition-all active:scale-95"
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  {isSaving
+                    ? t("storeSettings.saving")
+                    : t("storeSettings.saveChanges")}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -636,10 +649,12 @@ export default function Ecommerce() {
               onDrop={(e) => {
                 e.preventDefault();
                 setDragOver(false);
-                processFile(e.dataTransfer.files[0]);
+                if (canEdit) processFile(e.dataTransfer.files[0]);
               }}
-              onClick={() => fileInputRef.current?.click()}
-              className={`relative flex flex-col items-center justify-center h-52 rounded-2xl border-2 border-dashed cursor-pointer transition-all ${
+              onClick={() => canEdit && fileInputRef.current?.click()}
+              className={`relative flex flex-col items-center justify-center h-52 rounded-2xl border-2 border-dashed transition-all ${
+                canEdit ? "cursor-pointer" : "cursor-default"
+              } ${
                 dragOver
                   ? "border-indigo-500 bg-indigo-50"
                   : "border-gray-200 bg-gray-50 hover:border-indigo-400"
@@ -759,30 +774,32 @@ export default function Ecommerce() {
                           >
                             {t("storeSettings.template.view")}
                           </button>
-                          <button
-                            onClick={() => {
-                              if (theme.sections?.length) {
-                                applyThemeToForm(theme);
-                                toast.success(
-                                  t(
-                                    "storeSettings.toasts.templateSelectedShort",
-                                  ),
-                                );
-                                setActiveTab("customize");
-                              } else {
-                                setPendingSlug(slug);
-                              }
-                            }}
-                            disabled={isApplied}
-                            className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 ${isApplied ? "bg-indigo-50 text-indigo-600" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}
-                          >
-                            {isApplied ? (
-                              <Check className="w-3.5 h-3.5" />
-                            ) : null}
-                            {isApplied
-                              ? t("storeSettings.template.selected")
-                              : t("storeSettings.template.applyTheme")}
-                          </button>
+                          {canEdit && (
+                            <button
+                              onClick={() => {
+                                if (theme.sections?.length) {
+                                  applyThemeToForm(theme);
+                                  toast.success(
+                                    t(
+                                      "storeSettings.toasts.templateSelectedShort",
+                                    ),
+                                  );
+                                  setActiveTab("customize");
+                                } else {
+                                  setPendingSlug(slug);
+                                }
+                              }}
+                              disabled={isApplied}
+                              className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 ${isApplied ? "bg-indigo-50 text-indigo-600" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}
+                            >
+                              {isApplied ? (
+                                <Check className="w-3.5 h-3.5" />
+                              ) : null}
+                              {isApplied
+                                ? t("storeSettings.template.selected")
+                                : t("storeSettings.template.applyTheme")}
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -848,9 +865,10 @@ export default function Ecommerce() {
                   <div
                     key={font.name}
                     onClick={() =>
+                      canEdit &&
                       setFormData((prev) => ({ ...prev, fontStyle: font.name }))
                     }
-                    className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${
+                    className={`${canEdit ? "cursor-pointer" : "cursor-default"} p-4 rounded-xl border-2 transition-all ${
                       isSelected
                         ? "border-indigo-500 bg-indigo-50/50 shadow-sm"
                         : "border-gray-100 hover:border-indigo-200 bg-gray-50/50"
@@ -901,6 +919,7 @@ export default function Ecommerce() {
                     onToggle={toggleSection}
                     t={t}
                     isRTL={isRTL}
+                    canEdit={canEdit}
                   />
                 ))}
               </div>
@@ -917,14 +936,20 @@ export default function Ecommerce() {
         theme={viewingTheme}
         loading={isLoadingViewDetails}
         onClose={() => setViewSlug(null)}
-        onApply={() => {
-          if (viewingTheme) {
-            applyThemeToForm(viewingTheme);
-            toast.success(t("storeSettings.toasts.templateSelectedShort"));
-            setActiveTab("customize");
-          }
-          setViewSlug(null);
-        }}
+        onApply={
+          canEdit
+            ? () => {
+                if (viewingTheme) {
+                  applyThemeToForm(viewingTheme);
+                  toast.success(
+                    t("storeSettings.toasts.templateSelectedShort"),
+                  );
+                  setActiveTab("customize");
+                }
+                setViewSlug(null);
+              }
+            : undefined
+        }
         t={t}
       />
     </div>

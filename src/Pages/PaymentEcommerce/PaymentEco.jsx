@@ -6,6 +6,7 @@ import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 import OrderShippingSection from "@/components/OrderDetail/OrderShippingSection";
 import BulkCreateBostaShipmentsModal from "@/components/OrderDetail/BulkCreateBostaShipmentsModal";
 import CreateDailyPickupModal from "@/components/OrderDetail/CreateDailyPickupModal";
@@ -701,6 +702,10 @@ const PaymentEco = () => {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
 
+  // 🔐 صلاحيات صفحة طلبات الأونلاين
+  const canAdd = hasPermission(AppModules.PAYMENT_ECO, "add");
+  const canDelete = hasPermission(AppModules.PAYMENT_ECO, "delete");
+
   const {
     data: responseData,
     loading,
@@ -1050,36 +1055,40 @@ const PaymentEco = () => {
         ),
       },
       // 🗑️ Delete Column
-      {
-        key: "delete",
-        header: t("Actions"),
-        render: (_, item) => {
-          const isDeleting = deletingId === item._id;
-          return (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteOrder(item);
-              }}
-              disabled={isDeleting}
-              title={t("Delete Order")}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
-            >
-              {isDeleting ? (
-                <Loader2 size={13} className="animate-spin" />
-              ) : (
-                <Trash2
-                  size={13}
-                  className="group-hover:scale-110 transition-transform"
-                />
-              )}
-              {t("Delete")}
-            </button>
-          );
-        },
-      },
+      ...(canDelete
+        ? [
+            {
+              key: "delete",
+              header: t("Actions"),
+              render: (_, item) => {
+                const isDeleting = deletingId === item._id;
+                return (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteOrder(item);
+                    }}
+                    disabled={isDeleting}
+                    title={t("Delete Order")}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
+                  >
+                    {isDeleting ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      <Trash2
+                        size={13}
+                        className="group-hover:scale-110 transition-transform"
+                      />
+                    )}
+                    {t("Delete")}
+                  </button>
+                );
+              },
+            },
+          ]
+        : []),
     ],
-    [t, isArabic, deletingId],
+    [t, isArabic, deletingId, canDelete],
   );
 
   return (
@@ -1100,6 +1109,7 @@ const PaymentEco = () => {
             </div>
 
             {/* ✅ أزرار العمليات */}
+            {canAdd && (
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setShowBulkModal(true)}
@@ -1118,6 +1128,7 @@ const PaymentEco = () => {
                 {t("Create Daily Pickup")}
               </button>
             </div>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-3 w-full lg:w-auto">
@@ -1229,7 +1240,7 @@ const PaymentEco = () => {
                   "Orders",
               )}`}
               showActions={false}
-              moduleName={AppModules.PAYMENT}
+              moduleName={AppModules.PAYMENT_ECO}
             />
           </div>
         )}

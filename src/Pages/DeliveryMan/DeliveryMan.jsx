@@ -6,6 +6,7 @@ import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const DeliveryMan = () => {
   const { data, loading, refetch } = useGet("/api/admin/delivery-man");
@@ -52,7 +53,7 @@ const DeliveryMan = () => {
         itemsPerPage={10}
         searchable
         filterable
-        moduleName="DeliveryMan"
+        moduleName={AppModules.DELIVERY_MAN}
         filters={[
           {
             key: "status",

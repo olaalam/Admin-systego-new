@@ -94,6 +94,13 @@ export default function AdminEdit() {
         required: true,
       },
       {
+        key: "password",
+        label: t("NewPassword"),
+        type: "password",
+        required: false,
+        placeholder: t("LeaveBlankToKeepCurrentPassword"),
+      },
+      {
         key: "role_id",
         label: t("Role"),
         type: "select",

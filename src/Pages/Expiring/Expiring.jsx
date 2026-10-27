@@ -159,7 +159,7 @@ const Expiring = () => {
                             title={t("Stock Expiry List")}
                             showActions={false}
                             searchable={true}
-                            moduleName={AppModules.PURCHASES}
+                            moduleName={AppModules.EXPIRING}
                             onExport={handleExport}
                         />
                     </div>

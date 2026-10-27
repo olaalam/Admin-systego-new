@@ -6,10 +6,14 @@ import api from "@/api/api";
 import { useTranslation } from "react-i18next";
 import { Plus, Edit, Trash2, CreditCard } from "lucide-react";
 import Loader from "@/components/Loader";
+import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 
 const Geidea = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const canAdd = hasPermission(AppModules.PAY, "add");
+    const canEdit = hasPermission(AppModules.PAY, "edit");
 
     const [refreshKey, setRefreshKey] = useState(0);
 
@@ -45,6 +49,7 @@ const Geidea = () => {
                     <h1 className="text-2xl font-bold text-gray-800">{t("Geidea Settings")}</h1>
                     <p className="text-sm text-gray-500 mt-1">{t("Manage your payment gateway configurations")}</p>
                 </div>
+                {canAdd && (
                 <button
                     onClick={() => navigate("/geidea/add")}
                     className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
@@ -52,6 +57,7 @@ const Geidea = () => {
                     <Plus size={20} />
                     {t("Add Config")}
                 </button>
+                )}
             </div>
 
             {/* Cards Grid Section */}
@@ -137,6 +143,7 @@ const Geidea = () => {
 
                             {/* Card Footer (Actions) */}
                             <div className="p-4 bg-white flex items-center justify-between gap-3 border-t border-gray-50">
+                                {canEdit && (
                                 <button
                                     onClick={() => navigate(`/geidea/edit/${item._id}`)}
                                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-sm font-medium transition-colors border border-gray-200"
@@ -144,6 +151,7 @@ const Geidea = () => {
                                     <Edit size={16} />
                                     {t("Edit")}
                                 </button>
+                                )}
                                 {/* <button
                                     onClick={() => handleDelete(item._id)}
                                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-sm font-medium transition-colors border border-red-100"

@@ -8,10 +8,11 @@ import {
 import {
   TrendingUp, TrendingDown, ShoppingCart, DollarSign,
   Package, ReceiptText, Wallet, ArrowDownCircle,
-  BarChart2, Loader2, CalendarDays, Activity,
+  BarChart2, Loader2, CalendarDays, Activity, Lock,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import BranchPosFilter from "@/components/BranchPosFilter";
+import { getStoredUser } from "@/lib/checkPermission";
 
 /* ────────── helpers ────────── */
 const fmt = (n) =>
@@ -215,9 +216,15 @@ export default function Dashboard() {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language?.startsWith("ar");
   const locale = isArabic ? "ar-EG" : "en-US";
+
+  // 🔒 لو المستخدم مربوط بفرع (warehouse_id) → الداشبورد بيبقى لفرعه بس.
+  //    الأدمن اللي مش مربوط بفرع (أو السوبر أدمن) بيختار أي فرع براحته.
+  const storedUser = getStoredUser();
+  const lockedWarehouseId = storedUser?.warehouse_id || null;
+
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
-  const [warehouseId, setWarehouseId] = useState("");
+  const [warehouseId, setWarehouseId] = useState(lockedWarehouseId || "");
   const [apiUrl, setApiUrl] = useState("/api/admin/dashboard");
   const { data, loading, error } = useGet(apiUrl);
 
@@ -229,7 +236,9 @@ export default function Dashboard() {
     const params = new URLSearchParams();
     if (start) params.append("start_date", start);
     if (end) params.append("end_date", end);
-    if (warehouseId) params.append("warehouse_id", warehouseId);
+    // المستخدم المربوط بفرع مش محتاج يبعته — السيرفر بيفرضه أصلاً
+    if (warehouseId && !lockedWarehouseId)
+      params.append("warehouse_id", warehouseId);
     const qs = params.toString();
     setApiUrl(qs ? `${url}?${qs}` : url);
   };
@@ -237,7 +246,7 @@ export default function Dashboard() {
   const handleClear = () => {
     setStart("");
     setEnd("");
-    setWarehouseId("");
+    setWarehouseId(lockedWarehouseId || "");
     setApiUrl("/api/admin/dashboard");
   };
 
@@ -466,13 +475,24 @@ export default function Dashboard() {
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] uppercase font-bold text-gray-400 ms-1">{t("Warehouse")}</span>
-            <BranchPosFilter
-              showPos={false}
-              value={{ warehouse_id: warehouseId }}
-              onChange={(patch) => setWarehouseId(patch.warehouse_id || "")}
-              warehouses={branches}
-              selectClassName="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer min-w-[160px]"
-            />
+            {lockedWarehouseId ? (
+              <div className="flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 min-w-[160px]">
+                <Lock size={14} className="text-gray-400 shrink-0" />
+                <span className="truncate">
+                  {(isArabic ? branches[0]?.ar_name : branches[0]?.name) ||
+                    branches[0]?.name ||
+                    t("My Warehouse")}
+                </span>
+              </div>
+            ) : (
+              <BranchPosFilter
+                showPos={false}
+                value={{ warehouse_id: warehouseId }}
+                onChange={(patch) => setWarehouseId(patch.warehouse_id || "")}
+                warehouses={branches}
+                selectClassName="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer min-w-[160px]"
+              />
+            )}
           </div>
           <div className="flex items-center gap-2 self-end mb-[2px]">
             <button
