@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import useGet from "@/hooks/useGet";
 import usePut from "@/hooks/usePut";
 import { useTranslation } from "react-i18next";
+import { io } from "socket.io-client";
 import NotificationDetailModal from "./NotificationDetailModal";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,15 @@ const NotificationDropdown = () => {
             setNotifications(data.notifications);
         }
     }, [data]);
+
+    useEffect(() => {
+        const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+        const socket = io(baseUrl, { transports: ["websocket"] });
+        socket.on("new_order", () => {
+            if (typeof refetch === "function") refetch();
+        });
+        return () => socket.disconnect();
+    }, [refetch]);
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
 

@@ -9,8 +9,13 @@ import "@/App.css";
 import Loader from "./components/Loader";
 import { useTranslation } from "react-i18next";
 import { TenantProvider } from "@/context/TenantContext";
+import { useOrderNotifications } from "@/hooks/useOrderNotifications";
+import { toast } from "react-toastify";
 
 const MainLayout = () => {
+  useOrderNotifications((sale) => {
+    toast.success(`New order #${sale?.daily_order_number ?? sale?._id}`);
+  });
   const location = useLocation();
   const isLoginPage = location.pathname === "/login";
   const isControlPanel = location.pathname === "/";
