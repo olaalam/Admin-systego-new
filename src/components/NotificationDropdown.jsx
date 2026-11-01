@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bell, X, Eye, Loader2, Info, AlertTriangle, CheckCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 const NotificationDropdown = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const { data, loading, refetch } = useGet("/api/admin/notification");
     const { putData } = usePut("");
 
@@ -26,7 +28,7 @@ const NotificationDropdown = () => {
     }, [data]);
 
     useEffect(() => {
-        const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
         const socket = io(baseUrl, { transports: ["websocket"] });
         socket.on("new_order", () => {
             if (typeof refetch === "function") refetch();
@@ -112,6 +114,7 @@ const NotificationDropdown = () => {
                                     {visibleNotifications.map((notif) => (
                                         <div
                                             key={notif._id}
+                                            onClick={() => navigate("/payment-eco")}
                                             className={cn(
                                                 "group flex gap-3 p-4 border-b last:border-0 transition-all hover:bg-gray-50/70",
                                                 !notif.isRead
@@ -138,7 +141,7 @@ const NotificationDropdown = () => {
                                                             variant="ghost"
                                                             size="sm"
                                                             className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100/50"
-                                                            onClick={() => setSelectedNotificationId(notif._id)}
+                                                            onClick={(e) => { e.stopPropagation(); navigate("/payment-eco"); }}
                                                         >
                                                             <Eye className="w-3 h-3 mr-1" />
                                                             {t("Details")}

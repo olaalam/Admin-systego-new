@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 
 const MainLayout = () => {
   useOrderNotifications((sale) => {
-    toast.success(`New order #${sale?.daily_order_number ?? sale?._id}`);
+    toast.success(`New order #${sale?.reference ?? sale?._id}`);
   });
   const location = useLocation();
   const isLoginPage = location.pathname === "/login";
