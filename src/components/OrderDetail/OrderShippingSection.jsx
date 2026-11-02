@@ -164,10 +164,10 @@ const OrderShippingSection = ({ order, refetch }) => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] text-indigo-500 font-bold uppercase tracking-wider mb-1">
-                    {t("Pickup Warehouse (for delivery man)")}
+                    {t("Pickup Point / Warehouse")}
                   </p>
                   <p className="text-sm font-black text-slate-900 truncate">
-                    {warehouse.name || t("Unnamed Warehouse")}
+                    {self?.pickupPointName || warehouse?.name || t("Unnamed Warehouse")}
                   </p>
                   {warehouse.address && (
                     <div className="flex items-start gap-1.5 mt-1.5">
