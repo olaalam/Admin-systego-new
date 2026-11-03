@@ -110,14 +110,35 @@ export default function Navbar({ onToggleMobileMenu }) {
       const checkData = await postData(payload, "/api/admin/version-updater");
 
       if (checkData?.success && checkData?.data?.result?.success) {
-        // 2. مزامنة الملفات بين الجهتين (Sync)
+        // 2. بدء المزامنة (Sync) — returns immediately, poll for completion
         const syncData = await postData(payload, "/api/admin/version-updater/sync");
 
-        if (syncData) {
-          // الانتظار قليلاً ليقرأ المستخدم رسالة النجاح ثم إعادة التحميل
-          setTimeout(() => {
-            window.location.reload();
-          }, 1500);
+        if (syncData?.success) {
+          // Poll for completion
+          const poll = async () => {
+            try {
+              const statusData = await postData(payload, "/api/admin/version-updater/status");
+              const status = statusData?.data?.result?.status;
+
+              if (status === "completed") {
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1500);
+              } else if (status === "failed") {
+                setIsUpdating(false);
+                const errMsg = statusData?.data?.result?.error || "Update failed";
+                toast.error(errMsg, { position: "top-right", autoClose: 5000 });
+              } else {
+                // still running — poll again
+                setTimeout(poll, 3000);
+              }
+            } catch (err) {
+              console.error("Poll failed:", err);
+              setTimeout(poll, 5000);
+            }
+          };
+
+          setTimeout(poll, 3000);
         } else {
           setIsUpdating(false);
         }
