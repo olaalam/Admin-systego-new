@@ -6,6 +6,7 @@ import '../translation/i18n';
 import NotificationDropdown from "./NotificationDropdown";
 import { hasPermission } from "@/lib/checkPermission";
 import usePost from "@/hooks/usePost";
+import api from "@/api/api";
 import { useTenantInfo } from "@/context/TenantContext";
 import { toast } from "react-toastify";
 import logo from "@/assets/logo.jpg";
@@ -110,30 +111,47 @@ export default function Navbar({ onToggleMobileMenu }) {
       const checkData = await postData(payload, "/api/admin/version-updater");
 
       if (checkData?.success && checkData?.data?.result?.success) {
-        // 2. بدء المزامنة (Sync) — returns immediately, poll for completion
+        // 2. بدء المزامنة (Sync) — returns immediately
         const syncData = await postData(payload, "/api/admin/version-updater/sync");
 
         if (syncData?.success) {
-          // Poll for completion
+          // Poll for completion (no toast on each poll)
+          let pollCount = 0;
+          const maxPolls = 120; // 6 minutes max
           const poll = async () => {
+            pollCount++;
+            if (pollCount > maxPolls) {
+              setIsUpdating(false);
+              toast.error("Update timed out. Check the site manually.", {
+                position: "top-right", autoClose: 5000,
+              });
+              return;
+            }
             try {
-              const statusData = await postData(payload, "/api/admin/version-updater/status");
-              const status = statusData?.data?.result?.status;
+              const res = await api.post("/api/admin/version-updater/status", payload);
+              const status = res.data?.data?.result?.status;
 
               if (status === "completed") {
-                setTimeout(() => {
-                  window.location.reload();
-                }, 1500);
+                toast.success("Update completed!", { position: "top-right", autoClose: 2000 });
+                setTimeout(() => window.location.reload(), 1500);
               } else if (status === "failed") {
                 setIsUpdating(false);
-                const errMsg = statusData?.data?.result?.error || "Update failed";
+                const errMsg = res.data?.data?.result?.error || "Update failed";
                 toast.error(errMsg, { position: "top-right", autoClose: 5000 });
               } else {
-                // still running — poll again
+                // still running — poll again (no toast)
                 setTimeout(poll, 3000);
               }
             } catch (err) {
               console.error("Poll failed:", err);
+              // If 404, the endpoint doesn't exist (old backend) — stop polling
+              if (err.response?.status === 404) {
+                setIsUpdating(false);
+                toast.error("Status endpoint not found. Please deploy Systego back.", {
+                  position: "top-right", autoClose: 5000,
+                });
+                return;
+              }
               setTimeout(poll, 5000);
             }
           };
