@@ -111,52 +111,20 @@ export default function Navbar({ onToggleMobileMenu }) {
       const checkData = await postData(payload, "/api/admin/version-updater");
 
       if (checkData?.success && checkData?.data?.result?.success) {
-        // 2. بدء المزامنة (Sync) — returns immediately
+        // 2. بدء المزامنة (Sync) — runs in background, returns immediately
         const syncData = await postData(payload, "/api/admin/version-updater/sync");
 
         if (syncData?.success) {
-          // Poll for completion (no toast on each poll)
-          let pollCount = 0;
-          const maxPolls = 120; // 6 minutes max
-          const poll = async () => {
-            pollCount++;
-            if (pollCount > maxPolls) {
-              setIsUpdating(false);
-              toast.error("Update timed out. Check the site manually.", {
-                position: "top-right", autoClose: 5000,
-              });
-              return;
-            }
-            try {
-              const res = await api.post("/api/admin/version-updater/status", payload);
-              const status = res.data?.data?.result?.status;
-
-              if (status === "completed") {
-                toast.success("Update completed!", { position: "top-right", autoClose: 2000 });
-                setTimeout(() => window.location.reload(), 1500);
-              } else if (status === "failed") {
-                setIsUpdating(false);
-                const errMsg = res.data?.data?.result?.error || "Update failed";
-                toast.error(errMsg, { position: "top-right", autoClose: 5000 });
-              } else {
-                // still running — poll again (no toast)
-                setTimeout(poll, 3000);
-              }
-            } catch (err) {
-              console.error("Poll failed:", err);
-              // If 404, the endpoint doesn't exist (old backend) — stop polling
-              if (err.response?.status === 404) {
-                setIsUpdating(false);
-                toast.error("Status endpoint not found. Please deploy Systego back.", {
-                  position: "top-right", autoClose: 5000,
-                });
-                return;
-              }
-              setTimeout(poll, 5000);
-            }
-          };
-
-          setTimeout(poll, 3000);
+          // Sync started — no polling, user checks site manually after 2-3 min
+          toast.info(
+            isArabic
+              ? "تم بدء التحديث. انتظر 2-3 دقايق ثم افتح الموقع."
+              : "Update started. Wait 2-3 minutes, then open the site.",
+            { position: "top-right", autoClose: 8000 },
+          );
+          setTimeout(() => {
+            setIsUpdating(false);
+          }, 3000);
         } else {
           setIsUpdating(false);
         }
