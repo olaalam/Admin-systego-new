@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 
+// تقريب لرقمين عشريين عشان نتجنب مشاكل الـ floating point في المقارنة
+const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
 const PurchaseEdit = () => {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
@@ -566,6 +569,51 @@ const PurchaseEdit = () => {
       return toast.error(t("PleaseCompleteRequiredFields"));
     }
 
+    // =========================================================
+    // ✅ تحقق إن المبالغ المدفوعة متوافقة مع الإجمالي الجديد
+    // =========================================================
+    const grandTotal = round2(totals.grandTotal);
+
+    const paidTotal = round2(
+      payload.financials.reduce((s, f) => s + Number(f.payment_amount || 0), 0),
+    );
+
+    const installmentsTotal = round2(
+      payload.installments.reduce((s, i) => s + Number(i.amount || 0), 0),
+    );
+
+    if (payload.payment_status === "full" && paidTotal !== grandTotal) {
+      return toast.error(
+        isArabic
+          ? `المبلغ المدفوع (${paidTotal} ${currencyCode}) لا يساوي الإجمالي الجديد (${grandTotal} ${currencyCode}). عدّل مبلغ الدفع أولًا.`
+          : `Paid amount (${paidTotal} ${currencyCode}) doesn't match the new total (${grandTotal} ${currencyCode}). Please update the payment amount.`,
+      );
+    }
+
+    if (payload.payment_status === "partial" && paidTotal <= 0) {
+      return toast.error(
+        isArabic
+          ? "أدخل المبلغ المدفوع للدفع الجزئي."
+          : "Enter the paid amount for a partial payment.",
+      );
+    }
+
+    if (paidTotal > grandTotal) {
+      return toast.error(
+        isArabic
+          ? `المبلغ المدفوع (${paidTotal}) أكبر من الإجمالي (${grandTotal} ${currencyCode}).`
+          : `Paid amount (${paidTotal}) is greater than the total (${grandTotal} ${currencyCode}).`,
+      );
+    }
+
+    if (paidTotal + installmentsTotal > grandTotal) {
+      return toast.error(
+        isArabic
+          ? `المدفوع + الأقساط (${round2(paidTotal + installmentsTotal)}) أكبر من الإجمالي (${grandTotal} ${currencyCode}).`
+          : `Paid + installments (${round2(paidTotal + installmentsTotal)}) exceed the total (${grandTotal} ${currencyCode}).`,
+      );
+    }
+
     try {
       const response = await putData(payload);
 
@@ -575,6 +623,13 @@ const PurchaseEdit = () => {
       }
     } catch (error) {
       console.error("Update error:", error);
+      // ✅ اعرض رسالة الباك بدل ما الخطأ يتبلع في الكونسول
+      toast.error(
+        error?.response?.data?.error?.message ||
+          error?.response?.data?.message ||
+          error?.message ||
+          t("Something went wrong"),
+      );
     }
   };
 
