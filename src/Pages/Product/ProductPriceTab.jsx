@@ -35,7 +35,8 @@ const ProductPriceTab = ({
     try {
       setGeneratingCode(true);
       const res = await api.get("/api/admin/product/generate-code");
-      const newCode = res.data?.data?.code || res.data?.code || res.data?.data || "";
+      const newCode =
+        res.data?.data?.code || res.data?.code || res.data?.data || "";
       if (newCode) {
         handleChange("code", newCode);
       } else {
@@ -65,7 +66,7 @@ const ProductPriceTab = ({
     const isSelected = selectedVariationIds.includes(variationId);
     if (isSelected) {
       handleVariationChange(
-        selectedVariationIds.filter((id) => id !== variationId)
+        selectedVariationIds.filter((id) => id !== variationId),
       );
     } else {
       handleVariationChange([...selectedVariationIds, variationId]);
@@ -79,7 +80,7 @@ const ProductPriceTab = ({
     if (isSelected) {
       handleOptionsChange(
         variationId,
-        currentOptions.filter((opt) => opt !== optionName)
+        currentOptions.filter((opt) => opt !== optionName),
       );
     } else {
       handleOptionsChange(variationId, [...currentOptions, optionName]);
@@ -98,14 +99,15 @@ const ProductPriceTab = ({
   };
 
   const selectedVariations = allVariations.filter((v) =>
-    selectedVariationIds.includes(v._id)
+    selectedVariationIds.includes(v._id),
   );
 
   const generateVariantCode = async (index) => {
     try {
       setGeneratingCode(true);
       const res = await api.get("/api/admin/product/generate-code");
-      const newCode = res.data?.data?.code || res.data?.code || res.data?.data || "";
+      const newCode =
+        res.data?.data?.code || res.data?.code || res.data?.data || "";
       if (newCode) {
         handleVariantFieldChange(index, "code", newCode);
         toast.success(`Generated code: ${newCode}`);
@@ -133,22 +135,24 @@ const ProductPriceTab = ({
   return (
     <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
       {/* Base product fields */}
-      <div className={`grid ${form.different_price ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"} gap-4`}>
+      <div
+        className={`grid ${form.different_price ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"} gap-4`}
+      >
         {!form.different_price && (
           <div>
             <Label className="text-sm font-medium text-gray-700 mb-2 block">
               {t("UnitPrice(EGP)")} <span className="text-red-500">*</span>
             </Label>
             <div className="relative">
-              <span className={`absolute ${isRTL ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 text-gray-500`}>
+              <span
+                className={`absolute ${isRTL ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 text-gray-500`}
+              >
                 {t("EGP")}
               </span>
               <Input
                 type="number"
                 value={form.price === 0 ? "" : (form.price ?? "")}
-                onChange={(e) =>
-                  handleChange("price", e.target.value)
-                }
+                onChange={(e) => handleChange("price", e.target.value)}
                 placeholder="0.00"
                 className={`h-11 ${isRTL ? "pr-14" : "pl-14"}`}
                 step="0.01"
@@ -164,9 +168,7 @@ const ProductPriceTab = ({
           <Input
             type="number"
             value={form.low_stock === 0 ? "" : (form.low_stock ?? "")}
-            onChange={(e) =>
-              handleChange("low_stock", e.target.value)
-            }
+            onChange={(e) => handleChange("low_stock", e.target.value)}
             placeholder="0"
             className="h-11"
             min="0"
@@ -179,7 +181,9 @@ const ProductPriceTab = ({
         <div className="space-y-4">
           {/* حقل الكود والنسخ والتوليد */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 block">{t("Barcode")}</Label>
+            <Label className="text-sm font-medium text-gray-700 block">
+              {t("Barcode")}
+            </Label>
             <div className="flex items-center gap-2">
               <Input
                 type="text"
@@ -235,7 +239,7 @@ const ProductPriceTab = ({
           </Label>
           <p className="text-xs text-gray-600 mt-1">
             {t(
-              "Allow different prices based on variations (Size, Color, etc.)"
+              "Allow different prices based on variations (Size, Color, etc.)",
             )}
           </p>
         </div>
@@ -267,8 +271,8 @@ const ProductPriceTab = ({
                   <span className="text-sm text-gray-700">
                     {selectedVariationIds.length > 0
                       ? t("variations.selected", {
-                        count: selectedVariationIds.length,
-                      })
+                          count: selectedVariationIds.length,
+                        })
                       : t("variations.choose")}
                   </span>
                   <ChevronDown className="h-4 w-4 text-gray-500" />
@@ -285,7 +289,11 @@ const ProductPriceTab = ({
                         />
                         <Input
                           type="text"
-                          placeholder={isRTL ? "بحث في الفاريشن..." : "Search variations..."}
+                          placeholder={
+                            isRTL
+                              ? "بحث في الفاريشن..."
+                              : "Search variations..."
+                          }
                           value={variationSearch}
                           onChange={(e) => setVariationSearch(e.target.value)}
                           className={`h-8 text-sm ${isRTL ? "pr-9 pl-7" : "pl-9 pr-7"}`}
@@ -311,7 +319,7 @@ const ProductPriceTab = ({
                       .filter((variation) =>
                         variation.name
                           ?.toLowerCase()
-                          .includes(variationSearch.toLowerCase().trim())
+                          .includes(variationSearch.toLowerCase().trim()),
                       )
                       .map((variation) => (
                         <label
@@ -319,8 +327,12 @@ const ProductPriceTab = ({
                           className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer"
                         >
                           <Checkbox
-                            checked={selectedVariationIds.includes(variation._id)}
-                            onCheckedChange={() => toggleVariation(variation._id)}
+                            checked={selectedVariationIds.includes(
+                              variation._id,
+                            )}
+                            onCheckedChange={() =>
+                              toggleVariation(variation._id)
+                            }
                           />
                           <span className="text-sm text-gray-700">
                             {variation.name}
@@ -330,11 +342,13 @@ const ProductPriceTab = ({
                     {uniqueVariations.filter((variation) =>
                       variation.name
                         ?.toLowerCase()
-                        .includes(variationSearch.toLowerCase().trim())
+                        .includes(variationSearch.toLowerCase().trim()),
                     ).length === 0 && (
                       <div className="px-4 py-3 text-sm text-gray-500 text-center">
                         {variationSearch
-                          ? (isRTL ? "لا توجد فاريشن مطابقة" : "No variations match your search")
+                          ? isRTL
+                            ? "لا توجد فاريشن مطابقة"
+                            : "No variations match your search"
                           : t("No variations available")}
                       </div>
                     )}
@@ -364,11 +378,14 @@ const ProductPriceTab = ({
             )}
 
             {selectedVariations.map((variation) => {
-              const searchQuery = (optionSearchMap[variation._id] || "").trim().toLowerCase();
-              const filteredOptions = (variation.options || []).filter((option) =>
-                option.name?.toLowerCase().includes(searchQuery)
+              const searchQuery = (optionSearchMap[variation._id] || "")
+                .trim()
+                .toLowerCase();
+              const filteredOptions = (variation.options || []).filter(
+                (option) => option.name?.toLowerCase().includes(searchQuery),
               );
-              const selectedCount = selectedOptionsMap[variation._id]?.length || 0;
+              const selectedCount =
+                selectedOptionsMap[variation._id]?.length || 0;
               const totalCount = variation.options?.length || 0;
 
               return (
@@ -378,16 +395,44 @@ const ProductPriceTab = ({
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-semibold text-gray-800 text-base">
                           {variation.name} {t("Options")}
                         </h4>
                         <span className="text-xs px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">
-                          {selectedCount} / {totalCount} {isRTL ? "محدد" : "selected"}
+                          {selectedCount} / {totalCount}{" "}
+                          {isRTL ? "محدد" : "selected"}
                         </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const allNames = (variation.options || []).map(
+                              (o) => o.name,
+                            );
+                            if (
+                              selectedCount === totalCount &&
+                              totalCount > 0
+                            ) {
+                              handleOptionsChange(variation._id, []);
+                            } else {
+                              handleOptionsChange(variation._id, allNames);
+                            }
+                          }}
+                          className="text-xs px-2.5 py-1 rounded-md border border-primary/30 text-primary hover:bg-primary/10 transition-colors font-medium cursor-pointer"
+                        >
+                          {selectedCount === totalCount && totalCount > 0
+                            ? isRTL
+                              ? "إلغاء تحديد الكل"
+                              : "Deselect All"
+                            : isRTL
+                              ? "تحديد الكل"
+                              : "Select All"}
+                        </button>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        {t("variations.selectOptions", { name: variation.name })}
+                        {t("variations.selectOptions", {
+                          name: variation.name,
+                        })}
                       </p>
                     </div>
 
@@ -434,11 +479,20 @@ const ProductPriceTab = ({
                         filteredOptions.map((option) => {
                           const isSelected =
                             selectedOptionsMap[variation._id]?.includes(
-                              option.name
+                              option.name,
                             ) || false;
                           return (
-                            <label
+                            <div
                               key={`${variation._id}-${option._id}`}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => toggleOption(variation._id, option.name)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  toggleOption(variation._id, option.name);
+                                }
+                              }}
                               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm cursor-pointer transition-all select-none ${
                                 isSelected
                                   ? "bg-primary/10 border-primary/40 text-primary font-medium shadow-xs"
@@ -447,20 +501,19 @@ const ProductPriceTab = ({
                             >
                               <Checkbox
                                 checked={isSelected}
-                                onCheckedChange={() =>
-                                  toggleOption(variation._id, option.name)
-                                }
+                                tabIndex={-1}
+                                className="cursor-pointer pointer-events-none"
                               />
                               <span>{option.name}</span>
-                            </label>
+                            </div>
                           );
                         })
                       ) : (
                         <div className="text-sm text-gray-500 py-4 w-full text-center">
                           {searchQuery
-                            ? (isRTL
-                                ? "لا توجد خيارات مطابقة للبحث"
-                                : "No matching options found")
+                            ? isRTL
+                              ? "لا توجد خيارات مطابقة للبحث"
+                              : "No matching options found"
                             : t("No options available for this variation")}
                         </div>
                       )}
@@ -482,7 +535,9 @@ const ProductPriceTab = ({
                             <span>{option}</span>
                             <button
                               type="button"
-                              onClick={() => toggleOption(variation._id, option)}
+                              onClick={() =>
+                                toggleOption(variation._id, option)
+                              }
                               className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
                               title={isRTL ? "إلغاء التحديد" : "Deselect"}
                             >
@@ -506,16 +561,24 @@ const ProductPriceTab = ({
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-700 uppercase tracking-wider`}>
+                        <th
+                          className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-700 uppercase tracking-wider`}
+                        >
                           {t("Variant")}
                         </th>
-                        <th className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-700 uppercase tracking-wider`}>
+                        <th
+                          className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-700 uppercase tracking-wider`}
+                        >
                           {t("Price(EGP)")}
                         </th>
-                        <th className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-700 uppercase tracking-wider`}>
+                        <th
+                          className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-700 uppercase tracking-wider`}
+                        >
                           {t("Code")}
                         </th>
-                        <th className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-700 uppercase tracking-wider`}>
+                        <th
+                          className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-700 uppercase tracking-wider`}
+                        >
                           {t("Photo")}
                         </th>
                         <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
@@ -535,12 +598,14 @@ const ProductPriceTab = ({
                           <td className="px-4 py-3">
                             <Input
                               type="number"
-                              value={variant.price === 0 ? "" : (variant.price ?? "")}
+                              value={
+                                variant.price === 0 ? "" : (variant.price ?? "")
+                              }
                               onChange={(e) =>
                                 handleVariantFieldChange(
                                   index,
                                   "price",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               placeholder="0.00"
@@ -558,7 +623,7 @@ const ProductPriceTab = ({
                                   handleVariantFieldChange(
                                     index,
                                     "code",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 className="h-9 w-40"
@@ -603,7 +668,7 @@ const ProductPriceTab = ({
                                       handleVariantFieldChange(
                                         index,
                                         "image",
-                                        ""
+                                        "",
                                       )
                                     }
                                     className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl"
@@ -634,7 +699,10 @@ const ProductPriceTab = ({
                           <td className="px-4 py-3 text-center">
                             <button
                               type="button"
-                              onClick={() => handleRemoveVariant && handleRemoveVariant(index)}
+                              onClick={() =>
+                                handleRemoveVariant &&
+                                handleRemoveVariant(index)
+                              }
                               className="h-9 w-9 inline-flex items-center justify-center text-red-500 hover:text-white hover:bg-red-500 border border-red-200 hover:border-red-500 rounded-lg transition-colors"
                               title={isRTL ? "حذف المتغير" : "Delete variant"}
                             >
