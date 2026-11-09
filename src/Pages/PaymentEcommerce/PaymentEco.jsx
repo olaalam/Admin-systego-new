@@ -5,6 +5,7 @@ import useGet from "@/hooks/useGet";
 import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import { io } from "socket.io-client";
 import { AppModules } from "@/config/modules";
 import { hasPermission } from "@/lib/checkPermission";
 import OrderShippingSection from "@/components/OrderDetail/OrderShippingSection";
@@ -711,6 +712,20 @@ const PaymentEco = () => {
     loading,
     refetch,
   } = useGet("/api/admin/online-orders");
+
+  // 🔌 Real-time: refresh orders when an order status changes externally (accept/reject)
+  useEffect(() => {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+    const socket = io(baseUrl, { transports: ["websocket"] });
+    const handler = () => {
+      if (typeof refetch === "function") refetch();
+    };
+    socket.on("order_status_changed", handler);
+    return () => {
+      socket.off("order_status_changed", handler);
+      socket.disconnect();
+    };
+  }, [refetch]);
 
   const [activeTab, setActiveTab] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
