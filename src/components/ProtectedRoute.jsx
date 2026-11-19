@@ -1,5 +1,6 @@
+// src/components/ProtectedRoute.jsx
 import { Navigate } from "react-router-dom";
-import { hasPermission } from "@/lib/checkPermission";
+import { hasPermission, isSuperAdminUser } from "@/lib/checkPermission";
 import { useTenantInfo } from "@/context/TenantContext";
 import FeatureLocked from "@/Pages/FeatureLocked";
 import PaymentRequired from "@/Pages/PaymentRequired";
@@ -10,6 +11,7 @@ export default function ProtectedRoute({
   action,
   requiredFeature,
   featureName,
+  adminOnly = false, // 👑 جديد: الأدمن فقط
 }) {
   const token = localStorage.getItem("token");
   const { features, loading: tenantLoading, locked } = useTenantInfo();
@@ -31,10 +33,17 @@ export default function ProtectedRoute({
     }
   }
 
-  // 3. Check Authorization (Permission?)
-  // If module and action are passed, we validate them
+  // 3. Admin-only gate (superadmin only)
+  if (adminOnly && !isSuperAdminUser()) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  // 4. Check Authorization (Permission?)
+  // If module and action are passed, we validate them.
+  // module ممكن يكون اسم واحد أو مصفوفة أسماء (يكفي صلاحية واحدة منها)
   if (module && action) {
-    const isAllowed = hasPermission(module, action);
+    const modules = Array.isArray(module) ? module : [module];
+    const isAllowed = modules.some((m) => hasPermission(m, action));
     if (!isAllowed) {
       return <Navigate to="/unauthorized" replace />;
     }
@@ -43,4 +52,3 @@ export default function ProtectedRoute({
   // If all checks pass, show the page
   return children;
 }
-

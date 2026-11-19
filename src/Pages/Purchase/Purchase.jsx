@@ -91,7 +91,7 @@ const PurchasesPage = () => {
       { key: "reference", header: t("Reference") },
       { key: "supplier_id", header: t("Supplier"), render: (sup) => sup?.company_name || sup?.username || "---" },
       { key: "warehouse_id", header: t("Warehouse"), render: (wh) => wh?.name || "---", filterable: false },
-      { key: "grand_total", header: t("Total"), render: (val) => <span className="font-bold">{val} EGP</span> },
+      { key: "grand_total", header: t("Total"), render: (val) => <span className="font-bold">{val} {t("EGP")}</span> },
 
       // --- عمود الـ Invoices (المدفوعات الفعلية) ---
       {
@@ -101,7 +101,7 @@ const PurchasesPage = () => {
           const totalPaid = invoices?.reduce((sum, inv) => sum + (inv.amount || 0), 0) || 0;
           return (
             <div className="flex flex-col">
-              <span className="text-green-600 font-bold text-xs">{totalPaid} EGP</span>
+              <span className="text-green-600 font-bold text-xs">{totalPaid} {t("EGP")}</span>
               <span className="text-[9px] text-gray-400">{invoices?.length || 0} {t("Payments")}</span>
             </div>
           );
@@ -146,7 +146,7 @@ const PurchasesPage = () => {
           </button>
         )
       },
-      { key: "date", header: t("Date"), render: (date) => date ? new Date(date).toLocaleDateString() : '---' },
+      { key: "date", header: t("Date"), render: (date) => date ? new Date(date).toLocaleDateString(isArabic ? "ar-EG" : "en-US") : '---' },
       {
         key: "details_action",
         header: t("Details"),
@@ -210,36 +210,36 @@ const PurchasesPage = () => {
           <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-start mb-2">
               <div className="p-2 bg-gray-100 text-gray-600 rounded-lg"><Box size={20} /></div>
-              <span className="text-xs font-bold text-gray-400">TOTAL</span>
+              <span className="text-xs font-bold text-gray-400">{t("Total")}</span>
             </div>
-            <h3 className="text-xl font-black">{statsData.total_amount} EGP</h3>
+            <h3 className="text-xl font-black">{statsData.total_amount} {t("EGP")}</h3>
             <p className="text-xs text-gray-500">{statsData.total_purchases} {t("Purchases")}</p>
           </div>
 
           <div className="bg-white p-4 rounded-2xl shadow-sm border border-red-100 border-l-4">
             <div className="flex justify-between items-start mb-2">
               <div className="p-2 bg-red-50 text-red-600 rounded-lg"><Wallet size={20} /></div>
-              <span className="text-xs font-bold text-red-600">PARTIAL</span>
+              <span className="text-xs font-bold text-red-600">{t("partial")}</span>
             </div>
-            <h3 className="text-xl font-black text-red-700">{statsData.partial_amount} EGP</h3>
+            <h3 className="text-xl font-black text-red-700">{statsData.partial_amount} {t("EGP")}</h3>
             <p className="text-xs text-red-500">{statsData.partial_count} {t("Invoices")}</p>
           </div>
 
           <div className="bg-white p-4 rounded-2xl shadow-sm border border-green-100 border-l-4">
             <div className="flex justify-between items-start mb-2">
               <div className="p-2 bg-green-50 text-green-600 rounded-lg"><CheckCircle2 size={20} /></div>
-              <span className="text-xs font-bold text-green-600">FULL</span>
+              <span className="text-xs font-bold text-green-600">{t("full")}</span>
             </div>
-            <h3 className="text-xl font-black text-green-700">{statsData.full_amount} EGP</h3>
+            <h3 className="text-xl font-black text-green-700">{statsData.full_amount} {t("EGP")}</h3>
             <p className="text-xs text-green-500">{statsData.full_count} {t("Invoices")}</p>
           </div>
 
           <div className="bg-white p-4 rounded-2xl shadow-sm border border-orange-100 border-l-4">
             <div className="flex justify-between items-start mb-2">
               <div className="p-2 bg-orange-50 text-orange-600 rounded-lg"><Clock size={20} /></div>
-              <span className="text-xs font-bold text-orange-600">LATER</span>
+              <span className="text-xs font-bold text-orange-600">{t("later")}</span>
             </div>
-            <h3 className="text-xl font-black text-orange-700">{statsData.later_amount} EGP</h3>
+            <h3 className="text-xl font-black text-orange-700">{statsData.later_amount} {t("EGP")}</h3>
             <p className="text-xs text-orange-500">{statsData.later_count} {t("Invoices")}</p>
           </div>
         </div>
@@ -283,10 +283,10 @@ const PurchasesPage = () => {
           data={displayData}
           columns={columns}
           title={activeFilter === "/api/admin/purchase" ? t("Purchases") : (currentFilter?.label || t("Purchases"))}
-          addButtonText={t("Add")}
+          addButtonText={t("Add Purchase")}
+          onAdd={() => {}}
           onEdit={(item) => navigate(`edit/${item._id}`)}
           showActions={true}
-          onAdd={() => alert("Add new payment method clicked!")}
           addPath="add"
           moduleName={AppModules.PURCHASE}
         />
@@ -325,7 +325,7 @@ const PurchasesPage = () => {
                       <p className="text-[10px] font-bold text-gray-400 uppercase">{t("Reference")}</p>
                       <p className="text-sm font-black text-gray-900">{purchaseDetailData.reference || "---"}</p>
                       <p className="text-[10px] text-gray-400">
-                        {purchaseDetailData.date ? new Date(purchaseDetailData.date).toLocaleDateString() : '---'}
+                        {purchaseDetailData.date ? new Date(purchaseDetailData.date).toLocaleDateString(isArabic ? "ar-EG" : "en-US") : '---'}
                       </p>
                     </div>
                   </div>
@@ -393,13 +393,17 @@ const PurchasesPage = () => {
                                         ? item.product_id?.ar_name || item.product_id?.name
                                         : item.product_id?.name || "---"}
                                     </p>
-                                    <span className="text-[10px] text-gray-400">{item.item_type || "product"}</span>
+                                    <span className="text-[10px] text-gray-400">
+                                      {item.item_type === "variant"
+                                        ? t("Variant")
+                                        : t("Product")}
+                                    </span>
                                   </div>
                                 </div>
                               </td>
-                              <td className="p-3 text-center font-bold text-gray-600">{item.unit_cost} EGP</td>
+                              <td className="p-3 text-center font-bold text-gray-600">{item.unit_cost} {t("EGP")}</td>
                               <td className="p-3 text-center font-black text-gray-800">{item.quantity}</td>
-                              <td className="p-3 text-right font-black text-gray-900">{item.subtotal} EGP</td>
+                              <td className="p-3 text-right font-black text-gray-900">{item.subtotal} {t("EGP")}</td>
                             </tr>
 
                             {/* عرض تفاصيل الـ Variants / Options إن وجدت */}
@@ -415,7 +419,7 @@ const PurchasesPage = () => {
                                         <div key={opt._id} className="bg-white p-2 rounded-lg border border-gray-100 flex justify-between items-center shadow-2xs">
                                           <div>
                                             <span className="font-mono text-[10px] text-gray-400">{opt.product_price_id?.variation_name}</span>
-                                            <p className="font-bold text-gray-700">{t("Cost")}: {opt.product_price_id?.cost || 0} EGP</p>
+                                            <p className="font-bold text-gray-700">{t("Cost")}: {opt.product_price_id?.cost || 0} {t("EGP")}</p>
                                           </div>
                                           <span className="px-2 py-0.5 bg-blue-100 text-blue-700 font-bold rounded-md text-[10px]">
                                             {t("Qty")}: {opt.quantity}
@@ -441,8 +445,10 @@ const PurchasesPage = () => {
                     {purchaseDetailData.invoices && purchaseDetailData.invoices.length > 0 ? (
                       purchaseDetailData.invoices.map((inv) => (
                         <div key={inv._id} className="flex justify-between items-center p-2 bg-white rounded-xl border border-gray-100">
-                          <span className="text-gray-500 text-[11px]">{new Date(inv.date).toLocaleDateString()}</span>
-                          <span className="font-black text-green-600">{inv.amount} EGP</span>
+                          <span className="text-gray-500 text-[11px]">
+                            {new Date(inv.date).toLocaleDateString(isArabic ? "ar-EG" : "en-US")}
+                          </span>
+                          <span className="font-black text-green-600">{inv.amount} {t("EGP")}</span>
                         </div>
                       ))
                     ) : (
@@ -454,15 +460,15 @@ const PurchasesPage = () => {
                     <div className="space-y-1.5 text-xs">
                       <div className="flex justify-between text-gray-400">
                         <span>{t("Subtotal")}:</span>
-                        <span className="font-bold text-white">{purchaseDetailData.total || 0} EGP</span>
+                        <span className="font-bold text-white">{purchaseDetailData.total || 0} {t("EGP")}</span>
                       </div>
                       <div className="flex justify-between text-gray-400">
                         <span>{t("Discount")}:</span>
-                        <span className="font-bold text-white">{purchaseDetailData.discount || 0} EGP</span>
+                        <span className="font-bold text-white">{purchaseDetailData.discount || 0} {t("EGP")}</span>
                       </div>
                       <div className="flex justify-between text-gray-400">
                         <span>{t("Shipping")}:</span>
-                        <span className="font-bold text-white">{purchaseDetailData.shipping_cost || 0} EGP</span>
+                        <span className="font-bold text-white">{purchaseDetailData.shipping_cost || 0} {t("EGP")}</span>
                       </div>
                       <div className="flex justify-between text-gray-400 pt-1 border-t border-gray-800">
                         <span>{t("Payment Status")}:</span>
@@ -475,7 +481,10 @@ const PurchasesPage = () => {
                     <div className="flex justify-between items-baseline pt-3 border-t border-gray-800">
                       <span className="text-xs font-bold text-gray-400">{t("Grand Total")}:</span>
                       <span className="text-2xl font-black text-blue-400">
-                        {purchaseDetailData.grand_total || 0} <span className="text-xs font-normal text-gray-400">EGP</span>
+                        {purchaseDetailData.grand_total || 0}{" "}
+                        <span className="text-xs font-normal text-gray-400">
+                          {t("EGP")}
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -500,8 +509,10 @@ const PurchasesPage = () => {
               <h4 className="text-[10px] font-black text-gray-400 uppercase mb-3 tracking-widest">{t("Paid History")}</h4>
               {selectedPurchase.invoices?.map((inv, i) => (
                 <div key={i} className="flex justify-between p-3 bg-green-50 border border-green-100 rounded-xl mb-2">
-                  <span className="text-xs font-bold text-gray-600">{new Date(inv.date).toLocaleDateString()}</span>
-                  <span className="text-sm font-black text-green-700">{inv.amount} EGP</span>
+                  <span className="text-xs font-bold text-gray-600">
+                    {new Date(inv.date).toLocaleDateString(isArabic ? "ar-EG" : "en-US")}
+                  </span>
+                  <span className="text-sm font-black text-green-700">{inv.amount} {t("EGP")}</span>
                 </div>
               ))}
 
@@ -518,10 +529,10 @@ const PurchasesPage = () => {
                     <div className="flex justify-between items-center">
                       <div className="flex flex-col">
                         <span className="text-xs font-bold text-gray-600">
-                          {new Date(due.date).toLocaleDateString()}
+                          {new Date(due.date).toLocaleDateString(isArabic ? "ar-EG" : "en-US")}
                         </span>
                         <span className={`text-sm font-black ${isPaid ? 'text-green-700' : 'text-orange-700'}`}>
-                          {due.amount} EGP
+                          {due.amount} {t("EGP")}
                         </span>
                       </div>
 

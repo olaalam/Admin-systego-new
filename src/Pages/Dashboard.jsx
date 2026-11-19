@@ -8,9 +8,11 @@ import {
 import {
   TrendingUp, TrendingDown, ShoppingCart, DollarSign,
   Package, ReceiptText, Wallet, ArrowDownCircle,
-  BarChart2, Loader2, CalendarDays, Activity,
+  BarChart2, Loader2, CalendarDays, Activity, Lock,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import BranchPosFilter from "@/components/BranchPosFilter";
+import { getStoredUser } from "@/lib/checkPermission";
 
 /* ────────── helpers ────────── */
 const fmt = (n) =>
@@ -18,10 +20,10 @@ const fmt = (n) =>
 const fmtInt = (n) => (n == null ? "—" : Number(n).toLocaleString("en-US"));
 
 /* Convert "2026-01-07" → "Jan 7" */
-const fmtDate = (iso) => {
+const fmtDate = (iso, locale = "en-US") => {
   if (!iso) return "";
   const [y, m, d] = iso.split("-");
-  const label = new Date(+y, +m - 1, +d).toLocaleString("en-US", { month: "short", day: "numeric" });
+  const label = new Date(+y, +m - 1, +d).toLocaleString(locale, { month: "short", day: "numeric" });
   return label;
 };
 
@@ -49,13 +51,14 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 /* ────────── Pie Tooltip ────────── */
 const PieTooltip = ({ active, payload }) => {
+  const { t } = useTranslation();
   if (!active || !payload?.length) return null;
   const d = payload[0];
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-xl p-3 text-xs">
       <p className="font-semibold text-gray-700 mb-1">{d.name}</p>
-      <p className="text-gray-800">Amount: <span className="font-bold">{Number(d.value).toLocaleString()} EGP</span></p>
-      <p className="text-gray-500">Orders: {d.payload?.count}</p>
+      <p className="text-gray-800">{t("Amount")}: <span className="font-bold">{Number(d.value).toLocaleString()} {t("EGP")}</span></p>
+      <p className="text-gray-500">{t("Orders")}: {d.payload?.count}</p>
     </div>
   );
 };
@@ -98,11 +101,14 @@ function ChartCard({ title, icon: Icon, children, className = "" }) {
 
 /* ────────── Transfer Heatmap ────────── */
 function TransferHeatmap({ data }) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language?.startsWith("ar") ? "ar-EG" : "en-US";
+
   if (!data || data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-56 text-gray-300 gap-3">
         <Activity className="w-10 h-10 opacity-40" />
-        <p className="text-sm text-gray-400">No transfer activity in this period</p>
+        <p className="text-sm text-gray-400">{t("No transfer activity in this period")}</p>
       </div>
     );
   }
@@ -113,8 +119,8 @@ function TransferHeatmap({ data }) {
   // 2. Extract unique warehouse pairs
   const pairsMap = new Map();
   data.forEach((d) => {
-    const from = d.fromWarehouse?.name || d.fromWarehouse || "Unknown";
-    const to = d.toWarehouse?.name || d.toWarehouse || "Unknown";
+    const from = d.fromWarehouse?.name || d.fromWarehouse || t("Unknown");
+    const to = d.toWarehouse?.name || d.toWarehouse || t("Unknown");
     const pairKey = `${from} → ${to}`;
     pairsMap.set(pairKey, { from, to });
   });
@@ -127,23 +133,23 @@ function TransferHeatmap({ data }) {
     <div className="flex flex-col gap-4">
       {/* Legend */}
       <div className="flex items-center justify-end gap-2 text-[10px] text-gray-400 uppercase font-bold px-2">
-        <span>Low</span>
+        <span>{t("Low")}</span>
         <div className="flex gap-0.5">
           {[0.1, 0.3, 0.5, 0.7, 0.9].map((v) => (
             <div key={v} className="w-3 h-3 rounded-sm" style={{ background: `rgba(99,102,241,${v})` }} />
           ))}
         </div>
-        <span>High</span>
+        <span>{t("High")}</span>
       </div>
 
       <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200">
         <div className="min-w-fit flex flex-col">
           {/* Header (Dates) */}
           <div className="flex border-b border-gray-100">
-            <div className="w-48 flex-shrink-0 p-2 text-[10px] font-bold text-gray-400 uppercase">Route / Date</div>
+            <div className="w-48 flex-shrink-0 p-2 text-[10px] font-bold text-gray-400 uppercase">{t("Route / Date")}</div>
             {uniqueDates.map((date) => (
               <div key={date} className="w-24 flex-shrink-0 p-2 text-center text-[10px] font-bold text-gray-500 truncate">
-                {new Date(date).toLocaleString("en-US", { month: "short", day: "numeric" })}
+                {new Date(date).toLocaleString(locale, { month: "short", day: "numeric" })}
               </div>
             ))}
           </div>
@@ -181,9 +187,9 @@ function TransferHeatmap({ data }) {
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/cell:block z-20 pointer-events-none">
                           <div className="bg-gray-900 text-white text-[10px] rounded-lg px-2 py-1.5 whitespace-nowrap shadow-xl">
                             <p className="font-bold border-b border-gray-700 pb-1 mb-1">{pair}</p>
-                            <p>Date: {date}</p>
-                            <p>Transfers: {dayData.transfersCount}</p>
-                            <p className="text-indigo-300">Total Qty: {qty}</p>
+                            <p>{t("Date")}: {date}</p>
+                            <p>{t("Transfers")}: {dayData.transfersCount}</p>
+                            <p className="text-indigo-300">{t("Total Qty")}: {qty}</p>
                           </div>
                           <div className="w-2 h-2 bg-gray-900 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2" />
                         </div>
@@ -207,17 +213,32 @@ function Skeleton({ className = "" }) {
 
 /* ══════════════════ MAIN DASHBOARD ══════════════════ */
 export default function Dashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isArabic = i18n.language?.startsWith("ar");
+  const locale = isArabic ? "ar-EG" : "en-US";
+
+  // 🔒 لو المستخدم مربوط بفرع (warehouse_id) → الداشبورد بيبقى لفرعه بس.
+  //    الأدمن اللي مش مربوط بفرع (أو السوبر أدمن) بيختار أي فرع براحته.
+  const storedUser = getStoredUser();
+  const lockedWarehouseId = storedUser?.warehouse_id || null;
+
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
+  const [warehouseId, setWarehouseId] = useState(lockedWarehouseId || "");
   const [apiUrl, setApiUrl] = useState("/api/admin/dashboard");
   const { data, loading, error } = useGet(apiUrl);
+
+  // الفروع جاية مع نفس رد الداشبورد
+  const branches = data?.branches || [];
 
   const handleFilter = () => {
     let url = "/api/admin/dashboard";
     const params = new URLSearchParams();
     if (start) params.append("start_date", start);
     if (end) params.append("end_date", end);
+    // المستخدم المربوط بفرع مش محتاج يبعته — السيرفر بيفرضه أصلاً
+    if (warehouseId && !lockedWarehouseId)
+      params.append("warehouse_id", warehouseId);
     const qs = params.toString();
     setApiUrl(qs ? `${url}?${qs}` : url);
   };
@@ -225,6 +246,7 @@ export default function Dashboard() {
   const handleClear = () => {
     setStart("");
     setEnd("");
+    setWarehouseId(lockedWarehouseId || "");
     setApiUrl("/api/admin/dashboard");
   };
 
@@ -240,7 +262,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center justify-center py-12 text-gray-400">
             <Loader2 className="w-6 h-6 animate-spin me-2" />
-            <span className="text-sm">Loading analytics...</span>
+            <span className="text-sm">{t("Loading analytics...")}</span>
           </div>
         </div>
       );
@@ -250,10 +272,10 @@ export default function Dashboard() {
       return (
         <div className="flex items-center justify-center h-[50vh] text-gray-400 flex-col gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
           <BarChart2 className="w-12 h-12 opacity-30" />
-          <p className="text-sm">{error || "No data available for this period"}</p>
+          <p className="text-sm">{error || t("No data available for this period")}</p>
           {(start || end) && (
             <button onClick={handleClear} className="text-indigo-600 text-sm font-medium hover:underline">
-              Clear filters
+              {t("Clear filters")}
             </button>
           )}
         </div>
@@ -266,7 +288,7 @@ export default function Dashboard() {
 
     /* ── 1. Sales Trend: Line chart x=date y=sales ── */
     const salesTrend = (charts.sales_trend || []).map((d) => ({
-      date:  fmtDate(d.date),   // e.g. "Jan 1", "Feb 9"
+      date:  fmtDate(d.date, locale),   // e.g. "Jan 1", "Feb 9"
       Sales: d.sales,
     }));
 
@@ -280,13 +302,13 @@ export default function Dashboard() {
     /* ── 3. Revenue vs Expenses: Combo (Bar + Line) ── */
     const revenueExpenses = (charts.revenue_vs_expenses || []).map((d) => {
       const [y, m] = (d.month || "").split("-");
-      const monthName = new Date(+y, +m - 1).toLocaleString("en-US", { month: "long", year: "numeric" });
+      const monthName = new Date(+y, +m - 1).toLocaleString(locale, { month: "long", year: "numeric" });
       return { month: monthName, Revenue: d.revenue, Expenses: d.expenses, Profit: d.profit };
     });
 
     /* ── 4. Restock over time: Line chart x=date y=amount ── */
     const restockTrend = (charts.restock_trend || []).map((d) => ({
-      date:   fmtDate(d.date),  // e.g. "Jan 14", "Feb 16"
+      date:   fmtDate(d.date, locale),  // e.g. "Jan 14", "Feb 16"
       Amount: d.amount,
       Count:  d.count,
     }));
@@ -305,26 +327,26 @@ export default function Dashboard() {
       <div className="space-y-6">
         {/* KPI Row 1 */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <StatCard label="Total Sales"    value={fmt(cards.total_sales)}    icon={DollarSign}      color="#6366f1" prefix="EGP" />
-          <StatCard label="Net Revenue"    value={fmt(cards.net_revenue)}    icon={TrendingUp}      color="#10b981" prefix="EGP" />
-          <StatCard label="Net Profit"     value={fmt(cards.net_profit)}     icon={Wallet}          color="#22d3ee" prefix="EGP" />
-          <StatCard label="Total Expenses" value={fmt(cards.total_expenses)} icon={ArrowDownCircle} color="#f43f5e" prefix="EGP" />
-          <StatCard label="Total Orders"   value={fmtInt(cards.total_orders)} icon={ShoppingCart}   color="#f59e0b" />
+          <StatCard label={t("Total Sales")}    value={fmt(cards.total_sales)}    icon={DollarSign}      color="#6366f1" prefix={t("EGP")} />
+          <StatCard label={t("Net Revenue")}    value={fmt(cards.net_revenue)}    icon={TrendingUp}      color="#10b981" prefix={t("EGP")} />
+          <StatCard label={t("Net Profit")}     value={fmt(cards.net_profit)}     icon={Wallet}          color="#22d3ee" prefix={t("EGP")} />
+          <StatCard label={t("Total Expenses")} value={fmt(cards.total_expenses)} icon={ArrowDownCircle} color="#f43f5e" prefix={t("EGP")} />
+          <StatCard label={t("Total Orders")}   value={fmtInt(cards.total_orders)} icon={ShoppingCart}   color="#f59e0b" />
         </div>
 
         {/* KPI Row 2 */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <StatCard label="Sales Today"    value={fmt(cards.total_sales_today)} icon={TrendingUp}   color="#a78bfa" prefix="EGP" />
-          <StatCard label="Orders Today"   value={fmtInt(cards.orders_today)}   icon={ShoppingCart} color="#fb923c" />
-          <StatCard label="Total Discount" value={fmt(cards.total_discount)}    icon={ReceiptText}  color="#34d399" prefix="EGP" />
-          <StatCard label="Total Tax"      value={fmt(cards.total_tax)}         icon={ReceiptText}  color="#60a5fa" prefix="EGP" />
-          <StatCard label="Total Returns"  value={fmt(cards.total_returns)}     icon={Package}      color="#f87171" prefix="EGP" />
+          <StatCard label={t("Sales Today")}    value={fmt(cards.total_sales_today)} icon={TrendingUp}   color="#a78bfa" prefix={t("EGP")} />
+          <StatCard label={t("Orders Today")}   value={fmtInt(cards.orders_today)}   icon={ShoppingCart} color="#fb923c" />
+          <StatCard label={t("Total Discount")} value={fmt(cards.total_discount)}    icon={ReceiptText}  color="#34d399" prefix={t("EGP")} />
+          <StatCard label={t("Total Tax")}      value={fmt(cards.total_tax)}         icon={ReceiptText}  color="#60a5fa" prefix={t("EGP")} />
+          <StatCard label={t("Total Returns")}  value={fmt(cards.total_returns)}     icon={Package}      color="#f87171" prefix={t("EGP")} />
         </div>
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* 1 — Sales Trend */}
-          <ChartCard title="Sales Trend" icon={TrendingUp} className="xl:col-span-2">
+          <ChartCard title={t("Sales Trend")} icon={TrendingUp} className="xl:col-span-2">
             <ResponsiveContainer width="100%" height={270}>
               <LineChart data={salesTrend} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -332,15 +354,15 @@ export default function Dashboard() {
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => v.toLocaleString()} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line type="monotone" dataKey="Sales" stroke="#6366f1" strokeWidth={2.5} dot={{ r: 4, fill: "#6366f1", strokeWidth: 2, stroke: "#fff" }} />
+                <Line type="monotone" dataKey="Sales" name={t("Sales")} stroke="#6366f1" strokeWidth={2.5} dot={{ r: 4, fill: "#6366f1", strokeWidth: 2, stroke: "#fff" }} />
               </LineChart>
             </ResponsiveContainer>
           </ChartCard>
 
           {/* 2 — Sales by Payment Method */}
-          <ChartCard title="Sales by Payment Method" icon={Wallet}>
+          <ChartCard title={t("Sales by Payment Method")} icon={Wallet}>
             {paymentPie.length === 0 ? (
-              <div className="flex items-center justify-center h-64 text-gray-400 text-sm">No payment data</div>
+              <div className="flex items-center justify-center h-64 text-gray-400 text-sm">{t("No payment data")}</div>
             ) : (
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
@@ -355,7 +377,7 @@ export default function Dashboard() {
           </ChartCard>
 
           {/* 3 — Revenue vs Expenses */}
-          <ChartCard title="Revenue vs Expenses" icon={BarChart2}>
+          <ChartCard title={t("Revenue vs Expenses")} icon={BarChart2}>
             <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={revenueExpenses} margin={{ top: 10, right: 30, left: 10, bottom: 40 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -363,15 +385,15 @@ export default function Dashboard() {
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => v.toLocaleString()} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="Revenue" fill="#6366f1" radius={[6, 6, 0, 0]} barSize={28} />
-                <Bar dataKey="Expenses" fill="#f43f5e" radius={[6, 6, 0, 0]} barSize={28} />
-                <Line type="monotone" dataKey="Profit" stroke="#10b981" strokeWidth={2.5} dot={{ r: 5, fill: "#10b981", stroke: "#fff", strokeWidth: 2 }} />
+                <Bar dataKey="Revenue" name={t("Revenue")} fill="#6366f1" radius={[6, 6, 0, 0]} barSize={28} />
+                <Bar dataKey="Expenses" name={t("Expenses")} fill="#f43f5e" radius={[6, 6, 0, 0]} barSize={28} />
+                <Line type="monotone" dataKey="Profit" name={t("Profit")} stroke="#10b981" strokeWidth={2.5} dot={{ r: 5, fill: "#10b981", stroke: "#fff", strokeWidth: 2 }} />
               </ComposedChart>
             </ResponsiveContainer>
           </ChartCard>
 
           {/* 4 — Restock over Time */}
-          <ChartCard title="Restock over Time" icon={Package} className="xl:col-span-2">
+          <ChartCard title={t("Restock over Time")} icon={Package} className="xl:col-span-2">
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={restockTrend} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -380,19 +402,19 @@ export default function Dashboard() {
                 <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line yAxisId="left" type="monotone" dataKey="Amount" name="Amount (EGP)" stroke="#a78bfa" strokeWidth={2.5} dot={{ r: 4, fill: "#a78bfa", stroke: "#fff", strokeWidth: 2 }} />
-                <Line yAxisId="right" type="monotone" dataKey="Count" name="Count" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4, fill: "#f59e0b", stroke: "#fff", strokeWidth: 2 }} strokeDasharray="5 4" />
+                <Line yAxisId="left" type="monotone" dataKey="Amount" name={t("Amount (EGP)")} stroke="#a78bfa" strokeWidth={2.5} dot={{ r: 4, fill: "#a78bfa", stroke: "#fff", strokeWidth: 2 }} />
+                <Line yAxisId="right" type="monotone" dataKey="Count" name={t("Count")} stroke="#f59e0b" strokeWidth={2} dot={{ r: 4, fill: "#f59e0b", stroke: "#fff", strokeWidth: 2 }} strokeDasharray="5 4" />
               </LineChart>
             </ResponsiveContainer>
           </ChartCard>
 
           {/* 5 — Transfer Activity */}
-          <ChartCard title="Transfer Activity" icon={Activity} className="xl:col-span-2">
+          <ChartCard title={t("Transfer Activity")} icon={Activity} className="xl:col-span-2">
             <TransferHeatmap data={transferActivity} />
           </ChartCard>
 
           {/* 6 — Stock Value by Warehouse */}
-          <ChartCard title="Stock Value by Warehouse" icon={Package} className="xl:col-span-2">
+          <ChartCard title={t("Stock Value by Warehouse")} icon={Package} className="xl:col-span-2">
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={stockWarehouse} margin={{ top: 4, right: 20, left: 0, bottom: 60 }} barCategoryGap="30%">
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -400,8 +422,8 @@ export default function Dashboard() {
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => v.toLocaleString()} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="Value" name="Stock Value (EGP)" fill="#6366f1" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="Qty" name="Quantity" fill="#22d3ee" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Value" name={t("Stock Value (EGP)")} fill="#6366f1" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Qty" name={t("Quantity")} fill="#22d3ee" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
@@ -428,13 +450,13 @@ export default function Dashboard() {
       {/* ── Header & Filters ── */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Analytics Overview</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Business intelligence at a glance</p>
+          <h1 className="text-2xl font-bold text-gray-800">{t("Analytics Overview")}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{t("Business intelligence at a glance")}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-bold text-gray-400 ml-1">Start Date</span>
+            <span className="text-[10px] uppercase font-bold text-gray-400 ms-1">{t("Start Date")}</span>
             <input
               type="date"
               value={start}
@@ -443,7 +465,7 @@ export default function Dashboard() {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-bold text-gray-400 ml-1">End Date</span>
+            <span className="text-[10px] uppercase font-bold text-gray-400 ms-1">{t("End Date")}</span>
             <input
               type="date"
               value={end}
@@ -451,19 +473,40 @@ export default function Dashboard() {
               className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
             />
           </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] uppercase font-bold text-gray-400 ms-1">{t("Warehouse")}</span>
+            {lockedWarehouseId ? (
+              <div className="flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 min-w-[160px]">
+                <Lock size={14} className="text-gray-400 shrink-0" />
+                <span className="truncate">
+                  {(isArabic ? branches[0]?.ar_name : branches[0]?.name) ||
+                    branches[0]?.name ||
+                    t("My Warehouse")}
+                </span>
+              </div>
+            ) : (
+              <BranchPosFilter
+                showPos={false}
+                value={{ warehouse_id: warehouseId }}
+                onChange={(patch) => setWarehouseId(patch.warehouse_id || "")}
+                warehouses={branches}
+                selectClassName="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer min-w-[160px]"
+              />
+            )}
+          </div>
           <div className="flex items-center gap-2 self-end mb-[2px]">
             <button
               onClick={handleFilter}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl text-sm font-semibold shadow-md shadow-indigo-100 transition-all active:scale-95"
             >
-              Filter
+              {t("Filter")}
             </button>
-            {(start || end) && (
+            {(start || end || warehouseId) && (
               <button
                 onClick={handleClear}
                 className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95"
               >
-                Clear
+                {t("Clear")}
               </button>
             )}
           </div>

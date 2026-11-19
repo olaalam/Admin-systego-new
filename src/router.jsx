@@ -143,6 +143,7 @@ import GeideaAdd from "./Pages/Geidea/GeideaAdd";
 import GeideaEdit from "./Pages/Geidea/GeideaEdit";
 import Payable from "./Pages/Payable/Payable";
 import Recevible from "./Pages/Recevible/Recevible";
+import Installments from "./Pages/Installments/Installments";
 import Ledger from "./Pages/Ledger/Ledger";
 import Reserve from "./Pages/Reserve/Reserve";
 import Fawry from "./Pages/Fawry/Fawry";
@@ -170,10 +171,11 @@ export default function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
 
       {/* ✅ Main Pages محمية */}
+      {/* صفحة اختيار الموديولات: متاحة لأي مستخدم مسجل، وهي نفسها بتخفي العناصر غير المسموح بها */}
       <Route
         path="/"
         element={
-          <ProtectedRoute module={AppModules.HOME} action={ModuleActions.VIEW}>
+          <ProtectedRoute>
             <ModulesGrid />
           </ProtectedRoute>
         }
@@ -181,7 +183,10 @@ export default function AppRoutes() {
       <Route
         path="/analytics"
         element={
-          <ProtectedRoute module={AppModules.HOME} action={ModuleActions.VIEW}>
+          <ProtectedRoute
+            module={[AppModules.HOME, AppModules.Dashboard]}
+            action={ModuleActions.VIEW}
+          >
             <Dashboard />
           </ProtectedRoute>
         }
@@ -479,8 +484,6 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.WAREHOUSE}
               action={ModuleActions.VIEW}
-              requiredFeature="haveEcommerce"
-              featureName="Branches"
             >
               <WareHouse />
             </ProtectedRoute>
@@ -492,8 +495,6 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.WAREHOUSE}
               action={ModuleActions.ADD}
-              requiredFeature="haveEcommerce"
-              featureName="Branches"
             >
               <WareHouseAdd />
             </ProtectedRoute>
@@ -505,8 +506,6 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.WAREHOUSE}
               action={ModuleActions.EDIT}
-              requiredFeature="haveEcommerce"
-              featureName="Branches"
             >
               <WareHouseEdit />
             </ProtectedRoute>
@@ -532,8 +531,6 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.PICKUP_POINT}
               action={ModuleActions.VIEW}
-              requiredFeature="haveEcommerce"
-              featureName="Pickup Points"
             >
               <PickupPoints />
             </ProtectedRoute>
@@ -545,8 +542,6 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.PICKUP_POINT}
               action={ModuleActions.ADD}
-              requiredFeature="haveEcommerce"
-              featureName="Pickup Points"
             >
               <PickupPointAdd />
             </ProtectedRoute>
@@ -558,8 +553,6 @@ export default function AppRoutes() {
             <ProtectedRoute
               module={AppModules.PICKUP_POINT}
               action={ModuleActions.EDIT}
-              requiredFeature="haveEcommerce"
-              featureName="Pickup Points"
             >
               <PickupPointEdit />
             </ProtectedRoute>
@@ -1177,6 +1170,7 @@ export default function AppRoutes() {
           <ProtectedRoute
             module={AppModules.PRODUCT}
             action={ModuleActions.VIEW}
+            adminOnly
           >
             <Barcode />
           </ProtectedRoute>
@@ -1545,6 +1539,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <CashierShift />
             </ProtectedRoute>
@@ -1558,6 +1553,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <CashierShiftCashierDetails />
             </ProtectedRoute>
@@ -1571,6 +1567,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <CashierShiftDetails />
             </ProtectedRoute>
@@ -1587,6 +1584,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <OrdersReports />
             </ProtectedRoute>
@@ -1603,6 +1601,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <ProductReports />
             </ProtectedRoute>
@@ -1618,6 +1617,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <ProductMovementReport />
             </ProtectedRoute>
@@ -1634,6 +1634,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <FinancialReports />
             </ProtectedRoute>
@@ -1762,16 +1763,14 @@ export default function AppRoutes() {
         />
       </Route>
 
-      <Route path="data">
-        <Route
-          index
-          element={
-            <ProtectedRoute>
-              <DomainData />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
+      <Route
+        path="data"
+        element={
+          <ProtectedRoute adminOnly>
+            <DomainData />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="shipping">
         <Route
@@ -1921,6 +1920,24 @@ export default function AppRoutes() {
         />
       </Route>
 
+      <Route path="installments">
+        <Route
+          index
+          element={
+            <ProtectedRoute
+              module={[
+                AppModules.INSTALLMENTS,
+                AppModules.ADMIN,
+                AppModules.POS,
+              ]}
+              action={ModuleActions.VIEW}
+            >
+              <Installments />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
       <Route path="ledger">
         <Route
           index
@@ -2033,6 +2050,7 @@ export default function AppRoutes() {
               action={ModuleActions.VIEW}
               requiredFeature="haveReports"
               featureName="Reports"
+              adminOnly
             >
               <AllReturn />
             </ProtectedRoute>

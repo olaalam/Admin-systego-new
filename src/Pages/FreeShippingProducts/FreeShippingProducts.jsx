@@ -4,11 +4,14 @@ import { Package, Truck, Edit2, Search } from "lucide-react";
 import useGet from "@/hooks/useGet";
 import Loader from "@/components/Loader";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 
 const FreeShippingProducts = () => {
     const navigate = useNavigate();
     const { t, i18n } = useTranslation();
     const isArabic = i18n.language === "ar";
+    const canEdit = hasPermission(AppModules.FREE_SHIPPING_PRODUCTS, "edit");
 
     // Fetch the currently selected free shipping products
     const { data: fetchResponse, loading: fetching, error: fetchError } = useGet("/api/admin/shipping/free-products");
@@ -30,6 +33,7 @@ const FreeShippingProducts = () => {
                         <p className="text-gray-500 mt-1">{t("Manage_products_with_free_shipping") || "View your current products allowed for free shipping"}</p>
                     </div>
                 </div>
+                {canEdit && (
                 <button
                     onClick={() => navigate(`/free-shipping-products/edit`)}
                     className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors shadow-sm"
@@ -37,6 +41,7 @@ const FreeShippingProducts = () => {
                     <Edit2 size={16} />
                     {t("Edit_Products") || "Edit Products"}
                 </button>
+                )}
             </div>
 
             {fetchError && !fetchError.includes("404") && (
@@ -67,6 +72,7 @@ const FreeShippingProducts = () => {
                             <p className="text-gray-500 text-sm max-w-sm mx-auto mb-6">
                                 {t("No_free_shipping_products_desc") || "You haven't added any products to the free shipping list yet."}
                             </p>
+                            {canEdit && (
                             <button
                                 onClick={() => navigate(`/free-shipping-products/edit`)}
                                 className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg font-medium transition-colors shadow-sm"
@@ -74,6 +80,7 @@ const FreeShippingProducts = () => {
                                 <Edit2 size={16} />
                                 {t("Add_Products") || "Add Products"}
                             </button>
+                            )}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">

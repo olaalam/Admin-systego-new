@@ -1,5 +1,5 @@
 export const AppModules = {
-  Dashboard: "Dashboard",
+  Dashboard: "dashboard",
   PRODUCT: "product",
   BRAND: "brand",
   CATEGORY: "category",
@@ -59,6 +59,11 @@ export const AppModules = {
   WASTED: "wasted",
   ECOMMERCE: "ecommerce",
   DELIVERY_MAN: "delivery_man",
+  INSTALLMENTS: "installments",
+  EXPIRING: "expiring",
+  ALL_RETURNS: "all_returns",
+  HOME: "home",
+  FAWRY: "fawry",
 };
 
 export const ModuleActions = {
@@ -66,4 +71,5 @@ export const ModuleActions = {
   ADD: "add",
   EDIT: "edit",
   DELETE: "delete",
+  STATUS: "status",
 };

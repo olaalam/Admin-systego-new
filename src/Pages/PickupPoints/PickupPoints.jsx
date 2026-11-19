@@ -7,10 +7,12 @@ import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 
 const PickupPoints = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const canEdit = hasPermission(AppModules.PICKUP_POINT, "edit");
   const { data, loading, refetch } = useGet("/api/admin/pickup-point");
   const { deleteData, loading: deleting } = useDelete("/api/admin/pickup-point");
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -32,8 +34,12 @@ const PickupPoints = () => {
       filterable: true,
       render: (value, row) => (
         <span
-          className="text-blue-600 cursor-pointer hover:underline"
-          onClick={() => navigate(`edit/${row._id}`)}
+          className={
+            canEdit
+              ? "text-blue-600 cursor-pointer hover:underline"
+              : "text-gray-800"
+          }
+          onClick={canEdit ? () => navigate(`edit/${row._id}`) : undefined}
         >
           {value}
         </span>

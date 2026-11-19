@@ -6,6 +6,7 @@ import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const DeliveryMan = () => {
   const { data, loading, refetch } = useGet("/api/admin/delivery-man");
@@ -32,7 +33,7 @@ const DeliveryMan = () => {
     { key: "name", header: t("Name"), filterable: false },
     { key: "email", header: t("Email"), filterable: false },
     { key: "phone_number", header: t("phone"), filterable: false },
-    { key: "status", header: t("Status"), filterable: false },
+    { key: "status", header: t("Status"), filterable: false, render: (status) => t(status === "active" || status === true ? "Active" : "Inactive") },
   ];
 
   if (loading) return <Loader />;
@@ -52,7 +53,7 @@ const DeliveryMan = () => {
         itemsPerPage={10}
         searchable
         filterable
-        moduleName="DeliveryMan"
+        moduleName={AppModules.DELIVERY_MAN}
         filters={[
           {
             key: "status",

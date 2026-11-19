@@ -219,7 +219,7 @@ const CustomerDetails = () => {
                           className="bg-slate-50 rounded-2xl p-4 border border-slate-100"
                         >
                           <p className="text-[10px] font-black uppercase text-slate-400 mb-1">
-                            {status}
+                            {t(status)}
                           </p>
                           <p className="text-lg font-black text-slate-800">
                             {Number(total).toLocaleString()} EGP
@@ -279,7 +279,7 @@ const CustomerDetails = () => {
                                     : "bg-gray-100 text-gray-700"
                               }`}
                             >
-                              {o.status}
+                              {t(o.status)}
                             </span>
                             <span className="text-[10px] text-slate-400 uppercase">
                               {o.source}

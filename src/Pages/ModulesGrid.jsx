@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   LayoutDashboard,
   Layers,
   CreditCard,
   Megaphone,
-  ShoppingCart,
   Warehouse,
   MonitorPlay,
   Contact2,
@@ -17,12 +16,19 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useTenantInfo } from "@/context/TenantContext";
-import { toast } from "react-toastify";
+import { AppModules, ModuleActions } from "@/config/modules";
+import { hasPermission, isSuperAdminUser } from "@/lib/checkPermission";
 
 const modules = [
   {
     name: "Dashboard",
-    items: [{ name: "Dashboard", path: "/analytics" }],
+    items: [
+      {
+        name: "Dashboard",
+        path: "/analytics",
+        moduleKey: [AppModules.HOME, AppModules.Dashboard],
+      },
+    ],
     icon: LayoutDashboard,
     path: "/analytics",
     color: "bg-blue-500",
@@ -31,12 +37,16 @@ const modules = [
   {
     name: "Product Management",
     items: [
-      { name: "Product", path: "/product" },
-      { name: "Category", path: "/category" },
-      { name: "Brand", path: "/brand" },
-      { name: "Attribute", path: "/attribute" },
-      { name: "Units", path: "/unit" },
-      { name: "Expiring", path: "/expiring" },
+      { name: "Product", path: "/product", moduleKey: AppModules.PRODUCT },
+      { name: "Category", path: "/category", moduleKey: AppModules.CATEGORY },
+      { name: "Brand", path: "/brand", moduleKey: AppModules.BRAND },
+      {
+        name: "Attribute",
+        path: "/attribute",
+        moduleKey: AppModules.VARIATION,
+      },
+      { name: "Units", path: "/unit", moduleKey: AppModules.UNITS },
+      { name: "Expiring", path: "/expiring", moduleKey: AppModules.EXPIRING },
     ],
     icon: Layers,
     path: "/product",
@@ -46,17 +56,46 @@ const modules = [
   {
     name: "Financial",
     items: [
-      { name: "Financial", path: "/accounting" },
-      { name: "Taxes", path: "/taxes" },
-      { name: "Expenses", path: "/expense" },
-      { name: "Expense Categories", path: "/expense-category" },
-      { name: "Revenue", path: "/revenue" },
-      { name: "Payment Methods", path: "/payment_method" },
-      { name: "Payments", path: "/payments" },
-      { name: "Payment Ecommerce", path: "/payment-eco" },
-      { name: "Payable", path: "/payable" },
-      { name: "Recevible", path: "/recevible" },
-      { name: "Ledger", path: "/ledger" },
+      {
+        name: "Financial",
+        path: "/accounting",
+        moduleKey: AppModules.FINANCIAL_ACCOUNT,
+      },
+      { name: "Taxes", path: "/taxes", moduleKey: AppModules.TAXES },
+      {
+        name: "Expenses",
+        path: "/expense",
+        moduleKey: AppModules.EXPENSE_ADMIN,
+      },
+      {
+        name: "Expense Categories",
+        path: "/expense-category",
+        moduleKey: AppModules.EXPENSE_CATEGORY,
+      },
+      { name: "Revenue", path: "/revenue", moduleKey: AppModules.REVENUE },
+      {
+        name: "Payment Methods",
+        path: "/payment_method",
+        moduleKey: AppModules.PAYMENT_METHOD,
+      },
+      { name: "Payments", path: "/payments", moduleKey: AppModules.PAYMENT },
+      {
+        name: "Payment Ecommerce",
+        path: "/payment-eco",
+        moduleKey: AppModules.PAYMENT_ECO,
+      },
+      { name: "Payable", path: "/payable", moduleKey: AppModules.PAYABLE },
+      {
+        name: "Recevible",
+        path: "/recevible",
+        moduleKey: AppModules.RECEVIBLE,
+      },
+      {
+        name: "Installments",
+        path: "/installments",
+        moduleKey: [AppModules.INSTALLMENTS, AppModules.ADMIN, AppModules.POS],
+      },
+      { name: "Ledger", path: "/ledger", moduleKey: AppModules.LEDGER },
     ],
     icon: CreditCard,
     path: "/accounting",
@@ -66,42 +105,56 @@ const modules = [
   {
     name: "Marketing",
     items: [
-      { name: "Popups", path: "/popup" },
-      { name: "Points", path: "/point" },
-      { name: "Redeem Points", path: "/redeem-point" },
-      { name: "Bundles", path: "/pandel" },
-      { name: "Coupon", path: "/coupon" },
-      { name: "Banner", path: "/banner" },
-      { name: "Discounts", path: "/discount" },
-      { name: "Shipping", path: "/shipping" },
-      { name: "Free Shipping Products", path: "/free-shipping-products" },
-      { name: "E-commerce", path: "/ecommerce" },
+      { name: "Popups", path: "/popup", moduleKey: AppModules.POPUP },
+      { name: "Points", path: "/point", moduleKey: AppModules.POINT },
+      {
+        name: "Redeem Points",
+        path: "/redeem-point",
+        moduleKey: AppModules.REDEEM_POINTS,
+      },
+      { name: "Bundles", path: "/pandel", moduleKey: AppModules.PANDEL },
+      { name: "Coupon", path: "/coupon", moduleKey: AppModules.COUPON },
+      { name: "Banner", path: "/banner", moduleKey: AppModules.BANNER },
+      { name: "Discounts", path: "/discount", moduleKey: AppModules.DISCOUNT },
+      { name: "Shipping", path: "/shipping", moduleKey: AppModules.SHIPPING },
+      {
+        name: "Free Shipping Products",
+        path: "/free-shipping-products",
+        moduleKey: AppModules.FREE_SHIPPING_PRODUCTS,
+      },
+      {
+        name: "E-commerce",
+        path: "/ecommerce",
+        moduleKey: AppModules.ECOMMERCE,
+      },
     ],
     icon: Megaphone,
     path: "/popup",
     color: "bg-amber-500",
     shadow: "shadow-amber-100",
   },
-  // {
-  //   name: "Ecommerce",
-  //   items: [
-  //     { name: "Online Store", path: "/ecommerce" },
-  //   ],
-  //   icon: ShoppingCart,
-  //   path: "/ecommerce",
-  //   color: "bg-indigo-500",
-  //   shadow: "shadow-indigo-100",
-  // },
   {
     name: "Inventory",
     items: [
-      { name: "Branch", path: "/warehouse" },
-      { name: "Pickup Points", path: "/pickup-point" },
-      { name: "Transfers", path: "/transfer" },
-      { name: "Purchase", path: "/purchase" },
-      { name: "Returns", path: "/purchase-return" },
-      { name: "Stock Take", path: "/stocktake" },
-      { name: "Wasted", path: "/wasted" },
+      { name: "Branch", path: "/warehouse", moduleKey: AppModules.WAREHOUSE },
+      {
+        name: "Pickup Points",
+        path: "/pickup-point",
+        moduleKey: AppModules.PICKUP_POINT,
+      },
+      { name: "Transfers", path: "/transfer", moduleKey: AppModules.TRANSFER },
+      { name: "Purchase", path: "/purchase", moduleKey: AppModules.PURCHASE },
+      {
+        name: "Returns",
+        path: "/purchase-return",
+        moduleKey: AppModules.PURCHASE_RETURN,
+      },
+      {
+        name: "Stock Take",
+        path: "/stocktake",
+        moduleKey: AppModules.STOCKTAKE,
+      },
+      { name: "Wasted", path: "/wasted", moduleKey: AppModules.WASTED },
     ],
     icon: Warehouse,
     path: "/warehouse",
@@ -111,8 +164,8 @@ const modules = [
   {
     name: "POS",
     items: [
-      { name: "Cashier", path: "/cashier" },
-      { name: "Reserve", path: "/reserve" },
+      { name: "Cashier", path: "/cashier", moduleKey: AppModules.CASHIER },
+      { name: "Reserve", path: "/reserve", moduleKey: AppModules.RESERVE },
     ],
     icon: MonitorPlay,
     path: "/cashier",
@@ -122,9 +175,13 @@ const modules = [
   {
     name: "CRM",
     items: [
-      { name: "Suppliers", path: "/supplier" },
-      { name: "Customers", path: "/customer" },
-      { name: "Customer Groups", path: "/customer-group" },
+      { name: "Suppliers", path: "/supplier", moduleKey: AppModules.SUPPLIER },
+      { name: "Customers", path: "/customer", moduleKey: AppModules.CUSTOMER },
+      {
+        name: "Customer Groups",
+        path: "/customer-group",
+        moduleKey: AppModules.CUSTOMER_GROUP,
+      },
     ],
     icon: Contact2,
     path: "/supplier",
@@ -134,9 +191,13 @@ const modules = [
   {
     name: "HRM",
     items: [
-      { name: "Admin", path: "/admin" },
-      { name: "Delivery Man", path: "/delivery-man" },
-      { name: "Profile", path: "/profile" },
+      { name: "Admin", path: "/admin", moduleKey: AppModules.ADMIN },
+      {
+        name: "Delivery Man",
+        path: "/delivery-man",
+        moduleKey: AppModules.DELIVERY_MAN,
+      },
+      { name: "Profile", path: "/profile", moduleKey: AppModules.PROFILE },
     ],
     icon: Users,
     path: "/admin",
@@ -146,12 +207,42 @@ const modules = [
   {
     name: "Reports",
     items: [
-      { name: "Cashier Shifts", path: "/cashier-shift" },
-      { name: "Orders Report", path: "/orders-reports" },
-      { name: "Product Report", path: "/product-reports" },
-      { name: "Financial Report", path: "/financial-reports" },
-      { name: "Product Movement Report", path: "/product-movement-report" },
-      { name: "All Returns", path: "/all-returns" },
+      {
+        name: "Cashier Shifts",
+        path: "/cashier-shift",
+        moduleKey: AppModules.CASHIER_SHIFT_REPORT,
+        adminOnly: true,
+      },
+      {
+        name: "Orders Report",
+        path: "/orders-reports",
+        moduleKey: AppModules.ORDERS_REPORT,
+        adminOnly: true,
+      },
+      {
+        name: "Product Report",
+        path: "/product-reports",
+        moduleKey: AppModules.PRODUCT_REPORT,
+        adminOnly: true,
+      },
+      {
+        name: "Financial Report",
+        path: "/financial-reports",
+        moduleKey: AppModules.FINANCIAL_REPORT,
+        adminOnly: true,
+      },
+      {
+        name: "Product Movement Report",
+        path: "/product-movement-report",
+        moduleKey: AppModules.PRODUCT_MOVEMENT,
+        adminOnly: true,
+      },
+      {
+        name: "All Returns",
+        path: "/all-returns",
+        moduleKey: AppModules.ALL_RETURNS,
+        adminOnly: true,
+      },
     ],
     icon: BarChart3,
     path: "/orders-reports",
@@ -161,16 +252,35 @@ const modules = [
   {
     name: "Settings",
     items: [
-      { name: "Barcode", path: "/barcode" },
-      { name: "Cities", path: "/city" },
-      { name: "Country", path: "/country" },
-      { name: "Zones", path: "/zone" },
-      { name: "Permissions", path: "/permission" },
-      { name: "Currencies", path: "/currency" },
-      { name: "Decimal", path: "/decimal-setting" },
-      { name: "Service Fees", path: "/service-fees" },
-      { name: "Couriers", path: "/courier" },
-      { name: "Data", path: "/data" },
+      // 👑 Barcode — admin only
+      {
+        name: "Barcode",
+        path: "/barcode",
+        moduleKey: AppModules.PRODUCT,
+        adminOnly: true,
+      },
+      { name: "Cities", path: "/city", moduleKey: AppModules.CITY },
+      { name: "Country", path: "/country", moduleKey: AppModules.COUNTRY },
+      { name: "Zones", path: "/zone", moduleKey: AppModules.ZONE },
+      {
+        name: "Permissions",
+        path: "/permission",
+        moduleKey: AppModules.PERMISSION,
+      },
+      { name: "Currencies", path: "/currency", moduleKey: AppModules.CURRENCY },
+      {
+        name: "Decimal",
+        path: "/decimal-setting",
+        moduleKey: AppModules.DECIMAL_SETTING,
+      },
+      {
+        name: "Service Fees",
+        path: "/service-fees",
+        moduleKey: AppModules.SERVICE_FEES,
+      },
+      { name: "Couriers", path: "/courier", moduleKey: AppModules.COURIER },
+      // 👑 Data — admin only
+      { name: "Data", path: "/data", moduleKey: null, adminOnly: true },
     ],
     icon: Settings,
     path: "/barcode",
@@ -187,38 +297,46 @@ export default function ModulesGrid() {
 
   const searchQuery = searchParams.get("q")?.toLowerCase() || "";
 
-  const filteredModules = modules.filter((module) => {
-    if (!searchQuery) return true;
+  // ✅ فلترة العناصر حسب صلاحية VIEW + adminOnly
+  const visibleModules = useMemo(() => {
+    const superAdmin = isSuperAdminUser();
 
-    // Check module name
+    return modules
+      .map((m) => {
+        const visibleItems = m.items.filter((item) => {
+          // 👑 عناصر الأدمن فقط
+          if (item.adminOnly) return superAdmin;
+          if (!item.moduleKey) return true; // زي Data (لو مش adminOnly)
+          return hasPermission(item.moduleKey, ModuleActions.VIEW);
+        });
+        return { ...m, items: visibleItems };
+      })
+      .filter((m) => m.items.length > 0); // اخفي الموديول لو فاضي
+  }, []);
+
+  // ✅ فلترة البحث
+  const filteredModules = visibleModules.filter((module) => {
+    if (!searchQuery) return true;
     const moduleName = t(module.name).toLowerCase();
     if (moduleName.includes(searchQuery)) return true;
-
-    // Check sub-items
-    return module.items.some((item) => {
-      const itemName = typeof item === "string" ? item : item.name;
-      return t(itemName).toLowerCase().includes(searchQuery);
-    });
+    return module.items.some((item) =>
+      t(item.name).toLowerCase().includes(searchQuery),
+    );
   });
 
   const handleModuleClick = (module) => {
     const isLocked =
       !tenantLoading && module.name === "Reports" && !features.haveReports;
-    if (isLocked) {
-      return;
-    }
-    navigate(module.path);
+    if (isLocked) return;
+
+    const firstAvailable = module.items[0];
+    if (firstAvailable?.path) navigate(firstAvailable.path);
   };
 
   const handleItemClick = (e, item, isSubItemLocked) => {
     e.stopPropagation();
-    if (isSubItemLocked) {
-      return;
-    }
-    const path = typeof item === "string" ? null : item.path;
-    if (path) {
-      navigate(path);
-    }
+    if (isSubItemLocked) return;
+    if (item?.path) navigate(item.path);
   };
 
   return (
@@ -264,7 +382,6 @@ export default function ModulesGrid() {
                       : undefined
                   }
                 >
-                  {/* Locked Top Badge */}
                   {isLocked && (
                     <div className="absolute top-5 right-5 z-20 flex items-center gap-1.5 bg-slate-200/80 border border-slate-300 text-slate-700 px-2.5 py-1 rounded-full text-[11px] font-bold backdrop-blur-xs">
                       <Lock className="w-3 h-3 text-slate-600" />
@@ -276,7 +393,6 @@ export default function ModulesGrid() {
                     </div>
                   )}
 
-                  {/* Animated Background Gradient */}
                   {!isLocked && (
                     <div
                       className={`absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-700 ${module.color}`}
@@ -285,7 +401,6 @@ export default function ModulesGrid() {
 
                   <div className="relative z-10 flex flex-col h-full justify-between">
                     <div>
-                      {/* Icon Section */}
                       <div
                         className={`w-12 h-12 rounded-2xl ${module.color} flex items-center justify-center mb-4 shadow-lg ${module.shadow} ${
                           isLocked
@@ -296,7 +411,6 @@ export default function ModulesGrid() {
                         <module.icon className="text-white w-6 h-6" />
                       </div>
 
-                      {/* Title Section */}
                       <h3
                         className={`text-xl font-black mb-3 tracking-tight leading-tight transition-colors ${
                           isLocked
@@ -307,11 +421,9 @@ export default function ModulesGrid() {
                         {t(module.name)}
                       </h3>
 
-                      {/* Distribution in 2 cols */}
                       <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                         {module.items.map((item, i) => {
-                          const itemName =
-                            typeof item === "string" ? item : item.name;
+                          const itemName = item.name;
                           const isSubItemLocked =
                             (module.name === "Inventory" &&
                               itemName === "Stock Take" &&
@@ -358,7 +470,6 @@ export default function ModulesGrid() {
                       </div>
                     </div>
 
-                    {/* Explore Section */}
                     <div className="flex items-center justify-between pt-2">
                       {isLocked ? (
                         <div className="flex items-center text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">

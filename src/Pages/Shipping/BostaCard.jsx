@@ -28,7 +28,7 @@ import {
 import usePost from "@/hooks/usePost";
 import BostaAdvancedModal from "./BostaAdvancedModal";
 
-const BostaCard = ({ form, setForm, onSave, saving }) => {
+const BostaCard = ({ form, setForm, onSave, saving, canEdit = true }) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const [showApiKey, setShowApiKey] = useState(false);
@@ -278,24 +278,28 @@ const BostaCard = ({ form, setForm, onSave, saving }) => {
             )}
           </Button>
 
-          <button
-            onClick={() => setShowAdvanced(true)}
-            className="w-full flex items-center justify-center gap-2 py-2 text-xs font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-dashed border-gray-200"
-          >
-            <Settings2 size={14} />
-            {t("Advanced_Settings") || "Advanced Settings"}
-          </button>
+          {canEdit ? (
+            <button
+              onClick={() => setShowAdvanced(true)}
+              className="w-full flex items-center justify-center gap-2 py-2 text-xs font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-dashed border-gray-200"
+            >
+              <Settings2 size={14} />
+              {t("Advanced_Settings") || "Advanced Settings"}
+            </button>
+          ) : null}
         </div>
 
         <div className="p-4 bg-gray-50 border-t border-gray-100">
-          <Button
-            onClick={onSave}
-            disabled={saving}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Save size={15} className="me-2" />
-            {saving ? t("Saving") || "Saving..." : t("Save") || "Save"}
-          </Button>
+          {canEdit ? (
+            <Button
+              onClick={onSave}
+              disabled={saving}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Save size={15} className="me-2" />
+              {saving ? t("Saving") || "Saving..." : t("Save") || "Save"}
+            </Button>
+          ) : null}
         </div>
       </div>
 

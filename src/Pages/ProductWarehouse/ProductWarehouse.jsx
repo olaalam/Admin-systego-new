@@ -10,6 +10,13 @@ import { AppModules } from "@/config/modules";
 import { toast } from "react-toastify";
 import { Package } from "lucide-react";
 
+const formatCurrency = (val) => {
+  return (Number(val) || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
 const ProductWarehouse = () => {
   const { id: warehouseId } = useParams();
   const navigate = useNavigate();
@@ -34,6 +41,60 @@ const ProductWarehouse = () => {
   const warehouse = data?.data?.warehouse || data?.warehouse || {};
   const products = data?.data?.products || data?.products || [];
 
+  // نضيف اسم الـ variation + سعر الوحدة + الإجمالي لكل صف
+  const enrichedProducts = useMemo(() => {
+    return products.map((product) => {
+      const variationText = (product.variationOptions || [])
+        .map((opt) => {
+          if (!opt?.name) return null;
+          const variationName = isArabic
+            ? opt.variationId?.ar_name || opt.variationId?.name
+            : opt.variationId?.name;
+          return variationName ? `${variationName}: ${opt.name}` : opt.name;
+        })
+        .filter(Boolean)
+        .join(" | ");
+
+      const baseName = isArabic
+        ? product.ar_name || product.name
+        : product.name;
+
+      const displayName = variationText
+        ? `${baseName} - ${variationText}`
+        : baseName;
+
+      const unitPrice = Number(
+        product.productPriceId?.price ?? product.price ?? 0,
+      );
+      // ✅ بنجمع كمية المخزن الفعلية لكل صف (stock_quantity)
+      // مش product.quantity الإجمالية لأنها مش كمية الفرع
+      const quantity = Number(
+        product.stock_quantity ?? product.quantity ?? 0,
+      );
+
+      return {
+        ...product,
+        displayName,
+        variationText,
+        unitPrice,
+        totalPrice: unitPrice * quantity,
+        quantity,
+      };
+    });
+  }, [products, isArabic]);
+
+  // إجمالي الكمية وإجمالي الفلوس (بنحسبهم في الفرونت لو الـ API مش راجعهم)
+  const summary = useMemo(() => {
+    return enrichedProducts.reduce(
+      (acc, product) => {
+        acc.totalQuantity += Number(product.quantity) || 0;
+        acc.totalAmount += Number(product.totalPrice) || 0;
+        return acc;
+      },
+      { totalQuantity: 0, totalAmount: 0 },
+    );
+  }, [enrichedProducts]);
+
   // دالة الحذف بإرسال الـ Body
   const handleDelete = async (item) => {
     try {
@@ -41,6 +102,8 @@ const ProductWarehouse = () => {
       // نمرر null للـ url ليستخدم الـ defaultUrl أو نكتبه صراحة
       const body = {
         productId: item._id, // ID المنتج من الـ JSON
+        // ✅ لازم نبعت الـ variation عشان نحذف الصف الصح مش أول variation
+        productPriceId: item.productPriceId?._id || item.productPriceId || null,
         warehouseId: warehouseId
       };
 
@@ -55,24 +118,25 @@ const ProductWarehouse = () => {
 
   const columns = useMemo(() => [
     {
-      key: "name",
+      key: "displayName",
       header: t("Product"),
+      filterable: true,
       render: (val, row) => (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
             {row.image ? (
-              <img src={row.image} alt={row.name} className="w-full h-full object-cover" />
+              <img src={row.image} alt={row.displayName} className="w-full h-full object-cover" />
             ) : (
               <Package className="w-5 h-5 text-gray-400" />
             )}
           </div>
           <div>
-            <p className="font-bold text-gray-900">
-              {isArabic ? (row.ar_name || row.name) : row.name}
-            </p>
-            {row.prices?.[0]?.code && (
-              <p className="text-xs text-gray-500 font-mono">{row.prices[0].code}</p>
-            )}
+            <p className="font-bold text-gray-900">{row.displayName}</p>
+            {row.productPriceId?.code ? (
+              <p className="text-xs text-gray-500 font-mono">{row.productPriceId.code}</p>
+            ) : row.code ? (
+              <p className="text-xs text-gray-500 font-mono">{row.code}</p>
+            ) : null}
           </div>
         </div>
       )
@@ -82,7 +146,7 @@ const ProductWarehouse = () => {
       header: t("Quantity"),
       render: (val) => (
         <span className="font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded-lg">
-          {val || 0}
+          {Number(val) || 0}
         </span>
       )
     },
@@ -91,7 +155,27 @@ const ProductWarehouse = () => {
       header: t("Low Stock Alert"),
       render: (val) => (
         <span className="font-bold text-rose-600 bg-rose-50 px-3 py-1 rounded-lg">
-          {val || 0}
+          {Number(val) || 0}
+        </span>
+      )
+    },
+    {
+      key: "unitPrice",
+      header: t("Unit Price"),
+      render: (val) => (
+        <span className="font-semibold text-gray-700">
+          {formatCurrency(val)}{" "}
+          <span className="text-xs font-medium text-gray-400">EGP</span>
+        </span>
+      )
+    },
+    {
+      key: "totalPrice",
+      header: t("Total"),
+      render: (val) => (
+        <span className="font-black text-emerald-600">
+          {formatCurrency(val)}{" "}
+          <span className="text-xs font-medium text-gray-400">EGP</span>
         </span>
       )
     }
@@ -105,15 +189,30 @@ const ProductWarehouse = () => {
         <h1 className="text-2xl font-black text-gray-900 mb-2">
           {t("Warehouse")}: {warehouse.name}
         </h1>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div className="flex flex-col"><span className="text-gray-400">{t("Phone")}</span><span className="font-medium">{warehouse.phone}</span></div>
-          <div className="flex flex-col"><span className="text-gray-400">{t("Products")}</span><span className="font-medium">{warehouse.number_of_products}</span></div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+          <div className="flex flex-col">
+            <span className="text-gray-400">{t("Phone")}</span>
+            <span className="font-medium">{warehouse.phone || "-"}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-400">{t("TotalQuantity")}</span>
+            <span className="font-black text-gray-900 text-lg">
+              {(Number(summary.totalQuantity) || 0).toLocaleString()}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-400">{t("Total Amount")}</span>
+            <span className="font-black text-emerald-600 text-lg">
+              {formatCurrency(summary.totalAmount)}{" "}
+              <span className="text-xs font-medium text-gray-400">EGP</span>
+            </span>
+          </div>
         </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border p-3 border-gray-100">
         <DataTable
-          data={products}
+          data={enrichedProducts}
           columns={columns}
           title={t("InventoryManagement")}
           addButtonText={t("AddNewProduct")}

@@ -1,36 +1,37 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Menu,
-  ChevronDown,
-  ChevronUp,
   Search,
   X,
   LayoutDashboard,
   Layers,
   CreditCard,
   Megaphone,
-  ShoppingCart,
   Warehouse,
   MonitorPlay,
   Contact2,
   Users,
   BarChart3,
   Settings,
-  ArrowLeft,
   LayoutGrid,
+  Lock,
 } from "lucide-react";
 
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import logo from "@/assets/logo.jpg";
 import { useTranslation } from "react-i18next";
-import { AppModules } from "@/config/modules";
+import { hasPermission, isSuperAdminUser } from "@/lib/checkPermission";
+import { AppModules, ModuleActions } from "@/config/modules";
 import { useTenantInfo } from "@/context/TenantContext";
-import { Lock } from "lucide-react";
-import { toast } from "react-toastify";
 
 const menuItems = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "/analytics" },
+  {
+    name: "Dashboard",
+    icon: LayoutDashboard,
+    path: "/analytics",
+    module: [AppModules.HOME, AppModules.Dashboard],
+  },
   {
     name: "Product Management",
     icon: Layers,
@@ -75,11 +76,13 @@ const menuItems = [
         path: "/payment-eco",
         module: AppModules.PAYMENT_ECO,
       },
-      // { name: "Fawry", path: "/fawry", module: AppModules.FAWRY },
-      // { name: "Paymob", path: "/paymob", module: AppModules.PAY },
-      // { name: "Geidea", path: "/geidea", module: AppModules.PAY },
       { name: "Payable", path: "/payable", module: AppModules.PAYABLE },
       { name: "Recevible", path: "/recevible", module: AppModules.RECEVIBLE },
+      {
+        name: "Installments",
+        path: "/installments",
+        module: [AppModules.INSTALLMENTS, AppModules.ADMIN, AppModules.POS],
+      },
       { name: "Ledger", path: "/ledger", module: AppModules.LEDGER },
     ],
   },
@@ -112,7 +115,6 @@ const menuItems = [
       { name: "Ecommerce", path: "/ecommerce", module: AppModules.ECOMMERCE },
     ],
   },
-
   {
     name: "Inventory",
     icon: Warehouse,
@@ -176,31 +178,37 @@ const menuItems = [
         name: "Cashier Shifts",
         path: "/cashier-shift",
         module: AppModules.CASHIER_SHIFT_REPORT,
+        adminOnly: true,
       },
       {
         name: "Orders Report",
         path: "/orders-reports",
         module: AppModules.ORDERS_REPORT,
+        adminOnly: true,
       },
       {
         name: "Product Report",
         path: "/product-reports",
         module: AppModules.PRODUCT_REPORT,
+        adminOnly: true,
       },
       {
         name: "Financial Report",
         path: "/financial-reports",
         module: AppModules.FINANCIAL_REPORT,
+        adminOnly: true,
       },
       {
         name: "Product Movement Report",
         path: "/product-movement-report",
         module: AppModules.PRODUCT_MOVEMENT,
+        adminOnly: true,
       },
       {
         name: "All Returns",
         path: "/all-returns",
         module: AppModules.ALL_RETURNS,
+        adminOnly: true,
       },
     ],
   },
@@ -208,7 +216,13 @@ const menuItems = [
     name: "Settings",
     icon: Settings,
     children: [
-      { name: "Barcode", path: "/barcode", module: AppModules.PRODUCT },
+      // 👑 Barcode — admin only
+      {
+        name: "Barcode",
+        path: "/barcode",
+        module: AppModules.PRODUCT,
+        adminOnly: true,
+      },
       { name: "Cities", path: "/city", module: AppModules.CITY },
       { name: "Country", path: "/country", module: AppModules.COUNTRY },
       { name: "Zones", path: "/zone", module: AppModules.ZONE },
@@ -229,7 +243,8 @@ const menuItems = [
         module: AppModules.SERVICE_FEES,
       },
       { name: "Couriers", path: "/courier", module: AppModules.COURIER },
-      { name: "Data", path: "/data" },
+      // 👑 Data — admin only
+      { name: "Data", path: "/data", adminOnly: true },
     ],
   },
 ];
@@ -263,9 +278,13 @@ const moduleIconBg = {
   Settings: "bg-gray-600",
 };
 
-export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen: externalSetMobileOpen }) {
+export default function Sidebar({
+  mobileOpen: externalMobileOpen,
+  setMobileOpen: externalSetMobileOpen,
+}) {
   const [internalMobileOpen, setInternalMobileOpen] = useState(false);
-  const mobileOpen = externalMobileOpen !== undefined ? externalMobileOpen : internalMobileOpen;
+  const mobileOpen =
+    externalMobileOpen !== undefined ? externalMobileOpen : internalMobileOpen;
   const setMobileOpen = externalSetMobileOpen || setInternalMobileOpen;
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -274,43 +293,18 @@ export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen:
   const navigate = useNavigate();
   const { features, loading: tenantLoading } = useTenantInfo();
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userPermissions = user.permissions || [];
-  const isSuperAdmin =
-    user.role === "superadmin" ||
-    user.role_name?.toLowerCase() === "super admin";
-
-  const isFeatureLocked = (path) => {
-    if (tenantLoading) return false;
-    // Branches and Pickup Points need the Ecommerce feature.
-    if (
-      !features.haveEcommerce &&
-      (path === "/warehouse" || path === "/pickup-point")
-    )
-      return true;
-    if (path === "/stocktake" && !features.haveStockTake) return true;
-    if (activeModuleGroup?.name === "Reports" && !features.haveReports)
-      return true;
-    return false;
-  };
-
-  // Permission check
-  const canViewModule = (moduleName) => {
-    if (isSuperAdmin || !moduleName) return true;
-    return userPermissions.some(
-      (p) =>
-        p.module.toLowerCase() === moduleName.toLowerCase() &&
-        p.actions.some((a) => a.action === "View"),
-    );
+  // ✅ canViewModule بتحترم adminOnly + hasPermission
+  const canViewModule = (moduleName, adminOnly = false) => {
+    if (adminOnly) return isSuperAdminUser();
+    if (!moduleName) return true;
+    return hasPermission(moduleName, ModuleActions.VIEW);
   };
 
   // Find which module group the current path belongs to
   const activeModuleGroup = menuItems.find(
     (item) =>
       item.children?.some((child) => {
-        // Use exact match for shallow paths to avoid prefix overlap (e.g., /product vs /product-movement)
         if (child.path === location.pathname) return true;
-        // For children with sub-paths (like /product/add), check if the base matches
         const pathParts = location.pathname.split("/");
         const childParts = child.path.split("/");
         return (
@@ -323,18 +317,30 @@ export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen:
         item.path !== "/analytics"),
   );
 
-  // Items to show: only the active module's children
+  const isFeatureLocked = (path) => {
+    if (tenantLoading) return false;
+    if (path === "/stocktake" && !features.haveStockTake) return true;
+    if (activeModuleGroup?.name === "Reports" && !features.haveReports)
+      return true;
+    return false;
+  };
+
+  // Items to show: only the active module's children, and only ones user can view
   const moduleChildren = activeModuleGroup?.children
-    ? activeModuleGroup.children.filter((child) => canViewModule(child.module))
+    ? activeModuleGroup.children.filter((child) =>
+        canViewModule(child.module, child.adminOnly),
+      )
     : activeModuleGroup
-      ? [{ name: activeModuleGroup.name, path: activeModuleGroup.path }]
+      ? canViewModule(activeModuleGroup.module, activeModuleGroup.adminOnly)
+        ? [{ name: activeModuleGroup.name, path: activeModuleGroup.path }]
+        : []
       : [];
 
   // Filtered by search
   const filteredChildren = searchQuery.trim()
     ? moduleChildren.filter((child) =>
-      t(child.name).toLowerCase().includes(searchQuery.toLowerCase()),
-    )
+        t(child.name).toLowerCase().includes(searchQuery.toLowerCase()),
+      )
     : moduleChildren;
 
   const ModuleIcon = activeModuleGroup?.icon;
@@ -350,7 +356,9 @@ export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen:
     <div className="flex flex-col h-full">
       {/* Logo + collapse button */}
       <div
-        className={`flex items-center h-20 px-5 border-b border-slate-100 flex-shrink-0 ${desktopCollapsed && !isMobile ? "justify-center" : "justify-between"}`}
+        className={`flex items-center h-20 px-5 border-b border-slate-100 flex-shrink-0 ${
+          desktopCollapsed && !isMobile ? "justify-center" : "justify-between"
+        }`}
       >
         {(!desktopCollapsed || isMobile) && (
           <img src={logo} alt="logo" className="h-10 object-contain" />
@@ -433,8 +441,9 @@ export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen:
               return (
                 <div
                   key={i}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium opacity-50 cursor-not-allowed bg-slate-50/80 text-slate-400 select-none hover:bg-slate-100/60 transition-all ${desktopCollapsed && !isMobile ? "justify-center px-2" : ""
-                    }`}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium opacity-50 cursor-not-allowed bg-slate-50/80 text-slate-400 select-none hover:bg-slate-100/60 transition-all ${
+                    desktopCollapsed && !isMobile ? "justify-center px-2" : ""
+                  }`}
                   title={
                     i18n.language === "ar"
                       ? `${t(child.name)} (غير متاح في باقتك - يتطلب ترقية)`
@@ -474,10 +483,11 @@ export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen:
                   setMobileOpen(false);
                   setSearchQuery("");
                 }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium ${isActive
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium ${
+                  isActive
                     ? `${accentClass} font-bold shadow-sm`
                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                  } ${desktopCollapsed && !isMobile ? "justify-center px-2" : ""}`}
+                } ${desktopCollapsed && !isMobile ? "justify-center px-2" : ""}`}
                 title={desktopCollapsed && !isMobile ? t(child.name) : ""}
               >
                 {(!desktopCollapsed || isMobile) && (
@@ -505,8 +515,9 @@ export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen:
             navigate("/");
             setMobileOpen(false);
           }}
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all text-sm font-medium ${desktopCollapsed && !isMobile ? "justify-center" : ""
-            }`}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all text-sm font-medium ${
+            desktopCollapsed && !isMobile ? "justify-center" : ""
+          }`}
           title={desktopCollapsed && !isMobile ? t("ControlPanel") : ""}
         >
           <LayoutGrid className="w-4 h-4 flex-shrink-0" />
@@ -522,7 +533,10 @@ export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen:
     <>
       {/* Mobile Sheet */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side={i18n.language === "ar" ? "right" : "left"} className="p-0 w-72 border-r-0">
+        <SheetContent
+          side={i18n.language === "ar" ? "right" : "left"}
+          className="p-0 w-72 border-r-0"
+        >
           <div className="h-full bg-white">
             <SidebarContent isMobile={true} />
           </div>
@@ -531,8 +545,9 @@ export default function Sidebar({ mobileOpen: externalMobileOpen, setMobileOpen:
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden md:flex flex-col h-screen bg-white border-r border-slate-100 transition-all duration-300 relative z-40 flex-shrink-0 ${desktopCollapsed ? "w-16" : "w-64"
-          }`}
+        className={`hidden md:flex flex-col h-screen bg-white border-r border-slate-100 transition-all duration-300 relative z-40 flex-shrink-0 ${
+          desktopCollapsed ? "w-16" : "w-64"
+        }`}
       >
         <SidebarContent isMobile={false} />
       </aside>

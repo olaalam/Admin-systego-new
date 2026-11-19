@@ -71,7 +71,7 @@ const Attribute = () => {
         attribute.options && attribute.options.length > 0
           ? attribute.options
             .map(
-              (opt) => `${opt.name} (${opt.status ? "Active" : "Inactive"})`
+              (opt) => `${opt.name} (${opt.status ? t("Active") : t("Inactive")})`
             )
             .join(", ")
           : "",
@@ -249,7 +249,7 @@ const Attribute = () => {
         itemsPerPage={10}
         searchable={true}
         filterable={true}
-        moduleName={AppModules.ATTRIBUTE}
+        moduleName={AppModules.VARIATION}
       />
 
       {/* Delete Dialog */}

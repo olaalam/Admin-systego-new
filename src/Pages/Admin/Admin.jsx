@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
 import DeleteDialog from "@/components/DeleteForm";
@@ -6,6 +6,7 @@ import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { AppModules } from "@/config/modules";
 
 const Admin = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/admin");
@@ -68,7 +69,7 @@ const Admin = () => {
         itemsPerPage={10}
         searchable
         filterable
-        moduleName="Admin"
+        moduleName={AppModules.ADMIN}
         filters={[
           { key: "role_name", label: t("Role"), options: roleOptions },
           { key: "warehouse_name", label: t("Warehouse"), options: warehouseOptions },

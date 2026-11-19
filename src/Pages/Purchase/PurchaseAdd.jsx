@@ -907,7 +907,7 @@ const PurchaseAdd = () => {
                   }
                   className={`flex-1 py-3 rounded-xl font-black transition-all ${formData.payment_status === m ? "bg-white text-red-600 shadow-md" : "text-gray-400"}`}
                 >
-                  {t(m.toUpperCase())}
+                  {t(m)}
                 </button>
               ))}
             </div>
@@ -1024,7 +1024,7 @@ const PurchaseAdd = () => {
                         type="number"
                         id="q_amt"
                         className="w-32 border border-orange-200 rounded-xl p-2.5 text-sm"
-                        placeholder="Amount"
+                        placeholder={t("Amount")}
                       />
                       <button
                         onClick={() => {

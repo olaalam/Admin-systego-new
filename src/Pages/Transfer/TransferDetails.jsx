@@ -12,9 +12,14 @@ import {
   Tag,
   XCircle,
   CheckCircle2,
+  Trash2,
 } from "lucide-react";
 import usePut from "@/hooks/usePut";
 import { toast } from "react-toastify";
+import api from "@/api/api";
+import DeleteDialog from "@/components/DeleteForm";
+import { hasPermission } from "@/lib/checkPermission";
+import { AppModules } from "@/config/modules";
 
 // =========================================================
 // Helper: مفتاح موحّد للـ product + variant
@@ -31,13 +36,67 @@ const TransferDetails = () => {
   const [statusReason, setStatusReason] = useState("");
   const [productDecisions, setProductDecisions] = useState({});
 
-  const currentWarehouseId = localStorage.getItem("currentWarehouseId");
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const isSuperAdmin = currentUser?.role === "superadmin";
+  const currentWarehouseId = isSuperAdmin
+    ? ""
+    : currentUser?.warehouse_id || "";
 
   const { data, loading, error, refetch } = useGet(`/api/admin/transfer/${id}`);
   const { putData, loading: updating } = usePut();
   const transfer = data?.transfer;
 
-  const isSender = transfer?.fromWarehouseId?._id === currentWarehouseId;
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // التحويل المستلَم مينفعش يتمسح (المخزون اتحرك)،
+  // وغير السوبر أدمن لازم يكون طرف في التحويل.
+  const canDeleteTransfer = (() => {
+    if (!hasPermission(AppModules.TRANSFER, "delete")) return false;
+    if (!transfer || transfer.status === "received") return false;
+    if (!currentWarehouseId) return true;
+
+    const fromId = String(
+      transfer.fromWarehouseId?._id || transfer.fromWarehouseId || "",
+    );
+    const toId = String(
+      transfer.toWarehouseId?._id || transfer.toWarehouseId || "",
+    );
+
+    return (
+      fromId === String(currentWarehouseId) || toId === String(currentWarehouseId)
+    );
+  })();
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+
+    setDeleting(true);
+    try {
+      const res = await api.delete(`/api/admin/transfer/${deleteTarget._id}`);
+
+      if (res.data?.success === false) {
+        throw new Error(res.data?.error?.message || "Delete failed");
+      }
+
+      toast.success(t("Transfer deleted successfully"));
+      setDeleteTarget(null);
+      navigate("/transfer");
+    } catch (err) {
+      toast.error(
+        err.response?.data?.error?.message ||
+          err.message ||
+          t("Failed to delete transfer"),
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // اليوزر غير المرتبط بمخزن (All Warehouses) يقدر يستلم أي تحويل،
+  // والمربوط بمخزن يستلم بس التحويلات اللي رايحة لمخزنه.
+  const canReceive =
+    !currentWarehouseId || transfer?.toWarehouseId?._id === currentWarehouseId;
 
   // =========================================================
   // ✅ استخدام key موحّد (productId + productPriceId)
@@ -260,7 +319,19 @@ const TransferDetails = () => {
               </p>
             </div>
           </div>
-          <div>{renderStatus(transfer.status)}</div>
+          <div className="flex items-center gap-3">
+            {renderStatus(transfer.status)}
+            {canDeleteTransfer && (
+              <button
+                onClick={() => setDeleteTarget(transfer)}
+                className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl font-bold border border-red-100 transition-colors"
+                title={t("Delete Transfer")}
+              >
+                <Trash2 size={16} />
+                {t("Delete")}
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -351,7 +422,7 @@ const TransferDetails = () => {
                         </th>
                         {activeTab === "all" &&
                         transfer.status === "pending" &&
-                        !isSender ? (
+                        canReceive ? (
                           <th className="p-5 text-center font-bold">
                             {t("Decision")}
                           </th>
@@ -403,7 +474,7 @@ const TransferDetails = () => {
                             <td className="p-5 text-center">
                               {activeTab === "all" &&
                               transfer.status === "pending" &&
-                              !isSender ? (
+                              canReceive ? (
                                 <div className="flex items-center justify-center gap-2">
                                   <button
                                     onClick={() =>
@@ -509,7 +580,7 @@ const TransferDetails = () => {
               </div>
             </div>
 
-            {transfer.status === "pending" && !isSender && (
+            {transfer.status === "pending" && canReceive && (
               <div className="bg-white rounded-3xl shadow-sm border p-6">
                 <h2 className="text-lg font-black text-gray-800 mb-4 flex items-center gap-2">
                   <ShieldCheck size={20} className="text-red-600" />
@@ -552,6 +623,20 @@ const TransferDetails = () => {
           </div>
         </div>
       </div>
+
+      {deleteTarget && (
+        <DeleteDialog
+          title={t("Delete Transfer")}
+          message={t(
+            "Are you sure you want to delete this transfer? This action cannot be undone.",
+          )}
+          confirmText={t("Delete")}
+          cancelText={t("Cancel")}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+          loading={deleting}
+        />
+      )}
     </div>
   );
 };

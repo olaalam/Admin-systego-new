@@ -25,6 +25,7 @@ const Profile = () => {
         username: "",
         email: "",
         phone: "",
+        password: "",
     });
 
     const profile = data?.profile;
@@ -36,6 +37,7 @@ const Profile = () => {
                 username: profile.username || "",
                 email: profile.email || "",
                 phone: profile.phone || "",
+                password: "",
             });
         }
     }, [profile]);
@@ -46,8 +48,16 @@ const Profile = () => {
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
+            const payload = {
+                username: formData.username,
+                email: formData.email,
+                phone: formData.phone,
+            };
+            // 🔐 نبعث كلمة المرور فقط لو المستخدم كتب واحدة جديدة
+            if (formData.password) payload.password = formData.password;
+
             // الترتيب الصحيح حسب الـ Hook عندك: (البيانات، ثم المسار)
-            await putData(formData, "/api/admin/profile");
+            await putData(payload, "/api/admin/profile");
 
             toast.success(t("profileUpdatedSuccessfully"));
             setIsEditModalOpen(false);
@@ -125,7 +135,7 @@ const Profile = () => {
                             label={t("Status")}
                             value={
                                 <span className={`px-2 py-1 rounded text-xs font-bold ${profile?.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                    {profile?.status?.toUpperCase()}
+                                    {profile?.status ? t(profile.status) : "—"}
                                 </span>
                             }
                         />
@@ -169,6 +179,17 @@ const Profile = () => {
                                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary/50 outline-none"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">{t("NewPassword")}</label>
+                                <input
+                                    type="password"
+                                    autoComplete="new-password"
+                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary/50 outline-none"
+                                    placeholder={t("LeaveBlankToKeepCurrentPassword")}
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 />
                             </div>
                             <div className="flex gap-3 pt-4">

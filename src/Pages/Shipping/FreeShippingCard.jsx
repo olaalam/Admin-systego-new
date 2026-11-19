@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-const FreeShippingCard = ({ enabled, onToggle, saving }) => {
+const FreeShippingCard = ({ enabled, onToggle, saving, canEdit = true }) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const navigate = useNavigate();
@@ -34,12 +34,14 @@ const FreeShippingCard = ({ enabled, onToggle, saving }) => {
           >
             {enabled ? t("Active") || "Active" : t("Inactive") || "Inactive"}
           </span>
-          <Switch
-            dir={isRTL ? "rtl" : "ltr"}
-            checked={enabled}
-            onCheckedChange={onToggle}
-            disabled={saving}
-          />
+          {canEdit ? (
+            <Switch
+              dir={isRTL ? "rtl" : "ltr"}
+              checked={enabled}
+              onCheckedChange={onToggle}
+              disabled={saving}
+            />
+          ) : null}
         </div>
       </div>
 

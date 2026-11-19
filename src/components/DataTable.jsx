@@ -14,7 +14,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import SmartSearch from "@/components/SmartSearch";
 import { useTranslation } from "react-i18next";
-import { hasPermission } from "@/lib/checkPermission";
+import { hasPermission, isSuperAdminUser } from "@/lib/checkPermission";
 import { AppModules } from "@/config/modules";
 import SearchableSelect from "./SearchableSelect";
 
@@ -64,10 +64,12 @@ export default function DataTable({
   };
 
   // Permission Checks
-  const canAdd = !moduleName || hasPermission(moduleName, "add");
-  const canEdit = !moduleName || hasPermission(moduleName, "edit");
-  const canDelete = !moduleName || hasPermission(moduleName, "delete");
-  const canView = !moduleName || hasPermission(moduleName, "view");
+  // 🔐 لو الصفحة مش محددة moduleName، يبقى مفيش صلاحية ضمنية:
+  // السوبر أدمن بس هو اللي يشوف الأزرار، وأي مستخدم تاني (View only) متظهرلوش.
+  const canAdd = moduleName ? hasPermission(moduleName, "add") : isSuperAdminUser();
+  const canEdit = moduleName ? hasPermission(moduleName, "edit") : isSuperAdminUser();
+  const canDelete = moduleName ? hasPermission(moduleName, "delete") : isSuperAdminUser();
+  const canView = moduleName ? hasPermission(moduleName, "view") : isSuperAdminUser();
 
   // ✅ FIX: لو في onSearchApi، متفلترش local
   const filteredData = useMemo(() => {
@@ -563,7 +565,7 @@ export default function DataTable({
                       </p>
 
                       {/* ✅ التعديل هنا: شلنا شروط البحث عشان الزرار يظهر دايماً لو مفيش داتا */}
-                      {onAdd && (
+                      {onAdd && canAdd && (
                         <button
                           onClick={() => {
                             if (addPath) navigate(addPath);

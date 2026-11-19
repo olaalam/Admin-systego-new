@@ -29,8 +29,13 @@ export default function TransferAdd() {
   const { postData, loading } = usePost("/api/admin/transfer");
   const { data: warehousesData } = useGet("/api/admin/warehouse");
 
+  // لو اليوزر مربوط بمخزن/فرع، التحويل بيبدأ من مخزنه إجباريًا
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const assignedWarehouseId = currentUser?.warehouse_id || "";
+  const isWarehouseScoped = Boolean(assignedWarehouseId);
+
   const [formData, setFormData] = useState({
-    fromWarehouseId: "",
+    fromWarehouseId: assignedWarehouseId,
     toWarehouseId: "",
     reason: "",
     products: [],
@@ -295,6 +300,7 @@ export default function TransferAdd() {
               onValueChange={(value) =>
                 setFormData({ ...formData, fromWarehouseId: value })
               }
+              disabled={isWarehouseScoped}
             >
               <SelectTrigger className="w-full h-12 rounded-xl focus:ring-2 focus:ring-blue-500">
                 <SelectValue placeholder={t("Select Source Warehouse")} />

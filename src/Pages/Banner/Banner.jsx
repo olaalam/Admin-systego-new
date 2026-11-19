@@ -96,7 +96,7 @@ const Banner = () => {
                 itemsPerPage={10}
                 searchable={true}
                 filterable={true}
-                moduleName={AppModules.banner}
+                moduleName={AppModules.BANNER}
             />
 
             {deleteTarget && (

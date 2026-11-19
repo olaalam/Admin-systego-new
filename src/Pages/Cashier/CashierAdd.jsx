@@ -53,7 +53,7 @@ const CashierAdd = () => {
         required: true,
         options: warehouseOptions,
         disabled: loading,
-        placeholder: loading ? "Loading warehouses..." : "Select warehouse",
+        placeholder: loading ? t("Loading warehouses...") : t("Select warehouse"),
       },
 
 
@@ -65,7 +65,7 @@ const CashierAdd = () => {
         required: false,
         options: bankAccountOptions,
         disabled: loading,
-        placeholder: loading ? "Loading bank accounts..." : "Select bank accounts",
+        placeholder: loading ? t("Loading bank accounts...") : t("Select bank accounts"),
       },
       {
         key: "printer_type",
@@ -77,7 +77,7 @@ const CashierAdd = () => {
           { value: "NETWORK", label: t("NETWORK") },
         ],
         disabled: loading,
-        placeholder: loading ? "Loading printer type..." : "Select printer type",
+        placeholder: loading ? t("Loading printer type...") : t("Select printer type"),
       },
       { key: "printer_IP", label: t("PrinterIP"), required: false },
       { key: "printer_port", label: t("PrinterPort"), required: false },
@@ -90,7 +90,7 @@ const CashierAdd = () => {
         required: true,
       },
     ],
-    [warehouseOptions, bankAccountOptions, loading]
+    [warehouseOptions, bankAccountOptions, loading, t, i18n.language]
   );
 
   // ✅ إرسال البيانات
@@ -109,7 +109,7 @@ const CashierAdd = () => {
       navigate("/cashier");
     } catch (err) {
       const errorMessage =
-        err.response?.data?.error?.message || err.response?.data?.message || "Failed to add cashier";
+        err.response?.data?.error?.message || err.response?.data?.message || t("Failed to add cashier");
       const errorDetails = err.response?.data?.error?.details;
 
       if (Array.isArray(errorDetails)) {

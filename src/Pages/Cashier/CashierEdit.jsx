@@ -35,11 +35,11 @@ export default function CashierEdit() {
 
   const fields = useMemo(
     () => [
-      { key: "name", label: "Name", required: true },
-      { key: "ar_name", label: "Arabic Name", required: true },
+      { key: "name", label: t("Name"), required: true },
+      { key: "ar_name", label: t("ArabicName"), required: true },
       {
         key: "warehouse_id",
-        label: "Warehouse",
+        label: t("Warehouse"),
         type: "select",
         required: true,
         options: warehouseOptions,
@@ -47,7 +47,7 @@ export default function CashierEdit() {
       },
       {
         key: "bankAccounts",
-        label: "Bank Accounts",
+        label: t("BankAccounts"),
         type: "multiselect",
         required: false,
         options: bankAccountOptions,
@@ -63,19 +63,19 @@ export default function CashierEdit() {
           { value: "NETWORK", label: t("NETWORK") },
         ],
         disabled: loadingSelect,
-        placeholder: loadingSelect ? "Loading printer type..." : "Select printer type",
+        placeholder: loadingSelect ? t("Loading printer type...") : t("Select printer type"),
       },
       { key: "printer_IP", label: t("PrinterIP"), required: false },
       { key: "printer_port", label: t("PrinterPort"), required: false },
       { key: "printer_name", label: t("PrinterName"), required: false },
       {
         key: "status",
-        label: "Status",
+        label: t("Status"),
         type: "switch",
         required: true,
       },
     ],
-    [warehouseOptions, bankAccountOptions, loadingSelect]
+    [warehouseOptions, bankAccountOptions, loadingSelect, t, i18n.language]
   );
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function CashierEdit() {
         const cashier = res.data?.data?.cashier;
 
         if (!cashier) {
-          toast.error("Cashier not found.");
+          toast.error(t("Cashier not found."));
           navigate("/cashier");
           return;
         }
@@ -99,7 +99,7 @@ export default function CashierEdit() {
           status: cashier.status ?? true,
         });
       } catch (err) {
-        toast.error("Failed to fetch cashier data");
+        toast.error(t("Failed to fetch cashier data"));
         console.error("❌ Error:", err);
       } finally {
         setFetching(false);
@@ -107,7 +107,7 @@ export default function CashierEdit() {
     };
 
     fetchCashier();
-  }, [id, navigate]);
+  }, [id, navigate, t]);
 
   const handleSubmit = async (formData) => {
     try {
@@ -118,11 +118,11 @@ export default function CashierEdit() {
       };
 
       await putData(payload);
-      toast.success("Cashier updated successfully!");
+      toast.success(t("Cashier updated successfully!"));
       navigate("/cashier");
     } catch (err) {
       const errorMessage =
-        err.response?.data?.error?.message || err.response?.data?.message || "Failed to update cashier";
+        err.response?.data?.error?.message || err.response?.data?.message || t("Failed to update cashier");
       const errorDetails = err.response?.data?.error?.details;
 
       if (Array.isArray(errorDetails)) {
@@ -141,8 +141,8 @@ export default function CashierEdit() {
     <div className="p-6 bg-gray-100 min-h-screen">
       {cashierData && (
         <AddPage
-          title={`Edit Cashier: ${cashierData.name || "..."}`}
-          description="Update cashier details"
+          title={`${t("Edit Cashier")}: ${cashierData.name || "..."}`}
+          description={t("Update cashier details")}
           fields={fields}
           initialData={cashierData}
           onSubmit={handleSubmit}

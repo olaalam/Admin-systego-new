@@ -8,11 +8,15 @@ import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 
 const ServiceFees = () => {
     // الرابط والبيانات
     const { data, loading, error, refetch } = useGet("/api/admin/service-fees");
     const { deleteData, loading: deleting } = useDelete("/api/admin/service-fees/delete");
+
+    // 🔐 صلاحية تغيير حالة رسوم الخدمة (Status)
+    const canToggleStatus = hasPermission(AppModules.SERVICE_FEES, "status");
 
     const [updatingId, setUpdatingId] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
@@ -73,7 +77,12 @@ const ServiceFees = () => {
         {
             key: "status",
             header: t("Status"),
-            render: (value, item) => (
+            render: (value, item) =>
+                !canToggleStatus ? (
+                    <span className={`text-xs font-semibold ${value ? "text-green-600" : "text-gray-400"}`}>
+                        {value ? t("Active") : t("Inactive")}
+                    </span>
+                ) : (
                 <label className="relative inline-flex items-center cursor-pointer">
                     <input
                         type="checkbox"
@@ -93,7 +102,7 @@ const ServiceFees = () => {
                         <span className="ml-2 text-xs text-gray-500">{t("Updating")}</span>
                     )}
                 </label>
-            ),
+                ),
         }
     ];
 

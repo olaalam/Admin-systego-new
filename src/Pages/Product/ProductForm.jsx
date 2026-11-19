@@ -703,7 +703,7 @@ const ProductForm = ({
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-4 sm:p-6 md:p-8 lg:p-12">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-visible p-4 sm:p-6 md:p-8 lg:p-12">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="border-b border-gray-200 bg-gray-50 overflow-x-auto">
               <TabsList className="w-full min-w-max bg-transparent border-0 p-0 h-auto">

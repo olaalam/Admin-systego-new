@@ -10,10 +10,15 @@ import SelfCard from "./SelfCard";
 import BostaCard from "./BostaCard";
 import AramexCard from "./AramexCard";
 import FreeShippingCard from "./FreeShippingCard";
+import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 
 const Shipping = () => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
+
+  // 🔐 صلاحيات الشحن
+  const canEdit = hasPermission(AppModules.SHIPPING, "edit");
 
   const {
     data: settingsData,
@@ -22,7 +27,7 @@ const Shipping = () => {
     refetch: refetchSettings,
   } = useGet("/api/admin/shipping/settings");
 
-  const { data: warehouseData } = useGet("/api/admin/warehouse");
+  const { data: pickupPointData } = useGet("/api/admin/pickup-point");
 
   const { putData, loading: savingSettings } = usePut(
     "/api/admin/shipping/settings",
@@ -118,10 +123,10 @@ const Shipping = () => {
     });
   }, [settingsData]);
 
-  const warehouses = warehouseData?.warehouses || warehouseData || [];
-  const onlineWarehouse = Array.isArray(warehouses)
-    ? warehouses.find((w) => w.Is_Online === true)
-    : null;
+  const pickupPoints = pickupPointData?.pickupPoints || [];
+  const activePickupPoints = Array.isArray(pickupPoints)
+    ? pickupPoints.filter((point) => point?.is_active !== false)
+    : [];
 
   const handleActiveMethodChange = async (val) => {
     setActiveMethod(val);
@@ -211,7 +216,10 @@ const Shipping = () => {
         <div className="flex gap-3">
           <button
             onClick={() => handleActiveMethodChange("self")}
+            disabled={!canEdit}
             className={`flex-1 flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+              canEdit ? "cursor-pointer" : "cursor-default"
+            } ${
               activeMethod === "self"
                 ? "border-red-500 bg-red-50"
                 : "border-gray-200 hover:border-red-200 bg-white"
@@ -240,7 +248,10 @@ const Shipping = () => {
 
           <button
             onClick={() => handleActiveMethodChange("bosta")}
+            disabled={!canEdit}
             className={`flex-1 flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+              canEdit ? "cursor-pointer" : "cursor-default"
+            } ${
               activeMethod === "bosta"
                 ? "border-blue-500 bg-blue-50"
                 : "border-gray-200 hover:border-blue-200 bg-white"
@@ -275,13 +286,15 @@ const Shipping = () => {
           setForm={setSelfForm}
           onSave={handleSaveSelf}
           saving={savingSettings}
-          onlineWarehouse={onlineWarehouse}
+          pickupPoints={activePickupPoints}
+          canEdit={canEdit}
         />
         <BostaCard
           form={bostaForm}
           setForm={setBostaForm}
           onSave={handleSaveBosta}
           saving={savingSettings}
+          canEdit={canEdit}
         />
         <AramexCard />
       </div>
@@ -290,6 +303,7 @@ const Shipping = () => {
         enabled={freeShipping}
         onToggle={handleFreeShippingToggle}
         saving={savingSettings}
+        canEdit={canEdit}
       />
     </div>
   );

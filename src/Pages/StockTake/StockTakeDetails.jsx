@@ -35,12 +35,18 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 
 export default function StockTakeDetails() {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isRTL = i18n.language === "ar";
+
+  // 🔐 صلاحيات الجرد: العرض فقط = مفيش تعديل ولا إلغاء ولا تسوية
+  const canEdit = hasPermission(AppModules.STOCKTAKE, "edit");
+  const canDelete = hasPermission(AppModules.STOCKTAKE, "delete");
 
   // استخراج refetchStocktake لكي نستخدمه في التحديث
   const { data: stocktakeData, loading: loadingStocktake, error, refetch: refetchStocktake } = useGet(
@@ -745,7 +751,7 @@ export default function StockTakeDetails() {
                 {t(stocktake.status.charAt(0).toUpperCase() + stocktake.status.slice(1))}
               </span>
             )}
-            {stocktake.status === "processing" && (
+            {stocktake.status === "processing" && canDelete && (
               <button
                 type="button"
                 onClick={() => setShowCancelDialog(true)}
@@ -782,7 +788,7 @@ export default function StockTakeDetails() {
             )}
 
             {/* Import Excel Button (For excel mode when processing) */}
-            {stocktake.mode === "excel" && stocktake.status === "processing" && (
+            {stocktake.mode === "excel" && stocktake.status === "processing" && canEdit && (
               <label className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm cursor-pointer transition-all shadow-sm">
                 <Upload size={18} />
                 <span>
@@ -866,7 +872,7 @@ export default function StockTakeDetails() {
                           <input
                             type="number"
                             min="0"
-                            disabled={stocktake.status !== "processing"}
+                            disabled={stocktake.status !== "processing" || !canEdit}
                             className="w-full border rounded-xl p-2 text-center font-bold focus:ring-2 focus:ring-red-500 outline-none disabled:bg-gray-100 disabled:text-gray-500"
                             value={item.actualQty}
                             onChange={(e) =>
@@ -911,7 +917,7 @@ export default function StockTakeDetails() {
                               <span className="text-xs font-semibold text-gray-400">
                                 —
                               </span>
-                            ) : (
+                            ) : canEdit ? (
                               <button
                                 type="button"
                                 onClick={() => setSelectedResolveItem({ ...item, difference })}
@@ -929,7 +935,7 @@ export default function StockTakeDetails() {
                                 {difference > 0 ? <ShoppingCart size={13} /> : <Wrench size={13} />}
                                 <span>{isRTL ? "تسوية" : "Resolve"}</span>
                               </button>
-                            )}
+                            ) : null}
                           </td>
                         )}
                       </tr>
@@ -951,7 +957,7 @@ export default function StockTakeDetails() {
         </div>
 
         {/* Action Buttons */}
-        {stocktake.status === "processing" && (
+        {stocktake.status === "processing" && canEdit && (
           <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <button
               onClick={handleSaveProgress}

@@ -112,7 +112,7 @@ const Expiring = () => {
             [t("Expiry Date")]: new Date(item.expiry_date).toLocaleDateString(),
             [t("Days Remaining")]: item.days_remaining,
             [t("Quantity")]: item.quantity,
-            [t("Status")]: item.status,
+            [t("Status")]: t(item.status),
         }));
 
         const ws = XLSX.utils.json_to_sheet(worksheetData);
@@ -159,7 +159,7 @@ const Expiring = () => {
                             title={t("Stock Expiry List")}
                             showActions={false}
                             searchable={true}
-                            moduleName={AppModules.PURCHASES}
+                            moduleName={AppModules.EXPIRING}
                             onExport={handleExport}
                         />
                     </div>

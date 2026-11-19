@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowUpCircle, ArrowDownCircle, Package, Search, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import BranchPosFilter from "@/components/BranchPosFilter";
 
 export default function ProductMovementReport() {
     const { t } = useTranslation();
@@ -17,13 +18,19 @@ export default function ProductMovementReport() {
     const [selectedProduct, setSelectedProduct] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [filters, setFilters] = useState({
+        warehouse_id: "",
+        cashier_id: ""
+    });
 
     // State للاحتفاظ برابط التقرير
     const [reportUrl, setReportUrl] = useState(null);
 
-    // 2. استخدام الـ Hook لجلب قائمة المنتجات
+    // 2. استخدام الـ Hook لجلب قائمة المنتجات + الفروع + نقاط البيع
     const { data: selectionData, loading: loadingProducts } = useGet("/api/admin/product-movement/selection");
     const productsList = selectionData?.products || [];
+    const warehouses = selectionData?.warehouses || [];
+    const cashiers = selectionData?.cashier || [];
 
     // 3. استخدام الـ Hook لجلب بيانات التقرير
     const { data: reportData, loading: loadingReport } = useGet(reportUrl);
@@ -35,8 +42,15 @@ export default function ProductMovementReport() {
             return;
         }
 
-        const queryUrl = `/api/admin/product-movement?product_id=${selectedProduct}&start_date=${startDate}&end_date=${endDate}`;
-        setReportUrl(queryUrl);
+        const params = new URLSearchParams({
+            product_id: selectedProduct,
+            start_date: startDate,
+            end_date: endDate,
+        });
+        if (filters.warehouse_id) params.append("warehouse_id", filters.warehouse_id);
+        if (filters.cashier_id) params.append("cashier_id", filters.cashier_id);
+
+        setReportUrl(`/api/admin/product-movement?${params.toString()}`);
     };
 
     // 4. تجهيز الداتا للجدول (تفكيك المبيعات والمشتريات لكل يوم لتُعرض في أسطر منفصلة)
@@ -110,6 +124,19 @@ export default function ProductMovementReport() {
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">{t("Warehouse")} / {t("POS Cashier")}</label>
+                        <div className="flex items-center gap-2 border rounded-md px-2 h-10">
+                            <BranchPosFilter
+                                value={filters}
+                                onChange={(patch) => setFilters(prev => ({ ...prev, ...patch }))}
+                                warehouses={warehouses}
+                                cashiers={cashiers}
+                                selectClassName="bg-transparent text-sm focus:outline-none px-1 py-1 cursor-pointer min-w-[120px]"
+                            />
+                        </div>
                     </div>
 
                     <Button

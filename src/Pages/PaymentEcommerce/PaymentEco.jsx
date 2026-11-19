@@ -5,7 +5,9 @@ import useGet from "@/hooks/useGet";
 import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import { io } from "socket.io-client";
 import { AppModules } from "@/config/modules";
+import { hasPermission } from "@/lib/checkPermission";
 import OrderShippingSection from "@/components/OrderDetail/OrderShippingSection";
 import BulkCreateBostaShipmentsModal from "@/components/OrderDetail/BulkCreateBostaShipmentsModal";
 import CreateDailyPickupModal from "@/components/OrderDetail/CreateDailyPickupModal";
@@ -36,6 +38,24 @@ import {
 const getOrderDisplayStatus = (order) => {
   const isBosta = (order.shippingMethod || order.shipmentType) === "bosta";
   return isBosta ? order.bostaShipment?.status || order.status : order.status;
+};
+
+// Some carriers return their own status casing (e.g. "Delivered"), while the
+// dashboard filters use the store's snake_case values. Keep both in one filter.
+const STATUS_GROUPS = {
+  pending: ["pending", "PendingPickup"],
+  delivered: ["delivered", "Delivered"],
+  returned: ["returned", "Returned"],
+  failed_to_deliver: ["failed_to_deliver", "Failed to deliver"],
+  out_for_delivery: ["out_for_delivery", "Out for delivery"],
+  canceled: ["canceled", "Cancelled"],
+};
+
+const matchesStatus = (orderStatus, filter) => {
+  if (!filter || filter === "all") return true;
+  const status = String(orderStatus || "");
+  const group = STATUS_GROUPS[filter];
+  return group ? group.includes(status) : status === filter;
 };
 
 const STATUS_STYLES = {
@@ -263,7 +283,9 @@ const FinancialsModal = ({ order, onCancel, loadingDetails, refetch }) => {
               </p>
               <span className="text-xs font-bold text-slate-800">
                 {order.createdAt
-                  ? new Date(order.createdAt).toLocaleString()
+                  ? new Date(order.createdAt).toLocaleString(
+                      isArabic ? "ar-EG" : "en-US",
+                    )
                   : "---"}
               </span>
             </div>
@@ -277,7 +299,7 @@ const FinancialsModal = ({ order, onCancel, loadingDetails, refetch }) => {
             <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 flex items-start gap-3">
               <Info size={16} className="text-indigo-600 shrink-0 mt-0.5" />
               <p className="text-xs font-semibold text-indigo-900 leading-relaxed">
-                {order.statusDescription}
+                {t(order.statusDescription)}
               </p>
             </div>
           )}
@@ -545,7 +567,7 @@ const FinancialsModal = ({ order, onCancel, loadingDetails, refetch }) => {
                     : order.paymentMethod?.name}
                 </span>
                 <span className="text-[10px] text-slate-400 font-semibold uppercase">
-                  ({order.paymentGateway})
+                  ({order.paymentGateway ? t(order.paymentGateway) : "—"})
                 </span>
               </div>
             </div>
@@ -681,11 +703,29 @@ const PaymentEco = () => {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
 
+  // 🔐 صلاحيات صفحة طلبات الأونلاين
+  const canAdd = hasPermission(AppModules.PAYMENT_ECO, "add");
+  const canDelete = hasPermission(AppModules.PAYMENT_ECO, "delete");
+
   const {
     data: responseData,
     loading,
     refetch,
   } = useGet("/api/admin/online-orders");
+
+  // 🔌 Real-time: refresh orders when an order status changes externally (accept/reject)
+  useEffect(() => {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+    const socket = io(baseUrl, { transports: ["websocket"] });
+    const handler = () => {
+      if (typeof refetch === "function") refetch();
+    };
+    socket.on("order_status_changed", handler);
+    return () => {
+      socket.off("order_status_changed", handler);
+      socket.disconnect();
+    };
+  }, [refetch]);
 
   const [activeTab, setActiveTab] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -823,16 +863,16 @@ const PaymentEco = () => {
   const displayData = useMemo(() => {
     if (!responseData?.orders) return [];
     if (activeTab === "all") return responseData.orders;
-    return responseData.orders.filter(
-      (order) => getOrderDisplayStatus(order) === activeTab,
+    return responseData.orders.filter((order) =>
+      matchesStatus(getOrderDisplayStatus(order), activeTab),
     );
   }, [responseData, activeTab]);
 
   const getStatusCount = (status) => {
     if (!responseData?.orders) return 0;
     if (status === "all") return responseData.orders.length;
-    return responseData.orders.filter(
-      (order) => getOrderDisplayStatus(order) === status,
+    return responseData.orders.filter((order) =>
+      matchesStatus(getOrderDisplayStatus(order), status),
     ).length;
   };
 
@@ -924,7 +964,7 @@ const PaymentEco = () => {
               <div className="flex flex-col gap-1 w-fit">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase bg-orange-50 text-orange-600 border border-orange-200/60 shadow-sm">
                   <Truck size={11} className="text-orange-500" />
-                  Bosta
+                  {t("Bosta")}
                 </span>
                 {bosta && (
                   <span
@@ -943,7 +983,7 @@ const PaymentEco = () => {
               <div className="flex flex-col gap-1 w-fit">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase bg-indigo-50 text-indigo-600 border border-indigo-200/60 shadow-sm">
                   <User size={11} className="text-indigo-500" />
-                  Self Delivery
+                  {t("Self Delivery")}
                 </span>
                 {dm ? (
                   <span
@@ -1030,36 +1070,40 @@ const PaymentEco = () => {
         ),
       },
       // 🗑️ Delete Column
-      {
-        key: "delete",
-        header: t("Actions"),
-        render: (_, item) => {
-          const isDeleting = deletingId === item._id;
-          return (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteOrder(item);
-              }}
-              disabled={isDeleting}
-              title={t("Delete Order")}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
-            >
-              {isDeleting ? (
-                <Loader2 size={13} className="animate-spin" />
-              ) : (
-                <Trash2
-                  size={13}
-                  className="group-hover:scale-110 transition-transform"
-                />
-              )}
-              {t("Delete")}
-            </button>
-          );
-        },
-      },
+      ...(canDelete
+        ? [
+            {
+              key: "delete",
+              header: t("Actions"),
+              render: (_, item) => {
+                const isDeleting = deletingId === item._id;
+                return (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteOrder(item);
+                    }}
+                    disabled={isDeleting}
+                    title={t("Delete Order")}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
+                  >
+                    {isDeleting ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      <Trash2
+                        size={13}
+                        className="group-hover:scale-110 transition-transform"
+                      />
+                    )}
+                    {t("Delete")}
+                  </button>
+                );
+              },
+            },
+          ]
+        : []),
     ],
-    [t, isArabic, deletingId],
+    [t, isArabic, deletingId, canDelete],
   );
 
   return (
@@ -1080,6 +1124,7 @@ const PaymentEco = () => {
             </div>
 
             {/* ✅ أزرار العمليات */}
+            {canAdd && (
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setShowBulkModal(true)}
@@ -1098,6 +1143,7 @@ const PaymentEco = () => {
                 {t("Create Daily Pickup")}
               </button>
             </div>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-3 w-full lg:w-auto">
@@ -1123,7 +1169,7 @@ const PaymentEco = () => {
                   {t("Pending")}
                 </p>
                 <p className="text-base font-black text-slate-900">
-                  {getStatusCount("pending") + getStatusCount("PendingPickup")}
+                  {getStatusCount("pending")}
                 </p>
               </div>
             </div>
@@ -1136,7 +1182,7 @@ const PaymentEco = () => {
                   {t("Delivered")}
                 </p>
                 <p className="text-base font-black text-slate-900">
-                  {getStatusCount("delivered") + getStatusCount("Delivered")}
+                  {getStatusCount("delivered")}
                 </p>
               </div>
             </div>
@@ -1209,7 +1255,7 @@ const PaymentEco = () => {
                   "Orders",
               )}`}
               showActions={false}
-              moduleName={AppModules.PAYMENT}
+              moduleName={AppModules.PAYMENT_ECO}
             />
           </div>
         )}
