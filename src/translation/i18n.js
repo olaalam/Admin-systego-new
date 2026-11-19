@@ -2982,6 +2982,8 @@ i18n.use(initReactI18next).init({
           },
           customize: {
             colorsConfiguration: "Colors Configuration",
+            lightMode: "Light Mode",
+            darkMode: "Dark Mode",
             fontStyle: "Font Style",
             storefrontSections: "Storefront Sections",
             activeCount: "Active: {{enabled}} of {{total}}",
@@ -5745,6 +5747,8 @@ i18n.use(initReactI18next).init({
           },
           customize: {
             colorsConfiguration: "إعداد الألوان",
+            lightMode: "الوضع الفاتح",
+            darkMode: "الوضع الداكن",
             fontStyle: "نمط الخط",
             storefrontSections: "أقسام واجهة المتجر",
             activeCount: "المفعّل: {{enabled}} من {{total}}",

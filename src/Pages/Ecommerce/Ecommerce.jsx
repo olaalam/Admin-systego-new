@@ -556,6 +556,18 @@ export default function Ecommerce() {
   ).length;
   const sectionsTotal = (formData.sections || []).length;
   const colorKeys = Object.keys(formData.colors || {});
+  const colorGroups = [
+    {
+      key: "light",
+      label: t("storeSettings.customize.lightMode"),
+      colors: colorKeys.filter((key) => !/dark$/i.test(key)),
+    },
+    {
+      key: "dark",
+      label: t("storeSettings.customize.darkMode"),
+      colors: colorKeys.filter((key) => /dark$/i.test(key)),
+    },
+  ];
 
   return (
     <div
@@ -805,30 +817,57 @@ export default function Ecommerce() {
                 {t("storeSettings.customize.colorsConfiguration")}
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {colorKeys.map((key) => (
-                <div
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {colorGroups.map(({ key, label, colors }) => (
+                <section
                   key={key}
-                  className="p-4 rounded-xl border border-gray-100 flex items-center gap-3"
+                  className={`rounded-xl border p-4 ${
+                    key === "dark"
+                      ? "border-slate-200 bg-slate-50"
+                      : "border-amber-100 bg-amber-50/40"
+                  }`}
                 >
-                  <input
-                    type="color"
-                    value={formData.colors[key] || "#000000"}
-                    onChange={(e) => handleColorChange(key, e.target.value)}
-                    className="w-10 h-10 rounded-lg cursor-pointer border-0"
-                  />
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 capitalize">
-                      {key}
-                    </p>
-                    <input
-                      type="text"
-                      value={formData.colors[key] || ""}
-                      onChange={(e) => handleColorChange(key, e.target.value)}
-                      className="w-24 text-xs font-mono bg-gray-50 border border-gray-200 rounded px-2 py-1 mt-1"
+                  <div className="flex items-center gap-2 mb-4">
+                    <span
+                      className={`w-2.5 h-2.5 rounded-full ${
+                        key === "dark" ? "bg-slate-500" : "bg-amber-400"
+                      }`}
                     />
+                    <h3 className="text-sm font-bold text-gray-800">
+                      {label}
+                    </h3>
                   </div>
-                </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {colors.map((colorKey) => (
+                      <div
+                        key={colorKey}
+                        className="p-3 rounded-xl border border-gray-100 bg-white flex items-center gap-3"
+                      >
+                        <input
+                          type="color"
+                          value={formData.colors[colorKey] || "#000000"}
+                          onChange={(e) =>
+                            handleColorChange(colorKey, e.target.value)
+                          }
+                          className="w-10 h-10 rounded-lg cursor-pointer border-0"
+                        />
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 capitalize">
+                            {colorKey.replace(/([a-z0-9])([A-Z])/g, "$1 $2")}
+                          </p>
+                          <input
+                            type="text"
+                            value={formData.colors[colorKey] || ""}
+                            onChange={(e) =>
+                              handleColorChange(colorKey, e.target.value)
+                            }
+                            className="w-24 text-xs font-mono bg-gray-50 border border-gray-200 rounded px-2 py-1 mt-1"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           </div>

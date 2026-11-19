@@ -16,6 +16,18 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 
+const getVariationLabel = (variant, fallback = "") => {
+  const variationDetails = variant?.variations
+    ?.map((variation) => {
+      const optionName = variation.options?.[0]?.name;
+      return optionName ? `${variation.name}: ${optionName}` : variation.name;
+    })
+    .filter(Boolean)
+    .join(" | ");
+
+  return variationDetails || variant?.variation_name || fallback;
+};
+
 const PurchaseEdit = () => {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
@@ -86,9 +98,9 @@ const PurchaseEdit = () => {
 
               const varCost = Number(matchingVar?.cost || 0);
               const variationName =
-                matchingVar?.variation_name ||
-                option.product_price_id?.variation_name ||
-                "";
+                getVariationLabel(matchingVar) ||
+                getVariationLabel(option.product_price_id) ||
+                t("Variation");
 
               const validCosts = (matchingProd?.prices || [])
                 .map((pr) => Number(pr.cost || 0))
@@ -205,8 +217,7 @@ const PurchaseEdit = () => {
       // =====================================================
       if (product.different_price && product.prices?.length > 0) {
         product.prices.forEach((variant) => {
-          // الـ API بيرجع variation_name مباشرة
-          const variantName = variant.variation_name || t("Variation");
+          const variantName = getVariationLabel(variant, t("Variation"));
 
           const variantCost = Number(variant.cost || 0);
 
