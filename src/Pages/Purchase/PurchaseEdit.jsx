@@ -15,6 +15,7 @@ import {
   Plus,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { matchesProductSearch } from "@/lib/utils";
 
 const getVariationLabel = (variant, fallback = "") => {
   const variationDetails = variant?.variations
@@ -214,6 +215,7 @@ const PurchaseEdit = () => {
     const allItems = [];
 
     selection.products.forEach((product) => {
+      const arName = product.ar_name || product.name_ar || "";
       // =====================================================
       // المنتج له أسعار مختلفة / Variations
       // =====================================================
@@ -233,8 +235,10 @@ const PurchaseEdit = () => {
             original_product_id: product._id,
 
             displayName: `${product.name} - ${variantName}`,
+            ar_name: arName,
 
             price: variant.price,
+            code: variant.code || product.code,
 
             cost: variantCost,
 
@@ -253,6 +257,7 @@ const PurchaseEdit = () => {
           id: product._id,
 
           displayName: product.name,
+          ar_name: arName,
 
           cost: prodCost > 0 ? prodCost : 0,
 
@@ -401,17 +406,11 @@ const PurchaseEdit = () => {
   // Search Suggestions
   // =========================================================
   const suggestions = useMemo(() => {
-    const term = searchProduct?.toLowerCase().trim();
+    if (!searchProduct || !searchProduct.trim()) return [];
 
-    if (!term) return [];
-
-    return processedProducts
-      .filter(
-        (p) =>
-          p.displayName?.toLowerCase().includes(term) ||
-          p.code?.toString().includes(term),
-      )
-      .slice(0, 10);
+    return processedProducts.filter((p) =>
+      matchesProductSearch(p, searchProduct)
+    );
   }, [searchProduct, processedProducts]);
 
   // =========================================================
@@ -746,7 +745,7 @@ const PurchaseEdit = () => {
           />
 
           {suggestions.length > 0 && (
-            <div className="absolute w-full bg-white border shadow-2xl rounded-xl mt-1 overflow-hidden z-50">
+            <div className="absolute w-full bg-white border border-gray-200 shadow-2xl rounded-xl mt-1 max-h-96 overflow-y-auto z-50 divide-y divide-gray-100">
               {suggestions.map((p) => {
                 const key = getProductKey(p);
                 const isSelected = selectedProductIds.includes(key);
@@ -765,7 +764,7 @@ const PurchaseEdit = () => {
                     }}
                     className={`
                       p-4 flex justify-between items-center
-                      border-b last:border-0 transition-colors
+                      transition-colors
                       ${
                         alreadyAdded
                           ? "bg-gray-50 opacity-50 cursor-not-allowed"
@@ -792,6 +791,11 @@ const PurchaseEdit = () => {
                         >
                           {p.displayName || p.name}
                         </span>
+                        {p.ar_name && (
+                          <span className="text-xs text-gray-500 mt-0.5">
+                            {p.ar_name}
+                          </span>
+                        )}
 
                         <div className="flex items-center gap-2 mt-1">
                           {p.code && (

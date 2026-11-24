@@ -8,6 +8,7 @@ import useGet from "@/hooks/useGet";
 import api from "@/api/api";
 import SmartSearch from "@/components/SmartSearch";
 import { useTranslation } from "react-i18next";
+import { matchesProductSearch } from "@/lib/utils";
 
 const PandelAdd = () => {
   const { t, i18n } = useTranslation();
@@ -70,17 +71,10 @@ const PandelAdd = () => {
         const getProductData = (productId) =>
           products.find((p) => (p._id || p.id) === productId);
 
-        const searchTerm = (formData.searchProduct || "").toLowerCase().trim();
+        const searchTerm = (formData.searchProduct || "").trim();
         const suggestions =
           searchTerm.length > 0
-            ? products
-                .filter(
-                  (p) =>
-                    (p.name && p.name.toLowerCase().includes(searchTerm)) ||
-                    (p.code &&
-                      p.code.toString().toLowerCase().includes(searchTerm)),
-                )
-                .slice(0, 8)
+            ? products.filter((p) => matchesProductSearch(p, searchTerm))
             : [];
 
         const handleAddProduct = (p) => {
@@ -145,11 +139,11 @@ const PandelAdd = () => {
               />
 
               {suggestions.length > 0 && (
-                <div className="absolute w-full bg-white border border-gray-200 rounded-lg shadow-xl mt-1 z-50 overflow-hidden">
+                <div className="absolute w-full bg-white border border-gray-200 rounded-lg shadow-xl mt-1 z-50 max-h-80 overflow-y-auto divide-y divide-gray-100">
                   {suggestions.map((p) => (
                     <div
                       key={p._id || p.id}
-                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center gap-3 transition-colors border-b last:border-b-0"
+                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center gap-3 transition-colors"
                       onClick={() => handleAddProduct(p)}
                     >
                       <div className="w-10 h-10 rounded border overflow-hidden flex-shrink-0 bg-gray-50">
@@ -166,6 +160,11 @@ const PandelAdd = () => {
                         <span className="text-sm font-semibold text-gray-700 truncate">
                           {p.name}
                         </span>
+                        {(p.ar_name || p.name_ar) && (
+                          <span className="text-xs text-gray-500">
+                            {p.ar_name || p.name_ar}
+                          </span>
+                        )}
                         <span className="text-xs text-gray-400">
                           {t("Code")}: {p.prices?.[0]?.code || "N/A"}
                           {p.prices && p.prices.length > 1 && (
