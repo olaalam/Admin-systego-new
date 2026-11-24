@@ -1,10 +1,11 @@
 // src/pages/products.jsx
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
 import DeleteDialog from "@/components/DeleteForm";
 import VariablePricesDialog from "@/components/VariablePricesDialog";
+import TrashModal from "@/components/TrashModal";
 import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { toast } from "react-toastify";
@@ -16,6 +17,8 @@ const Product = () => {
   const { data, loading, error, refetch } = useGet("/api/admin/product");
   const { data: catData } = useGet("/api/admin/category");
   const { data: brandData } = useGet("/api/admin/brand");
+  const { data: taxesData } = useGet("/api/admin/taxes/selection");
+  const { data: fallbackTaxesData } = useGet("/api/admin/taxes");
   const { deleteData, loading: deleting } = useDelete("/api/admin/product/delete");
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
@@ -25,10 +28,37 @@ const Product = () => {
   const categoryOptions = (catData?.categories || []).map((c) => ({ label: c.name, value: c._id }));
   const brandOptions = (brandData?.brands || []).map((b) => ({ label: b.name, value: b._id }));
 
+  const taxesList = useMemo(() => {
+    const raw =
+      taxesData?.taxes ||
+      taxesData?.tax ||
+      taxesData?.data ||
+      (Array.isArray(taxesData) ? taxesData : null) ||
+      fallbackTaxesData?.taxes ||
+      [];
+    return Array.isArray(raw) ? raw : [];
+  }, [taxesData, fallbackTaxesData]);
+
+  const taxOptions = useMemo(() => {
+    return taxesList.map((tx) => ({
+      label: `${tx.name || tx.ar_name} (${tx.type === "percentage" ? `${parseFloat(((Number(tx.amount) < 1 ? Number(tx.amount) * 100 : Number(tx.amount)) || tx.percentage || 0).toFixed(2))}%` : `${tx.amount} EGP`})`,
+      value: tx._id || tx.id,
+    }));
+  }, [taxesList]);
+
+  const taxesMap = useMemo(() => {
+    const map = {};
+    taxesList.forEach((tx) => {
+      map[tx._id || tx.id] = tx.name || tx.ar_name;
+    });
+    return map;
+  }, [taxesList]);
+
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [bulkDeleteIds, setBulkDeleteIds] = useState(null);
   const [priceDialogProduct, setPriceDialogProduct] = useState(null);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
   const { postData, loading: importing } = usePost("/api/admin/product/import");
 
   const { postData: searchByCode, loading: searchingByCode } =
@@ -326,6 +356,16 @@ const Product = () => {
                 {item.brandId?.name || "—"}
               </span>
             </div>
+            {(item.taxesId || item.taxId) && (
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="text-gray-500">{t("Tax", "الضريبة")}:</span>
+                <span className="font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 text-[11px]">
+                  {typeof (item.taxesId || item.taxId) === "object"
+                    ? (item.taxesId || item.taxId).name || (item.taxesId || item.taxId).ar_name
+                    : taxesMap[item.taxesId || item.taxId] || (item.taxesId || item.taxId)}
+                </span>
+              </div>
+            )}
           </div>
           <div className="mt-2 flex items-baseline gap-1">
             <span className="text-base font-bold text-red-600">
@@ -465,6 +505,22 @@ const Product = () => {
       render: (_, item) => renderProductInfo(item),
     },
     {
+      key: "taxesId",
+      header: t("Tax", "الضريبة"),
+      filterable: true,
+      render: (_, item) => {
+        const tx = item.taxesId || item.taxId;
+        if (!tx) return <span className="text-gray-400 text-xs">—</span>;
+        const label =
+          typeof tx === "object" ? tx.name || tx.ar_name : taxesMap[tx] || tx;
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+            {label}
+          </span>
+        );
+      },
+    },
+    {
       key: "inventory",
       header: t("Inventory"),
       filterable: false,
@@ -532,9 +588,11 @@ const Product = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.PRODUCT}
+        onTrash={() => setIsTrashOpen(true)}
         filters={[
           { key: "categoryId", label: t("Category"), options: categoryOptions },
           { key: "brandId", label: t("Brand"), options: brandOptions },
+          { key: "taxesId", label: t("Tax", "الضريبة"), options: taxOptions },
           { key: "product_has_imei", label: t("IMEI"), options: [{ label: t("Yes"), value: "true" }, { label: t("No"), value: "false" }] },
           { key: "different_price", label: t("VarPrice"), options: [{ label: t("Yes"), value: "true" }, { label: t("No"), value: "false" }] },
         ]}
@@ -566,6 +624,18 @@ const Product = () => {
           onCancel={() => setPriceDialogProduct(null)}
         />
       )}
+
+      {/* Trash Modal */}
+      <TrashModal
+        isOpen={isTrashOpen}
+        onClose={() => setIsTrashOpen(false)}
+        title={isRTL ? "سلة محذوفات المنتجات" : "Product Trash"}
+        type="product"
+        trashEndpoint="/api/admin/product/trash"
+        restoreEndpoint={(id) => `/api/admin/product/${id}/restore`}
+        forceDeleteEndpoint={(id) => `/api/admin/product/${id}/force`}
+        onItemRestored={() => refetch()}
+      />
     </div>
   );
 };

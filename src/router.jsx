@@ -52,6 +52,7 @@ import ExpensesCategoryEdit from "./Pages/ExpensesCategory/ExpensesCategoryEdit"
 import Taxes from "./Pages/Taxes/Taxes";
 import TaxesAdd from "./Pages/Taxes/TaxesAdd";
 import TaxesEdit from "./Pages/Taxes/TaxesEdit";
+import TaxesAssignProducts from "./Pages/Taxes/TaxesAssignProducts";
 import PermissionEdit from "./Pages/Permission/PermissionEdit";
 import Permission from "./Pages/Permission/Permission";
 import Transfer from "./Pages/Transfer/Transfer";
@@ -782,6 +783,17 @@ export default function AppRoutes() {
               action={ModuleActions.EDIT}
             >
               <TaxesEdit />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="assign"
+          element={
+            <ProtectedRoute
+              module={AppModules.TAXES}
+              action={ModuleActions.EDIT}
+            >
+              <TaxesAssignProducts />
             </ProtectedRoute>
           }
         />

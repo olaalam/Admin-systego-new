@@ -44,6 +44,8 @@ export default function DataTable({
   headerExtra = null,
   onExportPdf = null,
   extraActions = null,
+  onTrash = null,
+  trashCount = null,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -286,6 +288,23 @@ export default function DataTable({
               >
                 <Download size={16} />
                 <span className="hidden sm:inline">{t("Export")}</span>
+              </button>
+            )}
+
+            {onTrash && canDelete && (
+              <button
+                type="button"
+                onClick={onTrash}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm border border-red-200 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 hover:border-red-300 transition-colors font-medium shadow-xs"
+                title={t("Trash", "سلة المحذوفات")}
+              >
+                <Trash2 size={16} />
+                <span className="hidden sm:inline">{t("Trash", "سلة المحذوفات")}</span>
+                {typeof trashCount === "number" && trashCount > 0 && (
+                  <span className="px-1.5 py-0.5 bg-red-600 text-white text-[11px] font-bold rounded-full leading-none">
+                    {trashCount}
+                  </span>
+                )}
               </button>
             )}
           </div>

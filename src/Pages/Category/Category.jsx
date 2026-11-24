@@ -4,6 +4,7 @@ import * as XLSX from "xlsx";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
 import DeleteDialog from "@/components/DeleteForm";
+import TrashModal from "@/components/TrashModal";
 import useGet from "@/hooks/useGet";
 import useDelete from "@/hooks/useDelete";
 import { toast } from "react-toastify";
@@ -18,6 +19,7 @@ const Category = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [bulkDeleteIds, setBulkDeleteIds] = useState(null);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
   const { postData, loading: importing } = usePost("/api/admin/category/import");
   const [updatingId, setUpdatingId] = useState(null);
   const handleOnlineToggle = async (item) => {
@@ -381,7 +383,19 @@ const Category = () => {
         searchable={true}
         filterable={true}
         moduleName={AppModules.CATEGORY}
+        onTrash={() => setIsTrashOpen(true)}
+      />
 
+      {/* Trash Modal */}
+      <TrashModal
+        isOpen={isTrashOpen}
+        onClose={() => setIsTrashOpen(false)}
+        title={isRTL ? "سلة محذوفات الأقسام" : "Category Trash"}
+        type="category"
+        trashEndpoint="/api/admin/category/trash"
+        restoreEndpoint={(id) => `/api/admin/category/${id}/restore`}
+        forceDeleteEndpoint={(id) => `/api/admin/category/${id}/force`}
+        onItemRestored={() => refetch()}
       />
 
       {/* Delete Dialog */}

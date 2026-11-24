@@ -15,6 +15,14 @@ i18n.use(initReactI18next).init({
   resources: {
     en: {
       translation: {
+        Trash: "Trash",
+        ProductTrash: "Product Trash",
+        CategoryTrash: "Category Trash",
+        Restore: "Restore",
+        ForceDelete: "Delete Permanently",
+        "Assign Products to Tax": "Assign Products to Tax",
+        "Target Tax": "Target Tax",
+        "Select Products": "Select Products",
         EGP: "EGP",
         "Average Cost": "Average Cost",
         Installments: "Installments",
@@ -3271,6 +3279,14 @@ i18n.use(initReactI18next).init({
     },
     ar: {
       translation: {
+        Trash: "سلة المحذوفات",
+        ProductTrash: "سلة محذوفات المنتجات",
+        CategoryTrash: "سلة محذوفات الأقسام",
+        Restore: "استرجاع",
+        ForceDelete: "حذف نهائي",
+        "Assign Products to Tax": "ربط المنتجات بالضريبة",
+        "Target Tax": "الضريبة المستهدفة",
+        "Select Products": "تحديد المنتجات",
         "Expiring Products": "المنتجات قاربة الانتهاء",
         Installments: "الأقساط",
         Ecommerce: "التجارة الإلكترونية",

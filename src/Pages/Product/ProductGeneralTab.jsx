@@ -211,6 +211,7 @@ const ProductGeneralTab = ({
   handleChange,
   categories = [],
   brands = [],
+  taxes = [],
   loading,
   units = [],
   discounts = [],
@@ -371,24 +372,41 @@ const ProductGeneralTab = ({
           </button>
         </div>
 
-        {/* ✅ Tax Single Select */}
-        {/* <div>
+        {/* Tax Single Select */}
+        <div className="flex flex-col">
           <Label className="text-sm font-medium text-gray-700 mb-2 block">
-            {t("productss.tax")}
+            {t("Tax", "الضريبة")}
           </Label>
           <select
-            className="w-full h-11 border border-gray-300 rounded-md px-3 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
-            value={form.taxesId}
+            className="w-full h-11 border border-gray-300 rounded-md px-3 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent bg-white text-sm"
+            value={form.taxesId || ""}
             onChange={(e) => handleChange("taxesId", e.target.value)}
           >
-            <option value="">{t("productss.select_tax")}</option>
-            {taxes && taxes.map((tax) => (
-              <option key={tax._id} value={tax._id}>
-                {tax.name} ({tax.percentage}%)
-              </option>
-            ))}
+            <option value="">{isRTL ? "بدون ضريبة / اختر الضريبة" : "No Tax / Select Tax"}</option>
+            {taxes &&
+              taxes.map((tax) => {
+                const taxId = tax._id || tax.id;
+                const name = isRTL ? tax.ar_name || tax.name : tax.name || tax.ar_name;
+                const rateStr =
+                  tax.type === "percentage"
+                    ? `${parseFloat(
+                        (
+                          (Number(tax.amount) < 1
+                            ? Number(tax.amount) * 100
+                            : Number(tax.amount)) ||
+                          tax.percentage ||
+                          0
+                        ).toFixed(2)
+                      )}%`
+                    : `${tax.amount || 0} ${t("EGP", "EGP")}`;
+                return (
+                  <option key={taxId} value={taxId}>
+                    {name} ({rateStr})
+                  </option>
+                );
+              })}
           </select>
-        </div> */}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6">

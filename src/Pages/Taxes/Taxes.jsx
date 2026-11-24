@@ -1,5 +1,6 @@
 // src/pages/payment_methods.jsx
 import { useState } from "react";
+import { PackagePlus } from "lucide-react";
 import DataTable from "@/components/DataTable";
 import Loader from "@/components/Loader";
 import DeleteDialog from "@/components/DeleteForm";
@@ -196,7 +197,30 @@ const Taxes = () => {
         searchable
         filterable
         moduleName={AppModules.TAXES}
-
+        headerExtra={
+          <button
+            type="button"
+            onClick={() => navigate("assign")}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors shadow-xs"
+            title={isRTL ? "ربط المنتجات بالضريبة" : "Assign Products to Tax"}
+          >
+            <PackagePlus size={15} />
+            <span>{isRTL ? "ربط المنتجات بالضريبة" : "Assign Products to Tax"}</span>
+          </button>
+        }
+        extraActions={(item) => (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`assign?taxId=${item._id}`);
+            }}
+            className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded transition-colors"
+            title={isRTL ? "ربط منتجات بهذه الضريبة" : "Assign Products to this Tax"}
+          >
+            <PackagePlus size={16} />
+          </button>
+        )}
       />
 
       {/* Delete Single */}

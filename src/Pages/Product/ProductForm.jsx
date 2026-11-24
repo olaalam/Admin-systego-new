@@ -34,6 +34,10 @@ const ProductForm = ({
   } = useGet("/api/admin/discount");
   const discounts = discountData?.discounts || [];
 
+  const {
+    data: taxesSelectionData,
+  } = useGet("/api/admin/taxes/selection");
+
   const [activeTab, setActiveTab] = useState("general");
   const [allVariations, setAllVariations] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -139,10 +143,25 @@ const ProductForm = ({
       setCategories(data.categories || []);
       setBrands(data.brands || []);
       setAllVariations(data.variations || []);
-      setTaxes(data.taxes || []);
+      if (!taxesSelectionData && data.taxes) {
+        setTaxes(data.taxes || []);
+      }
       setUnits(data.units || []);
     }
-  }, [data]);
+  }, [data, taxesSelectionData]);
+
+  useEffect(() => {
+    if (taxesSelectionData) {
+      const list =
+        taxesSelectionData.taxes ||
+        taxesSelectionData.tax ||
+        taxesSelectionData.data ||
+        (Array.isArray(taxesSelectionData) ? taxesSelectionData : []);
+      if (Array.isArray(list) && list.length > 0) {
+        setTaxes(list);
+      }
+    }
+  }, [taxesSelectionData]);
 
   useEffect(() => {
     if (mode === "edit" && initialData) {
@@ -175,7 +194,12 @@ const ProductForm = ({
             ? initialData.categoryId.map((c) => (c._id ? c._id : c))
             : initialData.categoryId || [],
           brandId: initialData.brandId?._id || initialData.brandId || "",
-          taxesId: initialData.taxesId?._id || initialData.taxesId || "",
+          taxesId:
+            initialData.taxesId?._id ||
+            initialData.taxesId ||
+            initialData.taxId?._id ||
+            initialData.taxId ||
+            "",
           product_unit:
             initialData.product_unit?._id || initialData.product_unit || "",
           purchase_unit:
@@ -641,7 +665,11 @@ const ProductForm = ({
 
         if (payload.categoryId?.length === 0) delete payload.categoryId;
         if (!payload.brandId) delete payload.brandId;
-        if (!payload.taxesId) delete payload.taxesId;
+        if (initialFormStateRef.current?.taxesId && !form.taxesId) {
+          payload.taxesId = null;
+        } else if (!payload.taxesId) {
+          delete payload.taxesId;
+        }
       }
 
       await onSubmit(payload);
