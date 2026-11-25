@@ -277,14 +277,26 @@ const CreateBostaShipmentModal = ({ open, onClose, order, onCreated }) => {
         <div className="p-6 overflow-y-auto flex-1 space-y-5">
           {/* Receiver */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">
-              {t("Receiver")}
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                {t("Receiver")}
+              </p>
+              {!order?.user && (order?.customer_name || order?.customer_phone) && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                  {t("Guest")}
+                </span>
+              )}
+            </div>
             <p className="text-sm font-bold text-slate-900">
-              {order?.user?.name || order?.customer?.name || "—"}
+              {order?.customer_name ||
+                order?.user?.name ||
+                order?.customer?.name ||
+                "—"}
             </p>
             <p className="text-xs text-slate-500 mt-0.5" dir="ltr">
-              {order?.user?.phone_number ||
+              {order?.customer_phone ||
+                order?.user?.phone_number ||
+                order?.user?.phone ||
                 order?.customer?.phone_number ||
                 "—"}
             </p>

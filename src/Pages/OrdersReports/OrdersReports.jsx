@@ -405,6 +405,21 @@ const OrdersReports = () => {
                                         <DetailItem label={t("Note")} value={selectedOrder.note || "—"} />
                                     </DetailSection>
 
+                                    {(selectedOrder.customer_name || selectedOrder.customer_id?.name || selectedOrder.customer_phone || selectedOrder.customer_id?.phone) && (
+                                        <DetailSection title={t("Customer")}>
+                                            <DetailItem
+                                                label={t("Customer Name")}
+                                                value={selectedOrder.customer_name || selectedOrder.customer_id?.name || "—"}
+                                            />
+                                            {(selectedOrder.customer_phone || selectedOrder.customer_id?.phone) && (
+                                                <DetailItem
+                                                    label={t("Customer Phone")}
+                                                    value={selectedOrder.customer_phone || selectedOrder.customer_id?.phone}
+                                                />
+                                            )}
+                                        </DetailSection>
+                                    )}
+
                                     <DetailSection title={t("Warehouse")}>
                                         <DetailItem label={t("Warehouse")} value={selectedOrder.warehouse_id?.name} />
                                     </DetailSection>

@@ -33,7 +33,7 @@ const BulkCreateBostaShipmentsModal = ({ open, onClose, onCreated }) => {
   const fetchOrders = () => {
     setLoadingOrders(true);
     api
-      .get("/api/admin/online-orders")
+      .get("/api/admin/online-orders?limit=100")
       .then((res) => {
         const list = res.data?.data?.orders || res.data?.orders || [];
 
@@ -389,10 +389,37 @@ const BulkCreateBostaShipmentsModal = ({ open, onClose, onCreated }) => {
                               {order.reference}
                             </p>
 
+                            {!order.user && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                {t("Guest")}
+                              </span>
+                            )}
+
                             {!eligible && (
                               <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
                                 <AlertTriangle size={9} />
                                 {t("Missing Bosta address")}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] text-slate-600 mt-0.5 truncate">
+                            <span className="font-semibold text-slate-700">
+                              {order.customer_name ||
+                                order.user?.name ||
+                                order.customer?.name ||
+                                "—"}
+                            </span>
+                            {(order.customer_phone ||
+                              order.user?.phone_number ||
+                              order.user?.phone) && (
+                              <span
+                                className="text-slate-400 font-mono"
+                                dir="ltr"
+                              >
+                                •{" "}
+                                {order.customer_phone ||
+                                  order.user?.phone_number ||
+                                  order.user?.phone}
                               </span>
                             )}
                           </div>

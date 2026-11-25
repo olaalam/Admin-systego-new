@@ -12,6 +12,10 @@ import OrderShippingSection from "@/components/OrderDetail/OrderShippingSection"
 import BulkCreateBostaShipmentsModal from "@/components/OrderDetail/BulkCreateBostaShipmentsModal";
 import CreateDailyPickupModal from "@/components/OrderDetail/CreateDailyPickupModal";
 import {
+  BOSTA_STATUS_GROUPS,
+  BOSTA_STATUS_STYLES,
+} from "@/utils/bostaStatus";
+import {
   CheckCircle2,
   X,
   Clock,
@@ -30,6 +34,9 @@ import {
   MapPin,
   Trash2,
   User,
+  Phone,
+  DollarSign,
+  Receipt,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════
@@ -42,14 +49,7 @@ const getOrderDisplayStatus = (order) => {
 
 // Some carriers return their own status casing (e.g. "Delivered"), while the
 // dashboard filters use the store's snake_case values. Keep both in one filter.
-const STATUS_GROUPS = {
-  pending: ["pending", "PendingPickup"],
-  delivered: ["delivered", "Delivered"],
-  returned: ["returned", "Returned"],
-  failed_to_deliver: ["failed_to_deliver", "Failed to deliver"],
-  out_for_delivery: ["out_for_delivery", "Out for delivery"],
-  canceled: ["canceled", "Cancelled"],
-};
+const STATUS_GROUPS = BOSTA_STATUS_GROUPS;
 
 const matchesStatus = (orderStatus, filter) => {
   if (!filter || filter === "all") return true;
@@ -73,15 +73,7 @@ const STATUS_STYLES = {
   assigned: "bg-indigo-50 text-indigo-700 border-indigo-200/60",
   picked_up: "bg-blue-50 text-blue-700 border-blue-200/60",
   failed: "bg-rose-50 text-rose-700 border-rose-200/60",
-  PendingPickup: "bg-amber-50 text-amber-700 border-amber-200/60",
-  "Pickup requested": "bg-blue-50 text-blue-700 border-blue-200/60",
-  "Picked up": "bg-indigo-50 text-indigo-700 border-indigo-200/60",
-  "In transit": "bg-purple-50 text-purple-700 border-purple-200/60",
-  "Out for delivery": "bg-purple-50 text-purple-700 border-purple-200/60",
-  Delivered: "bg-emerald-50 text-emerald-700 border-emerald-200/60",
-  Cancelled: "bg-red-50 text-red-700 border-red-200/60",
-  "Failed to deliver": "bg-rose-50 text-rose-700 border-rose-200/60",
-  Returned: "bg-orange-50 text-orange-700 border-orange-200/60",
+  ...BOSTA_STATUS_STYLES,
 };
 
 const getStatusStyle = (status) =>
@@ -290,6 +282,88 @@ const FinancialsModal = ({ order, onCancel, loadingDetails, refetch }) => {
               </span>
             </div>
           </div>
+
+          {/* Customer Info Card */}
+          {(() => {
+            const customerName =
+              order.customer_name ||
+              order.user?.name ||
+              order.customer?.name ||
+              "";
+            const customerPhone =
+              order.customer_phone ||
+              order.user?.phone_number ||
+              order.user?.phone ||
+              order.customer?.phone_number ||
+              "";
+            const isGuest = !order.user;
+
+            return (
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className={`p-2.5 rounded-2xl shrink-0 ${
+                      isGuest
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-indigo-100 text-indigo-700"
+                    }`}
+                  >
+                    <User size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-sm font-black text-slate-900 truncate">
+                        {customerName ||
+                          (isGuest
+                            ? t("Guest Customer")
+                            : t("Unknown Customer"))}
+                      </h4>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                          isGuest
+                            ? "bg-amber-100 text-amber-800 border border-amber-200"
+                            : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                        }`}
+                      >
+                        {isGuest
+                          ? t("Guest Order")
+                          : t("Registered Customer")}
+                      </span>
+                    </div>
+                    {customerPhone ? (
+                      <p
+                        className="text-xs text-slate-500 font-mono mt-0.5 flex items-center gap-1.5"
+                        dir="ltr"
+                      >
+                        <Phone size={12} className="text-slate-400 shrink-0" />
+                        <a
+                          href={`tel:${customerPhone}`}
+                          className="hover:text-indigo-600 hover:underline"
+                        >
+                          {customerPhone}
+                        </a>
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {t("No phone provided")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {order.user?.email && (
+                  <div className="text-xs text-slate-500 font-medium sm:text-end shrink-0">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block mb-0.5">
+                      {t("Email")}
+                    </span>
+                    <span className="font-mono text-slate-700">
+                      {order.user.email}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* ✅ Shipping Section */}
           <OrderShippingSection order={order} refetch={refetch} />
@@ -707,11 +781,44 @@ const PaymentEco = () => {
   const canAdd = hasPermission(AppModules.PAYMENT_ECO, "add");
   const canDelete = hasPermission(AppModules.PAYMENT_ECO, "delete");
 
+  const [activeTab, setActiveTab] = useState("all");
+  const [shippingMethod, setShippingMethod] = useState("all");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+
+  const apiUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("limit", String(limit));
+    if (activeTab && activeTab !== "all") {
+      params.set("status", activeTab);
+    }
+    if (shippingMethod && shippingMethod !== "all") {
+      params.set("shippingMethod", shippingMethod);
+    }
+    return `/api/admin/online-orders?${params.toString()}`;
+  }, [page, limit, activeTab, shippingMethod]);
+
   const {
     data: responseData,
     loading,
     refetch,
-  } = useGet("/api/admin/online-orders");
+  } = useGet(apiUrl);
+
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    setPage(1);
+  };
+
+  const handleShippingMethodChange = (newMethod) => {
+    setShippingMethod(newMethod);
+    setPage(1);
+  };
+
+  const handleLimitChange = (newLimit) => {
+    setLimit(Number(newLimit));
+    setPage(1);
+  };
 
   // 🔌 Real-time: refresh orders when an order status changes externally (accept/reject)
   useEffect(() => {
@@ -727,7 +834,6 @@ const PaymentEco = () => {
     };
   }, [refetch]);
 
-  const [activeTab, setActiveTab] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
@@ -774,11 +880,37 @@ const PaymentEco = () => {
     }
   };
 
+  const orders = useMemo(() => {
+    if (!responseData) return [];
+    if (Array.isArray(responseData.orders)) return responseData.orders;
+    if (Array.isArray(responseData)) return responseData;
+    return [];
+  }, [responseData]);
+
+  const pagination = responseData?.pagination || null;
+  const summary = responseData?.summary || null;
+
+  const paginationConfig = useMemo(() => {
+    if (!pagination) return null;
+    return {
+      page: pagination.page || page,
+      limit: pagination.limit || limit,
+      total: pagination.total ?? orders.length,
+      pages:
+        pagination.pages ||
+        Math.ceil(
+          (pagination.total || orders.length) / (pagination.limit || limit),
+        ),
+      onPageChange: (newPage) => setPage(newPage),
+      onLimitChange: (newLimit) => handleLimitChange(newLimit),
+    };
+  }, [pagination, page, limit, orders.length]);
+
   // Keep selectedOrder in sync
   useEffect(() => {
     if (!selectedOrder?._id) return;
-    if (!responseData?.orders) return;
-    const freshOrder = responseData.orders.find(
+    if (!orders.length) return;
+    const freshOrder = orders.find(
       (o) => o._id === selectedOrder._id,
     );
     if (freshOrder) {
@@ -787,7 +919,7 @@ const PaymentEco = () => {
         bostaShipment: freshOrder.bostaShipment || prev?.bostaShipment,
       }));
     }
-  }, [responseData]);
+  }, [orders]);
 
   const statusOptions = [
     {
@@ -801,6 +933,12 @@ const PaymentEco = () => {
       label: t("Pending"),
       icon: Clock,
       color: "text-amber-600",
+    },
+    {
+      id: "confirmed",
+      label: t("Confirmed"),
+      icon: CheckCircle2,
+      color: "text-blue-600",
     },
     {
       id: "processing",
@@ -821,18 +959,24 @@ const PaymentEco = () => {
       color: "text-emerald-600",
     },
     {
-      id: "failed_to_deliver",
-      label: t("Failed to Deliver"),
-      icon: AlertTriangle,
-      color: "text-rose-600",
+      id: "scheduled",
+      label: t("Scheduled"),
+      icon: Calendar,
+      color: "text-teal-600",
     },
-    { id: "canceled", label: t("Canceled"), icon: X, color: "text-red-600" },
     {
       id: "returned",
       label: t("Returned"),
       icon: RotateCcw,
       color: "text-orange-600",
     },
+    {
+      id: "failed_to_deliver",
+      label: t("Failed to Deliver"),
+      icon: AlertTriangle,
+      color: "text-rose-600",
+    },
+    { id: "canceled", label: t("Canceled"), icon: X, color: "text-red-600" },
     {
       id: "PendingPickup",
       label: t("Pending Pickup"),
@@ -861,17 +1005,25 @@ const PaymentEco = () => {
   ];
 
   const displayData = useMemo(() => {
-    if (!responseData?.orders) return [];
-    if (activeTab === "all") return responseData.orders;
-    return responseData.orders.filter((order) =>
-      matchesStatus(getOrderDisplayStatus(order), activeTab),
-    );
-  }, [responseData, activeTab]);
+    if (!orders) return [];
+    if (!pagination && activeTab !== "all") {
+      return orders.filter((order) =>
+        matchesStatus(getOrderDisplayStatus(order), activeTab),
+      );
+    }
+    return orders;
+  }, [orders, pagination, activeTab]);
 
   const getStatusCount = (status) => {
-    if (!responseData?.orders) return 0;
-    if (status === "all") return responseData.orders.length;
-    return responseData.orders.filter((order) =>
+    if (pagination && status === activeTab) {
+      return pagination.total;
+    }
+    if (pagination && status === "all" && activeTab === "all") {
+      return pagination.total;
+    }
+    if (!orders) return 0;
+    if (status === "all") return orders.length;
+    return orders.filter((order) =>
       matchesStatus(getOrderDisplayStatus(order), status),
     ).length;
   };
@@ -886,6 +1038,54 @@ const PaymentEco = () => {
             #{val?.slice(-6).toUpperCase()}
           </span>
         ),
+      },
+      {
+        key: "customer",
+        header: t("Customer"),
+        render: (_, item) => {
+          const name =
+            item.customer_name ||
+            item.user?.name ||
+            item.customer?.name ||
+            "—";
+          const phone =
+            item.customer_phone ||
+            item.user?.phone_number ||
+            item.user?.phone ||
+            item.customer?.phone_number ||
+            "";
+          const isGuest = !item.user;
+
+          return (
+            <div className="flex flex-col gap-0.5 max-w-[180px]">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span
+                  className="font-bold text-xs text-slate-800 truncate max-w-[120px]"
+                  title={name}
+                >
+                  {name}
+                </span>
+                {isGuest ? (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200/70">
+                    {t("Guest")}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                    {t("Registered")}
+                  </span>
+                )}
+              </div>
+              {phone && (
+                <span
+                  className="text-[11px] text-slate-500 font-mono tracking-tight"
+                  dir="ltr"
+                >
+                  {phone}
+                </span>
+              )}
+            </div>
+          );
+        },
       },
       {
         key: "totalPriceAfterDiscount",
@@ -1145,84 +1345,161 @@ const PaymentEco = () => {
             </div>
             )}
           </div>
+        </div>
 
-          <div className="grid grid-cols-3 gap-3 w-full lg:w-auto">
-            <div className="bg-white p-3.5 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
-                <ShoppingBag size={18} />
-              </div>
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">
-                  {t("Total")}
-                </p>
-                <p className="text-base font-black text-slate-900">
-                  {getStatusCount("all")}
-                </p>
-              </div>
+        {/* Summary Metrics */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+          {/* 1. Total Orders */}
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-3">
+            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
+              <ShoppingBag size={18} />
             </div>
-            <div className="bg-white p-3.5 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-3">
-              <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
-                <Clock size={18} />
-              </div>
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">
-                  {t("Pending")}
-                </p>
-                <p className="text-base font-black text-slate-900">
-                  {getStatusCount("pending")}
-                </p>
-              </div>
+            <div className="min-w-0">
+              <p className="text-[10px] text-slate-400 font-bold uppercase truncate">
+                {t("Total Orders")}
+              </p>
+              <p className="text-base font-black text-slate-900 truncate">
+                {(pagination?.total ?? orders.length).toLocaleString()}
+              </p>
             </div>
-            <div className="bg-white p-3.5 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
-                <CheckCircle2 size={18} />
-              </div>
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">
-                  {t("Delivered")}
-                </p>
-                <p className="text-base font-black text-slate-900">
-                  {getStatusCount("delivered")}
-                </p>
-              </div>
+          </div>
+
+          {/* 2. Total Sales / Revenue */}
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl shrink-0">
+              <DollarSign size={18} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] text-slate-400 font-bold uppercase truncate">
+                {t("Total Sales")}
+              </p>
+              <p className="text-base font-black text-emerald-600 truncate">
+                {summary?.total !== undefined
+                  ? `${Number(summary.total).toLocaleString()} ${t("EGP")}`
+                  : "—"}
+              </p>
+            </div>
+          </div>
+
+          {/* 3. Total Shipping */}
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-3">
+            <div className="p-2.5 bg-orange-50 text-orange-600 rounded-xl shrink-0">
+              <Truck size={18} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] text-slate-400 font-bold uppercase truncate">
+                {t("Total Shipping")}
+              </p>
+              <p className="text-base font-black text-slate-900 truncate">
+                {summary?.totalShippingPrice !== undefined
+                  ? `${Number(summary.totalShippingPrice).toLocaleString()} ${t("EGP")}`
+                  : "—"}
+              </p>
+            </div>
+          </div>
+
+          {/* 4. Total Tax Amount */}
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-3">
+            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl shrink-0">
+              <Receipt size={18} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] text-slate-400 font-bold uppercase truncate">
+                {t("Total Tax")}
+              </p>
+              <p className="text-base font-black text-slate-900 truncate">
+                {summary?.totalTaxAmount !== undefined
+                  ? `${Number(summary.totalTaxAmount).toLocaleString()} ${t("EGP")}`
+                  : "—"}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Filter */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <Filter size={16} className="text-slate-400 shrink-0" />
-            <span className="text-xs font-bold text-slate-600 whitespace-nowrap">
-              {t("Filter Status:")}
-            </span>
-            <div className="relative w-full md:w-64">
-              <select
-                value={activeTab}
-                onChange={(e) => setActiveTab(e.target.value)}
-                className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-3.5 py-2.5 pr-8 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all cursor-pointer"
-              >
-                {statusOptions.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.label} ({getStatusCount(opt.id)})
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={14}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-              />
+        {/* Filters */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 w-full xl:w-auto flex-wrap">
+            {/* Status Filter */}
+            <div className="flex items-center gap-2">
+              <Filter size={15} className="text-slate-400 shrink-0" />
+              <span className="text-xs font-bold text-slate-600 whitespace-nowrap">
+                {t("Status")}:
+              </span>
+              <div className="relative w-40 md:w-48">
+                <select
+                  value={activeTab}
+                  onChange={(e) => handleTabChange(e.target.value)}
+                  className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-3 py-2 pr-7 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all cursor-pointer"
+                >
+                  {statusOptions.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={14}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
+              </div>
+            </div>
+
+            {/* Shipping Method Filter */}
+            <div className="flex items-center gap-2">
+              <Truck size={15} className="text-slate-400 shrink-0" />
+              <span className="text-xs font-bold text-slate-600 whitespace-nowrap">
+                {t("Shipping")}:
+              </span>
+              <div className="relative w-36 md:w-40">
+                <select
+                  value={shippingMethod}
+                  onChange={(e) => handleShippingMethodChange(e.target.value)}
+                  className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-3 py-2 pr-7 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all cursor-pointer"
+                >
+                  <option value="all">{t("All Methods")}</option>
+                  <option value="self">{t("Self Delivery")}</option>
+                  <option value="bosta">{t("Bosta")}</option>
+                </select>
+                <ChevronDown
+                  size={14}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
+              </div>
+            </div>
+
+            {/* Per Page */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-600 whitespace-nowrap">
+                {t("Per Page")}:
+              </span>
+              <div className="relative w-24">
+                <select
+                  value={limit}
+                  onChange={(e) => handleLimitChange(e.target.value)}
+                  className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-3 py-2 pr-7 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all cursor-pointer"
+                >
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                <ChevronDown
+                  size={14}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto no-scrollbar pb-1 md:pb-0">
-            {statusOptions.slice(0, 5).map((opt) => {
+          {/* Quick status pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full xl:w-auto no-scrollbar pb-1 xl:pb-0">
+            {statusOptions.slice(0, 6).map((opt) => {
               const Icon = opt.icon;
               const isActive = activeTab === opt.id;
               return (
                 <button
                   key={opt.id}
-                  onClick={() => setActiveTab(opt.id)}
+                  onClick={() => handleTabChange(opt.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
                     isActive
                       ? "bg-slate-900 text-white shadow-sm"
@@ -1256,6 +1533,7 @@ const PaymentEco = () => {
               )}`}
               showActions={false}
               moduleName={AppModules.PAYMENT_ECO}
+              paginationConfig={paginationConfig}
             />
           </div>
         )}

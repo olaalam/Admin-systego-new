@@ -3,18 +3,7 @@ import { X, Truck, Loader2, RefreshCw, AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import api from "@/api/api";
-
-const BOSTA_STATUS_OPTIONS = [
-  "PendingPickup",
-  "Pickup requested",
-  "Picked up",
-  "In transit",
-  "Out for delivery",
-  "Delivered",
-  "Cancelled",
-  "Failed to deliver",
-  "Returned",
-];
+import { BOSTA_STATUS_LIST } from "@/utils/bostaStatus";
 
 const UpdateBostaStatusModal = ({
   open,
@@ -113,9 +102,9 @@ const UpdateBostaStatusModal = ({
               onChange={(e) => setSelected(e.target.value)}
               className="w-full bg-white border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
             >
-              {BOSTA_STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s}>
-                  {t(s)}
+              {BOSTA_STATUS_LIST.map((s) => (
+                <option key={s.code} value={s.status}>
+                  {t(s.status)} ({s.code})
                 </option>
               ))}
             </select>

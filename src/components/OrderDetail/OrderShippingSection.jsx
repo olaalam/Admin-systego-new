@@ -19,6 +19,11 @@ import {
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import api from "@/api/api";
+import {
+  isBostaCancelledStatus,
+  isBostaDeliveredStatus,
+  isBostaReturnedStatus,
+} from "@/utils/bostaStatus";
 import AssignDeliveryManModal from "./AssignDeliveryManModal";
 import UpdateDeliveryStatusModal from "./UpdateDeliveryStatusModal";
 import CreateBostaShipmentModal from "./CreateBostaShipmentModal";
@@ -42,9 +47,11 @@ const OrderShippingSection = ({ order, refetch }) => {
   const bosta = order.bostaShipment;
   const warehouse = self?.warehouseId;
 
-  const isBostaCancelled = bosta?.status === "Cancelled";
-  const isBostaDelivered = bosta?.status === "Delivered";
-  const isBostaTerminal = isBostaCancelled || isBostaDelivered;
+  const isBostaCancelled = isBostaCancelledStatus(bosta);
+  const isBostaDelivered = isBostaDeliveredStatus(bosta);
+  const isBostaReturned = isBostaReturnedStatus(bosta);
+  const isBostaTerminal =
+    isBostaCancelled || isBostaDelivered || isBostaReturned;
 
   // ═══════════════════════════════════════════════════════════
   // SELF: Accept Order
@@ -377,8 +384,18 @@ const OrderShippingSection = ({ order, refetch }) => {
                 />
                 <InfoRow
                   label={t("Courier Status")}
-                  value={t(bosta.status || "N/A")}
+                  value={
+                    bosta.statusCode
+                      ? `${t(bosta.status || "N/A")} (${bosta.statusCode})`
+                      : t(bosta.status || "N/A")
+                  }
                 />
+                {order.statusDescription && (
+                  <InfoRow
+                    label={t("Status Details")}
+                    value={order.statusDescription}
+                  />
+                )}
                 {bosta.cod > 0 && (
                   <InfoRow
                     label={t("COD")}
@@ -415,17 +432,24 @@ const OrderShippingSection = ({ order, refetch }) => {
                 </div>
               )}
 
-              {/* Cancelled / Delivered Banner */}
+              {/* Cancelled / Delivered / Returned Banner */}
               {isBostaTerminal && (
                 <div
                   className={`mt-3 p-3 rounded-xl border flex items-start gap-2 ${
                     isBostaCancelled
                       ? "bg-red-50 border-red-100"
-                      : "bg-emerald-50 border-emerald-100"
+                      : isBostaReturned
+                        ? "bg-orange-50 border-orange-100"
+                        : "bg-emerald-50 border-emerald-100"
                   }`}
                 >
                   {isBostaCancelled ? (
                     <X size={14} className="text-red-600 shrink-0 mt-0.5" />
+                  ) : isBostaReturned ? (
+                    <AlertTriangle
+                      size={14}
+                      className="text-orange-600 shrink-0 mt-0.5"
+                    />
                   ) : (
                     <CheckCircle2
                       size={14}
@@ -435,16 +459,26 @@ const OrderShippingSection = ({ order, refetch }) => {
                   <div className="flex-1">
                     <p
                       className={`text-[11px] font-bold ${
-                        isBostaCancelled ? "text-red-900" : "text-emerald-900"
+                        isBostaCancelled
+                          ? "text-red-900"
+                          : isBostaReturned
+                            ? "text-orange-900"
+                            : "text-emerald-900"
                       }`}
                     >
                       {isBostaCancelled
                         ? t("This shipment is cancelled")
-                        : t("This shipment is delivered")}
+                        : isBostaReturned
+                          ? t("This shipment is returned")
+                          : t("This shipment is delivered")}
                     </p>
                     <p
                       className={`text-[10px] mt-0.5 ${
-                        isBostaCancelled ? "text-red-700" : "text-emerald-700"
+                        isBostaCancelled
+                          ? "text-red-700"
+                          : isBostaReturned
+                            ? "text-orange-700"
+                            : "text-emerald-700"
                       }`}
                     >
                       {t(
@@ -493,9 +527,11 @@ const OrderShippingSection = ({ order, refetch }) => {
                   title={
                     isBostaCancelled
                       ? t("Shipment is already cancelled")
-                      : isBostaDelivered
-                        ? t("Cannot cancel a delivered shipment")
-                        : t("Cancel Shipment")
+                      : isBostaReturned
+                        ? t("Shipment is already returned")
+                        : isBostaDelivered
+                          ? t("Cannot cancel a delivered shipment")
+                          : t("Cancel Shipment")
                   }
                 >
                   <X size={12} />
@@ -601,16 +637,17 @@ const BostaTrackingHistoryModal = ({ open, onClose, shipment }) => {
                 <div key={idx} className="relative">
                   <div className="absolute -start-[31px] top-1 w-4 h-4 rounded-full bg-indigo-500 border-4 border-white shadow-sm" />
                   <p className="text-xs font-bold text-slate-800">
-                    {entry.status || "—"}
+                    {entry.status ? t(entry.status) : "—"}
+                    {entry.statusCode ? ` (${entry.statusCode})` : ""}
                   </p>
                   <p className="text-[10px] text-slate-400 font-mono mt-0.5">
                     {entry.snapshotAt
                       ? new Date(entry.snapshotAt).toLocaleString()
                       : ""}
                   </p>
-                  {entry.data?.description && (
+                  {(entry.data?.description || entry.data?.exceptionReason) && (
                     <p className="text-[11px] text-slate-600 mt-1">
-                      {entry.data.description}
+                      {entry.data.exceptionReason || entry.data.description}
                     </p>
                   )}
                 </div>

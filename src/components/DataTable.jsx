@@ -46,6 +46,7 @@ export default function DataTable({
   extraActions = null,
   onTrash = null,
   trashCount = null,
+  paginationConfig = null,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -127,9 +128,37 @@ export default function DataTable({
     return filtered;
   }, [safeData, searchTerm, selectedFilters, selectedCustomFilters, onSearchApi]);
 
-  const startIndex = (currentPage - 1) * itemsPerPageState;
-  const endIndex = startIndex + itemsPerPageState;
-  const currentData = filteredData.slice(startIndex, endIndex);
+  const isServerPagination = Boolean(paginationConfig);
+  const activePage = isServerPagination
+    ? Number(paginationConfig.page || 1)
+    : currentPage;
+  const activeLimit = isServerPagination
+    ? Number(paginationConfig.limit || itemsPerPageState)
+    : itemsPerPageState;
+  const activeTotal = isServerPagination
+    ? Number(paginationConfig.total ?? safeData.length)
+    : filteredData.length;
+  const totalPages = isServerPagination
+    ? Number(
+        paginationConfig.pages ||
+          Math.ceil(activeTotal / (activeLimit || 20)) ||
+          1,
+      )
+    : Math.ceil(filteredData.length / itemsPerPageState);
+
+  const startIndex = (activePage - 1) * activeLimit;
+  const endIndex = startIndex + activeLimit;
+  const currentData = isServerPagination
+    ? filteredData
+    : filteredData.slice(startIndex, endIndex);
+
+  const handlePageChange = (newPage) => {
+    if (isServerPagination) {
+      paginationConfig.onPageChange?.(newPage);
+    } else {
+      setCurrentPage(newPage);
+    }
+  };
 
   // Selection helpers
   const toggleRow = (id) => {
@@ -176,7 +205,6 @@ export default function DataTable({
     return [...new Set(values)];
   };
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPageState);
   const highlightedId = useMemo(() => {
     const params = new URLSearchParams(location.search);
     return params.get("highlight") || "";
@@ -604,62 +632,74 @@ export default function DataTable({
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {(totalPages > 1 || (isServerPagination && activeTotal > 0)) && (
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="text-sm text-gray-600">
-                {t("dataTable.showing")} <span className="font-medium">{startIndex + 1}</span> {t("dataTable.to")}{" "}
+                {t("dataTable.showing")}{" "}
                 <span className="font-medium">
-                  {Math.min(endIndex, filteredData.length)}
+                  {activeTotal === 0 ? 0 : startIndex + 1}
                 </span>{" "}
-                {t("dataTable.of")}{" "} <span className="font-medium">{filteredData.length}</span>{" "}
-                {t("dataTable.results")}              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  disabled={currentPage === 1}
-                  className="p-2 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => setCurrentPage(pageNum)}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
-                          ? "bg-primary text-white"
-                          : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-300"
-                          }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </div>
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronRight size={16} />
-                </button>
+                {t("dataTable.to")}{" "}
+                <span className="font-medium">
+                  {Math.min(endIndex, activeTotal)}
+                </span>{" "}
+                {t("dataTable.of")}{" "}
+                <span className="font-medium">{activeTotal}</span>{" "}
+                {t("dataTable.results")}
               </div>
+              {totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() =>
+                      handlePageChange(Math.max(activePage - 1, 1))
+                    }
+                    disabled={activePage === 1}
+                    className="p-2 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from(
+                      { length: Math.min(5, totalPages) },
+                      (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (activePage <= 3) {
+                          pageNum = i + 1;
+                        } else if (activePage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = activePage - 2 + i;
+                        }
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                              activePage === pageNum
+                                ? "bg-primary text-white"
+                                : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-300"
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      },
+                    )}
+                  </div>
+                  <button
+                    onClick={() =>
+                      handlePageChange(Math.min(activePage + 1, totalPages))
+                    }
+                    disabled={activePage === totalPages}
+                    className="p-2 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

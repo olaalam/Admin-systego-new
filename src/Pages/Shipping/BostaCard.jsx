@@ -11,7 +11,11 @@ import {
   Settings2,
   DollarSign,
   Percent,
+  Webhook,
+  Copy,
+  Check,
 } from "lucide-react";
+import api from "@/api/api";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -34,6 +38,16 @@ const BostaCard = ({ form, setForm, onSave, saving, canEdit = true }) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [copiedWebhook, setCopiedWebhook] = useState(false);
+
+  const bostaWebhookUrl = `${(api.defaults.baseURL || "https://bcknd.systego.net").replace(/\/$/, "")}/api/store/shipping/bosta/webhook`;
+
+  const handleCopyWebhook = () => {
+    navigator.clipboard.writeText(bostaWebhookUrl);
+    setCopiedWebhook(true);
+    toast.success(t("Copied!"));
+    setTimeout(() => setCopiedWebhook(false), 2000);
+  };
 
   const { postData, loading: testing } = usePost(
     "/api/admin/shipping/bosta/test",
@@ -144,6 +158,42 @@ const BostaCard = ({ form, setForm, onSave, saving, canEdit = true }) => {
                 <SelectItem value="production">Production</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* 🔗 BOSTA WEBHOOK URL */}
+          <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Webhook size={14} className="text-blue-600 shrink-0" />
+              <p className="text-xs font-bold text-blue-900">
+                {t("Bosta Webhook URL")}
+              </p>
+            </div>
+            <p className="text-[10px] text-blue-700 mb-2">
+              {t("Paste this URL in your Bosta dashboard to receive automatic status updates.")}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Input
+                type="text"
+                readOnly
+                value={bostaWebhookUrl}
+                dir="ltr"
+                className="font-mono text-[11px] bg-white text-slate-700 h-8"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyWebhook}
+                className="h-8 px-2.5 shrink-0 bg-white"
+                title={t("Copy")}
+              >
+                {copiedWebhook ? (
+                  <Check size={13} className="text-emerald-600" />
+                ) : (
+                  <Copy size={13} />
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* 💵 SHIPPING MARKUP */}
